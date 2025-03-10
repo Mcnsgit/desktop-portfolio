@@ -1,0 +1,133 @@
+// components/projects/WeatherApp/WeatherApp.module.scss
+.weatherApp {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    font-family: 'MS Sans Serif', 'Segoe UI', Tahoma, sans-serif;
+
+    .title {
+        background-color: #000080;
+        color: white;
+        margin: 0 0 10px 0;
+        padding: 5px 10px;
+        font-size: 16px;
+        font-weight: bold;
+    }
+
+    .searchForm {
+        display: flex;
+        margin-bottom: 15px;
+
+        .input {
+            flex: 1;
+            padding: 5px 10px;
+            border: 2px solid;
+            border-color: #555 #fff #fff #555;
+            background-color: white;
+            font-size: 14px;
+
+            &:focus {
+                outline: none;
+            }
+        }
+
+        .searchButton {
+            background-color: #c0c0c0;
+            border-top: 2px solid #fff;
+            border-left: 2px solid #fff;
+            border-right: 2px solid #555;
+            border-bottom: 2px solid #555;
+            padding: 5px 10px;
+            font-size: 14px;
+            margin-left: 5px;
+            cursor: pointer;
+
+            &:active {
+                border-color: #555 #fff #fff #555;
+            }
+
+            &:disabled {
+                color: #777;
+                cursor: not-allowed;
+            }
+        }
+    }
+
+    .error {
+        color: #ff0000;
+        background-color: #ffeeee;
+        border: 1px solid #ffcccc;
+        padding: 8px;
+        margin-bottom: 15px;
+        font-size: 14px;
+    }
+
+    .weatherInfo {
+        border: 2px solid;
+        border-color: #555 #fff #fff #555;
+        background-color: #f0f0f0;
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        .location {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .mainInfo {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+
+            .icon {
+                font-size: 48px;
+                margin-right: 15px;
+            }
+
+            .temperature {
+                font-size: 32px;
+                font-weight: bold;
+            }
+        }
+
+        .description {
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .details {
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            border-top: 1px solid #ccc;
+            padding-top: 10px;
+
+            .detailItem {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+
+                .label {
+                    font-size: 12px;
+                    color: #666;
+                }
+
+                .value {
+                    font-size: 16px;
+                    font-weight: bold;
+                }
+            }
+        }
+    }
+
+    .initialMessage {
+        text-align: center;
+        color: #666;
+        margin-top: 30px;
+        font-style: italic;
+    }
+}

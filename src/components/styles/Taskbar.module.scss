@@ -1,0 +1,101 @@
+// styles/Taskbar.module.scss
+.taskbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 30px;
+    background-color: #c0c0c0;
+    border-top: 1px solid #fff;
+    display: flex;
+    align-items: center;
+    padding: 0 2px;
+    z-index: 1000;
+    box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.1);
+
+    .startButton {
+        background-color: #c0c0c0;
+        border-top: 1px solid #fff;
+        border-left: 1px solid #fff;
+        border-right: 1px solid #555;
+        border-bottom: 1px solid #555;
+        padding: 1px 8px;
+        margin-right: 6px;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        font-weight: bold;
+        font-size: 12px;
+        cursor: pointer;
+
+        &:active {
+            border-top: 1px solid #555;
+            border-left: 1px solid #555;
+            border-right: 1px solid #fff;
+            border-bottom: 1px solid #fff;
+        }
+    }
+
+    .windowButtons {
+        display: flex;
+        flex: 1;
+        height: 22px;
+        overflow-x: auto;
+        margin: 0 4px;
+
+        &::-webkit-scrollbar {
+            height: 0;
+            display: none;
+        }
+
+        .windowButton {
+            background-color: #c0c0c0;
+            border-top: 1px solid #fff;
+            border-left: 1px solid #fff;
+            border-right: 1px solid #555;
+            border-bottom: 1px solid #555;
+            padding: 1px 8px;
+            margin-right: 4px;
+            min-width: 100px;
+            max-width: 150px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+
+            &.active {
+                border-top: 1px solid #555;
+                border-left: 1px solid #555;
+                border-right: 1px solid #fff;
+                border-bottom: 1px solid #fff;
+                background-color: #d1d1d1;
+            }
+
+            span {
+                margin-left: 5px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        }
+    }
+
+    .systemTray {
+        display: flex;
+        align-items: center;
+        height: 22px;
+        border-top: 1px solid #555;
+        border-left: 1px solid #555;
+        border-right: 1px solid #fff;
+        border-bottom: 1px solid #fff;
+        padding: 0 8px;
+
+        .clock {
+            font-size: 12px;
+        }
+    }
+}

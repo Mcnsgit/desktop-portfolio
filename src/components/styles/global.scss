@@ -1,0 +1,73 @@
+// styles/globals.scss
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&display=swap');
+
+:root {
+    --win95-blue: #000080;
+    --win95-gray: #c0c0c0;
+    --win95-dark: #808080;
+    --win95-light: #ffffff;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body {
+    padding: 0;
+    margin: 0;
+    font-family: 'MS Sans Serif', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden;
+    height: 100%;
+    width: 100%;
+}
+
+@font-face {
+    font-family: 'MS Sans Serif';
+    src: url('/fonts/ms-sans-serif.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+}
+
+.win95-button {
+    background-color: var(--win95-gray);
+    border-top: 2px solid var(--win95-light);
+    border-left: 2px solid var(--win95-light);
+    border-right: 2px solid var(--win95-dark);
+    border-bottom: 2px solid var(--win95-dark);
+    padding: 4px 10px;
+    font-family: 'MS Sans Serif', 'Segoe UI', Tahoma, sans-serif;
+    font-size: 12px;
+
+    &:active {
+        border-top: 2px solid var(--win95-dark);
+        border-left: 2px solid var(--win95-dark);
+        border-right: 2px solid var(--win95-light);
+        border-bottom: 2px solid var(--win95-light);
+    }
+}
+
+.win95-inset {
+    border: 2px solid;
+    border-color: var(--win95-dark) var(--win95-light) var(--win95-light) var(--win95-dark);
+    background-color: white;
+}
+
+.win95-outset {
+    border: 2px solid;
+    border-color: var(--win95-light) var(--win95-dark) var(--win95-dark) var(--win95-light);
+    background-color: var(--win95-gray);
+}
+
+// Make code blocks look like DOS/command prompt
+code {
+    font-family: 'IBM Plex Mono', monospace;
+    background-color: #000;
+    color: #0f0;
+    padding: 10px;
+    display: block;
+    border: 1px solid var(--win95-dark);
+    overflow-x: auto;
+}

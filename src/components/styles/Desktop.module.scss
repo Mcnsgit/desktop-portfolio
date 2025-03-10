@@ -1,0 +1,18 @@
+// styles/Desktop.module.scss
+.desktop {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+    font-family: 'MS Sans Serif', 'Segoe UI', Tahoma, sans-serif;
+    font-size: 12px;
+
+    .iconsContainer {
+        position: relative;
+        width: 100%;
+        height: calc(100% - 30px); // Subtract taskbar height
+        padding: 10px;
+    }
+}
