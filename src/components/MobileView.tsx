@@ -2,6 +2,7 @@
 import React from 'react';
 import { useDesktop } from '../context/DesktopContext';
 import styles from './styles/MobileView.module.scss';
+import Image from 'next/image';
 
 const MobileView: React.FC = () => {
   const { state, dispatch } = useDesktop();
@@ -16,7 +17,7 @@ const MobileView: React.FC = () => {
         payload: {
           id: `project-${project.id}`,
           title: project.title,
-          content: project,
+          content: project.content,
           minimized: false,
           position: { x: 0, y: 0 }, // Full screen on mobile
         }
@@ -48,7 +49,7 @@ const MobileView: React.FC = () => {
           className={styles.projectCard}
           onClick={openAboutMe}
         >
-          <img src="/icons/about.png" alt="About Me" className={styles.projectIcon} />
+          <Image src="/icons/about.png" alt="About Me" className={styles.projectIcon} />
           <h3>About Me</h3>
           <p>Learn more about who I am</p>
         </div>
@@ -59,7 +60,7 @@ const MobileView: React.FC = () => {
             className={styles.projectCard}
             onClick={() => handleProjectClick(project.id)}
           >
-            <img src={project.icon} alt={project.title} className={styles.projectIcon} />
+            <Image src={project.icon} alt={project.title} className={styles.projectIcon} />
             <h3>{project.title}</h3>
             <p>{project.description.slice(0, 50)}...</p>
           </div>
