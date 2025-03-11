@@ -15,7 +15,7 @@ const AboutWindow: React.FC = () => {
       <div className={styles.section}>
         <h3>About Me</h3>
         <p>
-          Hello! I'm a passionate web developer with expertise in building 
+          Hello! I&apos;m a passionate web developer with expertise in building 
           modern, responsive web applications. I enjoy solving complex problems 
           and creating intuitive user experiences.
         </p>

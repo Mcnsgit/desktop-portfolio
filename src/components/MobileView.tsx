@@ -49,7 +49,7 @@ const MobileView: React.FC = () => {
           className={styles.projectCard}
           onClick={openAboutMe}
         >
-          <Image src="/icons/about.png" alt="About Me" className={styles.projectIcon} />
+          <Image src="/icons/about.png" width={24} height={24} alt="About Me" className={styles.projectIcon} />
           <h3>About Me</h3>
           <p>Learn more about who I am</p>
         </div>
@@ -60,7 +60,7 @@ const MobileView: React.FC = () => {
             className={styles.projectCard}
             onClick={() => handleProjectClick(project.id)}
           >
-            <Image src={project.icon} alt={project.title} className={styles.projectIcon} />
+            <Image src={project.icon} alt={project.title} width={24} height={24} className={styles.projectIcon} />
             <h3>{project.title}</h3>
             <p>{project.description.slice(0, 50)}...</p>
           </div>

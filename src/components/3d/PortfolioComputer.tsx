@@ -1,15 +1,117 @@
+
 import React, { Suspense, useEffect, useState, useRef } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { 
-  OrbitControls, 
-  Preload, 
-  useGLTF, 
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls, Preload, useGLTF } from "@react-three/drei";
+import CanvasLoader from "./Loader";
+import * as THREE from "three";
+
+interface ComputerModelProps {
+  onZoomIn: () => void;
+}
+const ComputerModel: React.FC<ComputerModelProps> = ({ onZoomIn }) => {
+  const computer = useGLTF("./desktop_pc/scene.gltf");
+  const modelRef = useRef<THREE.Group>(null);
+  const handleModelClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onZoomIn();
+  };
+  return (
+    <group ref={modelRef} onClick={handleModelClick} dispose={null}>
+      <hemisphereLight intensity={0.15} groundColor="black" />
+      <spotLight
+        position={[-20, 50, 10]}
+        angle={0.12}
+        penumbra={1}
+        intensity={1}
+        castShadow
+        shadow-mapSize={1024}
+      />
+      <pointLight intensity={1} />
+      <primitive
+        object={computer.scene}
+        scale={0.75}
+        position={[0, -3.25, -1.5]}
+        rotation={[-0.01, -0.2, -0.1]}
+      />
+    </group>
+  );
+};
+// Main component that manages the 3D view and transitions to desktop
+const PortfolioComputer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia("(max-width: 768px)").matches);
+  // Handle responsive layout
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 768px)");
+    const handleMediaQueryChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mediaQuery.addEventListener("change", handleMediaQueryChange);
+    return () => mediaQuery.removeEventListener("change", handleMediaQueryChange);
+  }, []);
+  const handleZoomIn = () => setIsZoomed(true);
+  const handleZoomOut = () => setIsZoomed(false);
+  if (isMobile) {
+    return <>{children}</>; // Return children directly for mobile
+  }
+  return (
+    <div className="portfolio-computer" style={{ position: 'relative', width: '100%', height: '100vh' }}>
+      {!isZoomed ? (
+        <Canvas
+          frameloop="demand"
+          shadows
+          dpr={[1, 2]}
+          camera={{ position: [20, 3, 5], fov: 25 }}
+          gl={{ preserveDrawingBuffer: true }}
+        >
+          <Suspense fallback={<CanvasLoader />}>
+            <OrbitControls
+              enableZoom={true}
+              maxPolarAngle={Math.PI / 2}
+              minPolarAngle={Math.PI / 4}
+              enablePan={true}
+              autoRotate={true}
+              autoRotateSpeed={0.5}
+            />
+            <ComputerModel onZoomIn={handleZoomIn} />
+          </Suspense>
+          <Preload all />
+        </Canvas>
+      ) : (
+        <div className="zoomed-interface" style={{ width: '100%', height: '100%', position: 'relative' }}>
+          <button
+            onClick={handleZoomOut}
+            className="back-button"
+            aria-label="Back to 3D View"
+            style={{
+              position: 'absolute',
+              top: '20px',
+              right: '20px',
+              zIndex: 1000,
+              padding: '5px 10px',
+              backgroundColor: '#c0c0c0',
+              border: '2px solid',
+              borderColor: '#dfdfdf #808080 #808080 #dfdfdf',
+              fontFamily: 'MS Sans Serif, sans-serif',
+              fontSize: '12px',
+              cursor: 'pointer',
+            }}
+          >
+            Back to 3D View
+          </button>
+          {children}
+        </div>
+      )}
+    </div>
+  );
+};
+export default PortfolioComputer;
+
+// import React, { Suspense, useEffect, useState, useRef } from "react";
+// import { Canvas, useFrame, useThree } from "@react-three/fiber";
   // Html,
   // PerspectiveCamera,
   // useTexture
-} from "@react-three/drei";
+
 // import * as THREE from 'three';
-import CanvasLoader from "./Loader";
 
 
   // // Find the screen mesh in the model
@@ -61,102 +163,3 @@ import CanvasLoader from "./Loader";
 
 
 // Computer model component
-const ComputerModel = ({ onZoomIn }) => {
-  const computer = useGLTF("./desktop_pc/scene.gltf");
-  const modelRef = useRef();
-  const handleModelClick = (e) => {
-    e.stopPropagation();
-    onZoomIn();
-  };
-  return (
-    <group 
-      ref={modelRef} 
-      onClick={handleModelClick}
-      dispose={null}
-    >
-      <hemisphereLight intensity={0.15} groundColor="black" />
-      <spotLight
-        position={[-20, 50, 10]}
-        angle={0.12}
-        penumbra={1}
-        intensity={1}
-        castShadow
-        shadow-mapSize={1024}
-      />
-      <pointLight intensity={1} />
-      <primitive
-        object={computer.scene}
-        scale={0.75}
-        position={[0, -3.25, -1.5]}
-        rotation={[-0.01, -0.2, -0.1]}
-      />
-    </group>
-  );
-};
-// Main component that manages the 3D view and transitions to desktop
-const PortfolioComputer = ({ children }) => {
-  const [isZoomed, setIsZoomed] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.matchMedia("(max-width: 768px)").matches);
-  // Handle responsive layout
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(max-width: 768px)");
-    const handleMediaQueryChange = (e) => setIsMobile(e.matches);
-    mediaQuery.addEventListener("change", handleMediaQueryChange);
-    return () => mediaQuery.removeEventListener("change", handleMediaQueryChange);
-  }, []);
-  const handleZoomIn = () => setIsZoomed(true);
-  const handleZoomOut = () => setIsZoomed(false);
-  if (isMobile) {
-    return children;
-  }
-  return (
-    <div className="portfolio-computer" style={{ position: 'relative', width: '100%', height: '100vh' }}>
-      {!isZoomed ? (
-        <Canvas
-          frameloop="demand"
-          shadows
-          dpr={[1, 2]}
-          camera={{ position: [20, 3, 5], fov: 25 }}
-          gl={{ preserveDrawingBuffer: true }}
-        >
-          <Suspense fallback={<CanvasLoader />}>
-            <OrbitControls
-              enableZoom={true}
-              maxPolarAngle={Math.PI / 2}
-              minPolarAngle={Math.PI / 4}
-              enablePan={true}
-              autoRotate={true}
-              autoRotateSpeed={0.5}
-            />
-            <ComputerModel onZoomIn={handleZoomIn} />
-          </Suspense>
-          <Preload all />
-        </Canvas>
-      ) : (
-        <div className="zoomed-interface" style={{ width: '100%', height: '100%', position: 'relative' }}>
-          <button
-            onClick={handleZoomOut}
-            className="back-button"
-             style={{
-              position: 'absolute',
-              top: '20px',
-              right: '20px',
-              zIndex: 1000,
-              padding: '5px 10px',
-              backgroundColor: '#c0c0c0',
-              border: '2px solid',
-              borderColor: '#dfdfdf #808080 #808080 #dfdfdf',
-              fontFamily: 'MS Sans Serif, sans-serif',
-              fontSize: '12px',
-              cursor: 'pointer'
-            }}
-          >
-            Back to 3D View
-          </button>
-          {children}
-        </div>
-      )}
-    </div>
-  );
-};
-export default PortfolioComputer;

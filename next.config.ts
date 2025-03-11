@@ -15,6 +15,11 @@ const nextConfig: NextConfig = {
         });
       }
     });
+     config.externals.push({
+       canvas: "canvas",
+       bufferutil: "bufferutil",
+       "utf-8-validate": "utf-8-validate",
+     });
     return config;
   },
 };
