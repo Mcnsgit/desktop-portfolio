@@ -7,6 +7,8 @@ import CanvasLoader from '@/components/3d/Loader';
 import StarsCanvas from '@/components/3d/canvas/Stars';
 import { useRouter } from 'next/navigation';
 import BootAnimation from '../components/3d/BootAnimation';
+import Navbar from '../components/cv/Navbar'
+import Hero from '../components/cv/Hero'
 // Computer model that navigates to desktop when clicked
 const ComputerModel = () => {
   const router = useRouter();
@@ -19,8 +21,9 @@ const ComputerModel = () => {
   };
 
   return (
+    
     <group onClick={handleClick} dispose={null}>
-      <hemisphereLight intensity={0.15} groundColor="black" />
+      <hemisphereLight intensity={5} groundColor="black" />
       <spotLight
         position={[-20, 50, 10]}
         angle={0.12}
@@ -76,8 +79,12 @@ export default function HomePage() {
   }
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden' }}>
+      <div className='relative z-0 bg-primary'>
       <StarsCanvas />
+      <div style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden' }}>
+      <Navbar/>
+      <Hero />
+      </div>
 
       <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}>
         <Canvas
@@ -92,7 +99,7 @@ export default function HomePage() {
               maxPolarAngle={Math.PI / 2}
               minPolarAngle={Math.PI / 4}
               enablePan={true}
-              autoRotate={true}
+              autoRotate={false              }
               autoRotateSpeed={0.5}
             />
             <ComputerModel />

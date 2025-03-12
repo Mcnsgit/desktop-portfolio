@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import  Link from 'next/link'
 
-import { styles } from '../styles'
-import { navLinks } from '../constants'
-import { logo, menu, close } from '../assets'
+import styles from '../styles/Navbar.module.scss'
+import { navLinks } from '../../data/index'
+import { logo, menu, close } from '../../../public/assets'
 
 const Navbar = () => {
   const [active, setActive] = useState('')
@@ -31,7 +31,7 @@ const Navbar = () => {
       className={`${styles.paddingX} w-full flex items-center py-5 fixed top-0 z-20 ${ scrolled ? "bg-primary" : "bd-transparent"}`}
     >
       <div className="w-full flex justify-between items-center max-w-7xl mx-auto">
-        <Link to='/'
+        <Link href='/'
           className='flex items-center gap-2'
           onClick={() => {
             setActive("");
@@ -41,7 +41,7 @@ const Navbar = () => {
           <img src={logo} alt='logo' className='w-11 h11 object-contain' />
           <p className='text-white text-[18px] font-bold cursor-pointer flex' >
             Miguel &nbsp;
-            <span className='sm:block hidden'> | JavaScript Mastery</span>
+
           </p>
         </Link>
 

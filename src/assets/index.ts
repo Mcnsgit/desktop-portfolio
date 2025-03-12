@@ -1,4 +1,3 @@
-import logo from "./public/assets/logo.png";
 import logo1 from "./logo.svg";
 
 import backend from "./backend.png";
@@ -34,7 +33,6 @@ import tripguide from "./tripguide.png";
 import w98_directory_program_group from "../../public/icons/win98/w98_directory_program_group.ico"
 export {
   w98_directory_program_group,
-  logo,
   backend,
   creator,
   mobile,
