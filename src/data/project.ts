@@ -9,7 +9,7 @@ const projects: Project[] = [
     description: "A simple todo list application with React and TypeScript",
     type: "interactive",
     technologies: ["React", "TypeScript", "CSS Modules"],
-    // repoUrl: "https://github.com/yourusername/todo-app",
+    repoUrl: "https://github.com/yourusername/todo-app",
     demoUrl: "https://todo-app.yourdomain.com",
     content: "This could be JSX for interactive demo",
     // Or component import for the actual interactive app
@@ -21,7 +21,7 @@ const projects: Project[] = [
     description: "Weather application using OpenWeather API",
     type: "interactive",
     technologies: ["React", "Axios", "OpenWeather API"],
-    // repoUrl: "https://github.com/yourusername/weather-app",
+    repoUrl: "https://github.com/yourusername/weather-app",
     content: "Weather app implementation,",
   },
   {
@@ -31,7 +31,7 @@ const projects: Project[] = [
     description: "about me page",
     type: "visual",
     technologies: ["html", "css", "javascript"],
-    // repoUrl: "https://github.com/yourusername/weather-app",
+    repoUrl: "https://github.com/yourusername/weather-app",
     demoUrl: "",
     content: "",
   },
@@ -43,7 +43,7 @@ const projects: Project[] = [
       "Complete e-commerce platform with product management, user authentication, and payment processing",
     type: "interactive",
     technologies: ["React", "MongoDB", "Tailwind CSS", "Node.js", "Express"],
-    // repoUrl: "https://github.com/miguelcardiga/ecommerce-platform",
+    repoUrl: "https://github.com/miguelcardiga/ecommerce-platform",
     demoUrl: "https://mcnasty-studios.com",
     content:
       "Developed and managed a complete e-commerce platform for McNasty Studios, handling everything from design to implementation, using agile methodologies for efficient project management. Features include product catalog, shopping cart functionality, secure checkout process, user authentication, and admin dashboard for inventory management.",
@@ -56,7 +56,7 @@ const projects: Project[] = [
       "Comprehensive redesign of a mental health organization's website with donation optimization",
     type: "visual",
     technologies: ["React", "UX/UI", "CSS", "Responsive Design"],
-    // repoUrl: "https://github.com/miguelcardiga/northern-lights-website",
+    repoUrl: "https://github.com/miguelcardiga/northern-lights-website",
     demoUrl: "https://northern-lights.org",
     content:
       "Led a comprehensive redesign and optimization of a mental health organization's website, focusing on user experience and donation pathways, resulting in increased traffic and donor engagement. The project included improved navigation, mobile responsiveness, donation form optimization, and content restructuring to better highlight the organization's mission and impact.",
@@ -105,7 +105,7 @@ const projects: Project[] = [
     description: "A simple todo list application with React and TypeScript",
     type: "interactive",
     technologies: ["React", "TypeScript", "CSS Modules"],
-    // repoUrl: "https://github.com/yourusername/todo-app",
+    repoUrl: "https://github.com/yourusername/todo-app",
     demoUrl: "https://todo-app.yourdomain.com",
     content: "This could be JSX for interactive demo",
     // Or component import for the actual interactive app

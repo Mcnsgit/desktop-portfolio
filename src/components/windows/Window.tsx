@@ -31,7 +31,7 @@ const Window: React.FC<WindowProps> = ({
   const isMinimizedState = state.windows.find(w => w.id === id)?.minimized || false;
 
   // Apply draggable ref directly to the window component
-  useDraggable(windowRef, {
+  useDraggable(windowRef as React.RefObject<HTMLElement>, {
     position: initialPosition,
     onDrag: () => {
       if (!isDragging) setIsDragging(true);

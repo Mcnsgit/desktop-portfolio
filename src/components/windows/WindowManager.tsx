@@ -20,7 +20,7 @@ const WindowManager: React.FC = () => {
               id={window.id}
               title={window.title}
               initialPosition={window.position}
-              minimized={window.minimized}
+
             >
               <AboutWindow />
             </Window>
@@ -35,9 +35,9 @@ const WindowManager: React.FC = () => {
               id={window.id}
               title={window.title}
               initialPosition={window.position}
-              minimized={window.minimized}
+
             >
-              <ProjectWindow project={window.content as Project} />
+              <ProjectWindow project={window.content as unknown as Project} />
             </Window>
           );
         }
@@ -49,7 +49,7 @@ const WindowManager: React.FC = () => {
             id={window.id}
             title={window.title}
             initialPosition={window.position}
-            minimized={window.minimized}
+
           >
             <div>Content not available</div>
           </Window>

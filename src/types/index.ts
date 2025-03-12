@@ -5,6 +5,7 @@ export interface Project{
     description: string;
     type:'code'|'visual'|'interactive';
     technologies: string[];
+    repoUrl?: string;
     demoUrl?: string;
     content: React.ReactNode | string;
 }

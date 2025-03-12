@@ -17,12 +17,14 @@
     "98.css": "^0.1.20",
     "autoprefixer": "^10.4.20",
     "framer-motion": "^12.4.7",
+    "maath": "^0.10.8",
     "next": "15.2.0",
     "postcss": "^8.5.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "sass": "^1.85.1",
-    "three": "^0.174.0"
+    "three": "^0.174.0",
+    "webpack": "^5.98.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
