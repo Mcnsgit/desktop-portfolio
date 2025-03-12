@@ -1,14 +1,17 @@
 // data/projects.ts
-import { Project } from "../types";
+import { Project } from "../types/index";
+
+
+
 
 const projects: Project[] = [
   {
     id: "todo-list",
     title: "Todo List App",
-    icon: "/icons/todo-icon.png",
-    description: "A simple todo list application with React and TypeScript",
+    icon: "../../public/icons/win98/w98_directory_program_group.ico",
+    description: "A simple todo list application with React and JavaScript",
     type: "interactive",
-    technologies: ["React", "TypeScript", "CSS Modules"],
+    technologies: ["React", "JavaScript", "CSS Modules"],
     repoUrl: "https://github.com/yourusername/todo-app",
     demoUrl: "https://todo-app.yourdomain.com",
     content: "This could be JSX for interactive demo",

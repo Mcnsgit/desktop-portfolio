@@ -1,101 +1,119 @@
 "use client"
 // pages/index.tsx
-import React, { useState, useEffect } from 'react';
-import { useDesktop } from '../context/DesktopContext';
-import Desktop from '../components/desktop/Desktop';
-import MobileView from '../components/MobileView';
-import PortfolioComputer from '@/components/3d/PortfolioComputer';
+import React, { Suspense, useState, useEffect, EventHandler } from 'react';
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls, Preload, useGLTF } from "@react-three/drei";
+import CanvasLoader from '@/components/3d/Loader';
 import StarsCanvas from '@/components/3d/canvas/Stars';
-import projectsData from '../data/project';
-import Head from 'next/head';
+import { useRouter } from 'next/navigation';
 import BootAnimation from '../components/3d/BootAnimation';
+// Computer model that navigates to desktop when clicked
+const ComputerModel = () => {
+  const router = useRouter();
+  const computer = useGLTF("./desktop_pc/scene.gltf");
 
-
-const ProjectsInitializer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { dispatch } = useDesktop();
-  
-  useEffect(() => {
-    // Initialize projects on client-side only
-    dispatch({ 
-      type: 'INIT_PROJECTS', 
-      payload: { projects: projectsData } 
-    });
-  }, [dispatch]);
-  
-  return <>{children}</>;
-};
-const Home: React.FC = () => {
-  const [isMobile, setIsMobile] = useState(false);
-  const [isBooting, setIsBooting] = useState(true);
-  const { dispatch } = useDesktop();
-  
-  // Detect mobile devices
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    // Only run on client side
-    if (typeof window !== 'undefined') {
-      checkMobile();
-      window.addEventListener('resize', checkMobile);
-      
-      // Initialize projects
-      dispatch({ 
-        type: 'INIT_PROJECTS', 
-        payload: { projects: projectsData } 
-      });
-         // Skip boot animation for development
-      if (process.env.NODE_ENV === 'development') {
-        setIsBooting(false);
-      } else {
-        // Skip boot animation if the URL has a query parameter
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('skipBoot')) {
-          setIsBooting(false);
-        }
-      }
-      
-      return () => window.removeEventListener('resize', checkMobile);
-    }
-  }, [dispatch]);
-  
-  // Handle boot animation completion
-  const handleBootComplete = () => {
-    setIsBooting(false);
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log('Computer clicked, navigating to desktop...');
+    router.push('/desktop');
   };
-  
+
   return (
-    <>
-      <Head>
-        <title>RetroOS Portfolio</title>
-        <meta name="description" content="Web developer portfolio styled as a retro operating system" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-      
-      <ProjectsInitializer>
-        {/* Boot animation */}
-        {isBooting && (
-          <BootAnimation onComplete={handleBootComplete} skipAnimation={isMobile} />
-        )}
-        
-        {/* Main content */}
-        {!isBooting && (
-          <>
-            {!isMobile && <StarsCanvas />}
-            
-            {isMobile ? (
-              <MobileView />
-            ) : (
-              <PortfolioComputer>
-                <Desktop />
-              </PortfolioComputer>
-            )}
-          </>
-        )}
-      </ProjectsInitializer>
-    </>
+    <group onClick={handleClick} dispose={null}>
+      <hemisphereLight intensity={0.15} groundColor="black" />
+      <spotLight
+        position={[-20, 50, 10]}
+        angle={0.12}
+        penumbra={1}
+        intensity={1}
+        castShadow
+        shadow-mapSize={1024}
+      />
+      <pointLight intensity={1} />
+      <primitive
+        object={computer.scene}
+        scale={0.75}
+        position={[0, -3.25, -1.5]}
+        rotation={[-0.01, -0.2, -0.1]}
+      />
+    </group>
   );
 };
 
-export default Home;
+// Home page with 3D computer
+export default function HomePage() {
+  const [isBooting, setIsBooting] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check for mobile devices
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768);
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+
+    // Skip boot animation in development
+    if (process.env.NODE_ENV === 'development') {
+      setIsBooting(false);
+    }
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const handleBootComplete = () => {
+    setIsBooting(false);
+  };
+
+  // On mobile, go straight to desktop
+  useEffect(() => {
+    if (isMobile) {
+      const router = require('next/navigation').useRouter();
+      router.push('/desktop');
+    }
+  }, [isMobile]);
+
+  if (isBooting) {
+    return <BootAnimation onComplete={handleBootComplete} skipAnimation={isMobile} />;
+  }
+
+  return (
+    <div style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden' }}>
+      <StarsCanvas />
+
+      <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}>
+        <Canvas
+          frameloop="demand"
+          shadows
+          camera={{ position: [20, 3, 5], fov: 25 }}
+          gl={{ preserveDrawingBuffer: true }}
+        >
+          <Suspense fallback={<CanvasLoader />}>
+            <OrbitControls
+              enableZoom={true}
+              maxPolarAngle={Math.PI / 2}
+              minPolarAngle={Math.PI / 4}
+              enablePan={true}
+              autoRotate={true}
+              autoRotateSpeed={0.5}
+            />
+            <ComputerModel />
+          </Suspense>
+          <Preload all />
+        </Canvas>
+      </div>
+
+      <div style={{
+        position: 'absolute',
+        bottom: '20px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        color: 'white',
+        fontSize: '16px',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        padding: '10px 20px',
+        borderRadius: '5px'
+      }}>
+        Click on the computer to enter desktop mode
+      </div>
+    </div>
+  );
+}

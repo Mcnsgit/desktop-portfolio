@@ -13,7 +13,7 @@ type DesktopAction =
   | { type: 'CLOSE_WINDOW'; payload: { id: string } }
   | { type: 'FOCUS_WINDOW'; payload: { id: string } }
   | { type: 'MINIMIZE_WINDOW'; payload: { id: string } }
-  | { type: 'TOGGLE_START_MENU' }
+  | { type: 'TOGGLE_START_MENU'; payload?: { startMenuOpen?: boolean } } // Optional payload
   | { type: 'INIT_PROJECTS'; payload: { projects: Project[] } };
 
 const desktopReducer = (state: DesktopState, action: DesktopAction): DesktopState => {
@@ -81,10 +81,15 @@ const desktopReducer = (state: DesktopState, action: DesktopAction): DesktopStat
           : state.activeWindowId
       };
     
+    // Then update the desktopReducer case for TOGGLE_START_MENU
     case 'TOGGLE_START_MENU':
+      // If payload is provided with startMenuOpen, use it
+      // Otherwise do the toggle behavior
       return {
         ...state,
-        startMenuOpen: !state.startMenuOpen
+        startMenuOpen: action.payload?.startMenuOpen !== undefined
+          ? action.payload.startMenuOpen
+          : !state.startMenuOpen
       };
     
     default:

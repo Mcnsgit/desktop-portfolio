@@ -1,7 +1,9 @@
+import { StaticImageData } from "next/image";
+
 export interface Project{
     id: string;
     title: string;
-    icon: string;
+    icon:string ;
     description: string;
     type:'code'|'visual'|'interactive';
     technologies: string[];

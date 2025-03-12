@@ -4,6 +4,7 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Preload, useGLTF } from "@react-three/drei";
 import CanvasLoader from "./Loader";
 import * as THREE from "three";
+import { useDesktop } from "@/context/DesktopContext";
 
 interface ComputerModelProps {
   onZoomIn: () => void;
@@ -11,10 +12,12 @@ interface ComputerModelProps {
 const ComputerModel: React.FC<ComputerModelProps> = ({ onZoomIn }) => {
   const computer = useGLTF("./desktop_pc/scene.gltf");
   const modelRef = useRef<THREE.Group>(null);
+
   const handleModelClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onZoomIn();
   };
+
   return (
     <group ref={modelRef} onClick={handleModelClick} dispose={null}>
       <hemisphereLight intensity={0.15} groundColor="black" />
@@ -40,6 +43,9 @@ const ComputerModel: React.FC<ComputerModelProps> = ({ onZoomIn }) => {
 const PortfolioComputer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isZoomed, setIsZoomed] = useState(false);
   const [isMobile, setIsMobile] = useState(() => window.matchMedia("(max-width: 768px)").matches);
+  const { state } = useDesktop();
+
+
   // Handle responsive layout
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 768px)");
@@ -47,8 +53,23 @@ const PortfolioComputer: React.FC<{ children: React.ReactNode }> = ({ children }
     mediaQuery.addEventListener("change", handleMediaQueryChange);
     return () => mediaQuery.removeEventListener("change", handleMediaQueryChange);
   }, []);
+
+
   const handleZoomIn = () => setIsZoomed(true);
   const handleZoomOut = () => setIsZoomed(false);
+
+  const renderStartMenu = () => {
+    //import StartMenudynamically to avoid circular dependiencies
+    const StartMenu = require('../desktop/StartMenu').default;
+
+    if (state.startMenuOpen) {
+      console.log("rendering StartMenu from PortfolioComputer");
+      return <StartMenu />
+    }
+    return null;
+  }
+
+
   if (isMobile) {
     return <>{children}</>; // Return children directly for mobile
   }
@@ -98,6 +119,8 @@ const PortfolioComputer: React.FC<{ children: React.ReactNode }> = ({ children }
             Back to 3D View
           </button>
           {children}
+            {/* Render StartMenu on top of everything */}
+            {state.startMenuOpen && renderStartMenu()}
         </div>
       )}
     </div>

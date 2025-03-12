@@ -31,8 +31,9 @@ import tesla from "./company/tesla.png";
 import carrent from "./carrent.png";
 import jobit from "./jobit.png";
 import tripguide from "./tripguide.png";
-
+import w98_directory_program_group from "../../public/icons/win98/w98_directory_program_group.ico"
 export {
+  w98_directory_program_group,
   logo,
   backend,
   creator,
