@@ -5,6 +5,7 @@ import { faWindowRestore } from '@fortawesome/free-solid-svg-icons';
 import { useDesktop } from '../../context/DesktopContext';
 import { useSounds } from '../../hooks/useSounds';
 import styles from '../styles/Taskbar.module.scss';
+import StartMenu from './StartMenu';
 
 interface TaskbarProps {
   onStartClick: () => void;
@@ -40,10 +41,21 @@ const Taskbar: React.FC<TaskbarProps> = ({ onStartClick }) => {
     playSound('click');
     dispatch({ type: 'FOCUS_WINDOW', payload: { id: windowId } });
   };
+
+  // Handle start button click with propagation stopped
+  const handleStartClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent the event from bubbling up to desktop
+    playSound('click');
+    onStartClick();
+  };
   
+ 
   return (
     <div className={styles.taskbar}>
-      <div className={styles.startButton} onClick={onStartClick}>
+      <div
+        className={styles.startButton}
+        onClick={handleStartClick}
+      >
         Start
       </div>
       

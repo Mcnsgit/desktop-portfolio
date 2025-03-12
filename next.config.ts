@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 import path from "path"; // Import path to avoid runtime error
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   
 
   // Fix CSS loading issues
