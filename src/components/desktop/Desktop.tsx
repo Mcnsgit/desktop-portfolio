@@ -9,63 +9,64 @@ import { useSounds } from '../../hooks/useSounds';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import styles from '../styles/Desktop.module.scss';
 import { BackgroundImages } from '../../../public/backgrounds/BackgroundImages';
-
 const Desktop: React.FC = () => {
   const { state, dispatch } = useDesktop();
   const [backgroundIndex, setBackgroundIndex] = useState(0);
+  const [clicks, setClicks] = useState(0);
   const { playSound } = useSounds();
   const [contextMenu, setContextMenu] = useState<{ visible: boolean; position: { x: number; y: number } }>({
     visible: false,
     position: { x: 0, y: 0 },
   });
-
-  // Local state for start menu (backup approach)
-  const [isStartMenuOpen, setIsStartMenuOpen] = useState(false);
-
+  const doSingleClickThing = useCallback(() => {
+    console.log('single clicked!');
+    playSound("click");
+  }, [playSound]);
+  const doDoubleClickThing = useCallback(() => {
+    console.log('double clicked!');
+    playSound("doubleClick");
+  }, [playSound]);
+  useEffect(() => {
+    let singleClickTimer: NodeJS.Timeout;
+    if (clicks === 1) {
+      singleClickTimer = setTimeout(() => {
+        doSingleClickThing();
+        setClicks(0);
+      }, 250);
+    } else if (clicks === 2) {
+      doDoubleClickThing();
+      setClicks(0);
+    }
+    return () => clearTimeout(singleClickTimer);
+  }, [clicks, doSingleClickThing, doDoubleClickThing]);
   useKeyboardShortcuts();
-  const backgrounds = useMemo(() => [
+  // Removed unnecessary useMemo for static backgrounds
+  const backgrounds = [
     BackgroundImages?.retro_background_1 || '/backgrounds/bg1.jpg',
     BackgroundImages?.retro_background_2 || '/backgrounds/bg2.jpg',
     BackgroundImages?.retro_background_3 || '/backgrounds/bg3.jpg',
-  ], []);
-
+  ];
   useEffect(() => {
-    playSound('startup');
-
-    // Debug the state of the Desktop context
     console.log("Desktop initialized with state:", state);
-  }, [playSound, state]);
-
-  // Sync local state with context state
-  useEffect(() => {
-    setIsStartMenuOpen(state.startMenuOpen);
-  }, [state.startMenuOpen]);
-
-
+  }, [state]);
   const handleDesktopClick = useCallback(() => {
     if (state.startMenuOpen) {
       dispatch({ type: 'TOGGLE_START_MENU' });
-      setIsStartMenuOpen(false);
     }
     if (contextMenu.visible) {
       setContextMenu((prev) => ({ ...prev, visible: false }));
     }
   }, [state.startMenuOpen, contextMenu.visible, dispatch]);
-
   const cycleBackground = useCallback(() => {
     setBackgroundIndex((prev) => (prev + 1) % backgrounds.length);
-    playSound('click');
-  }, [backgrounds.length, playSound]);
-
+  }, [backgrounds.length]);
   const handleRightClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
-    playSound('click');
     setContextMenu({
       visible: true,
       position: { x: e.clientX, y: e.clientY },
     });
-  }, [playSound]);
-
+  }, []);
   const contextMenuItems = useMemo(() => [
     {
       label: 'Change Background',
@@ -80,7 +81,6 @@ const Desktop: React.FC = () => {
       action: () => window.location.reload(),
     },
   ], [cycleBackground]);
-
   const handleIconDoubleClick = useCallback((projectId: string) => {
     const project = state.projects.find((p) => p.id === projectId);
     if (project) {
@@ -97,65 +97,86 @@ const Desktop: React.FC = () => {
       });
     }
   }, [dispatch, playSound, state.projects]);
-
-  const filteredProjects = useMemo(() =>
-    state.projects.filter((p) => p.id !== 'about'),
-    [state.projects]
-  );
-
+  const filteredProjects = useMemo(() => state.projects.filter((p) => p.id !== 'about'), [state.projects]);
   const handleAboutMeClick = useCallback((e?: React.MouseEvent) => {
-    // If event is passed, stop propagation
     if (e) e.stopPropagation();
-
-    // Debug log
     console.log("About Me clicked, projects:", state.projects);
-
     playSound('click');
     playSound('windowOpen');
-
-    // Dispatch window open action with explicit parameters
     dispatch({
       type: 'OPEN_WINDOW',
       payload: {
         id: 'about',
         title: 'About Me',
-        content: 'about', // Use a simple string identifier
+        content: 'about',
         minimized: false,
         position: { x: 150, y: 100 },
         size: { width: 500, height: 400 },
       },
     });
   }, [dispatch, playSound, state.projects]);
-
-  // Handle Start Menu toggle - direct approach
   const handleStartClick = useCallback(() => {
-    playSound('click');
     console.log("Start menu toggle - current state:", state.startMenuOpen);
     dispatch({ type: 'TOGGLE_START_MENU' });
-    setIsStartMenuOpen(!isStartMenuOpen); // Backup approach
-  }, [dispatch, playSound, state.startMenuOpen, isStartMenuOpen]);
+  }, [dispatch, state.startMenuOpen]);
+
 
   const iconElements = useMemo(() => {
     return filteredProjects.map((project, index) => {
-      const col = Math.floor(index / 5);
-      const row = index % 5;
+      const GRID_COLUMN_WIDTH = 100;
+      const GRID_ROW_HEIGHT = 120;
+      const GRID_COLUMNS = 5;
+
+      const col = Math.floor(index % GRID_COLUMNS);
+      const row = Math.floor(index / GRID_COLUMNS);
+      // Try to use the icon from the project, or use a fallback based on project type
+      let iconPath = project.icon;
+
+      // Provide fallbacks if icon is missing
+      if (!iconPath || iconPath.includes("../assets")) {
+        // Convert relative paths to absolute
+        iconPath = iconPath?.replace("../assets", "/assets");
+
+        // If still no icon, use a default based on project type
+        if (!iconPath) {
+          switch (project.type) {
+            case 'code':
+              iconPath = '/assets/win98-icons/png/notepad_file-0.png';
+              break;
+            case 'interactive':
+              iconPath = '/assets/win98-icons/png/joystick-5.png';
+              break;
+            case 'visual':
+              iconPath = '/assets/win98-icons/png/media_player_file-0.png';
+              break;
+            default:
+              iconPath = '/assets/win98-icons/png/briefcase-4.png';
+          }
+        }
+      }
+
+      console.log(`Project ${project.id}: using icon ${iconPath}`);
+
       return (
         <Icon
           key={project.id}
-          position={{ x: 20 + col * 100, y: 20 + row * 100 }}
-          icon={project.icon || `icons/${project.id}.png`} // Fallback icon path
+          position={{
+            x: 20 + col * GRID_COLUMN_WIDTH,
+            y: 20 + row * GRID_ROW_HEIGHT
+          }}
+          icon={iconPath}
           label={project.title}
           onDoubleClick={() => handleIconDoubleClick(project.id)}
         />
       );
     });
   }, [filteredProjects, handleIconDoubleClick]);
-
-  // Render function to ensure StartMenu shows under both states
+  
   const renderStartMenu = () => {
-    return (state.startMenuOpen || isStartMenuOpen) ? <StartMenu /> : null;
+    return state.startMenuOpen ? <StartMenu /> : null;
   };
 
+  // And the About Me icon with appropriate spacing
   return (
     <div
       className={styles.desktop}
@@ -169,12 +190,18 @@ const Desktop: React.FC = () => {
     >
       <div className={styles.iconsContainer}>
         {iconElements}
-        <Icon
-          position={{ x: 20, y: 20 + (filteredProjects.length % 5) * 100 }}
-          icon="icons/about.png" // Removed leading slash
-          label="About Me"
-          onDoubleClick={handleAboutMeClick}
-        />
+        {/* Only show About Me icon if not already in projects */}
+        {!state.projects.some(p => p.id === 'about') && (
+          <Icon
+            position={{
+              x: 20,
+              y: 20 + Math.ceil(filteredProjects.length / 5) * 120
+            }}
+            icon="/assets/win98-icons/png/address_book_user.png"
+            label="About Me"
+            onDoubleClick={handleAboutMeClick}
+          />
+        )}
       </div>
       <WindowManager />
       {renderStartMenu()}
@@ -188,6 +215,5 @@ const Desktop: React.FC = () => {
       <Taskbar onStartClick={handleStartClick} />
     </div>
   );
-};
-
+}
 export default Desktop;

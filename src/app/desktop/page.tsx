@@ -9,19 +9,17 @@ import Link from 'next/link';
 import { useDesktop } from '@/context/DesktopContext'; // Importing context at the top
 
 export default function DesktopPage() {
-    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+    const [isMobile, setIsMobile] = useState(false);
 
-    const handleResize = useCallback(() => {
-        const mobileView = window.innerWidth < 768;
-        if (mobileView !== isMobile) {
-            setIsMobile(mobileView);
-        }
-    }, [isMobile]);
+  // Check for mobile devices
+   useEffect(() => {
+     setIsMobile(window.innerWidth < 768);
+     const handleResize = () => setIsMobile(window.innerWidth < 768);
+     window.addEventListener('resize', handleResize);
 
-    useEffect(() => {
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, [handleResize]);
+       return () => window.removeEventListener('resize', handleResize);
+   }, []);
+ 
 
     return (
         <DesktopProvider>
@@ -75,7 +73,7 @@ const DesktopInitializer = () => {
                         {
                             id: 'about',
                             title: 'About Me',
-                            icon: '/icons/about.png',
+                            icon: '../assets/icons/win98/w98_directory_program_group.ico',
                             description: 'About the developer',
                             type: 'visual',
                             technologies: ['html', 'css', 'javascript'],

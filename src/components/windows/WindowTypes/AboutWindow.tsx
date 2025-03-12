@@ -2,12 +2,18 @@
 import React from 'react';
 import styles from '../../styles/AboutWindow.module.scss';
 import Image from 'next/image';
+const imageDimensions = { width: 24, height: 24 };
+
 
 const AboutWindow: React.FC = () => {
   return (
     <div className={styles.aboutWindow}>
       <div className={styles.profile}>
-        <Image src="/images/profile.jpg" alt="Profile" className={styles.profileImage} />
+        <Image 
+          src="/images/profile.jpg"
+          alt="Profile" className={styles.profileImage} 
+          width={imageDimensions.width}
+          height={imageDimensions.height}/>
         <h2>Your Name</h2>
         <p className={styles.title}>Full Stack Developer</p>
       </div>

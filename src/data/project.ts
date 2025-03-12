@@ -1,14 +1,22 @@
 // data/projects.ts
 import { Project } from "../types/index";
-
-
+import {
+  DigitalMediaPJ,
+  VideoCampaing,
+  ToDo,
+  Ecommerce,
+  Weather,
+  Website,
+  Phone,
+  Game,
+} from "../../public/assets/win98-icons";
 
 
 const projects: Project[] = [
   {
     id: "todo-list",
     title: "Todo List App",
-    icon: "../../public/icons/win98/w98_directory_program_group.ico",
+    icon: "../assets/win98-icons/icons/png/notepad_file-0.png",
     description: "A simple todo list application with React and JavaScript",
     type: "interactive",
     technologies: ["React", "JavaScript", "CSS Modules"],
@@ -20,28 +28,18 @@ const projects: Project[] = [
   {
     id: "weather-app",
     title: "Weather App",
-    icon: "/icons/weather-icon.png",
+    icon: "../assets/win98-icons/icons/png/world-5.png",
     description: "Weather application using OpenWeather API",
     type: "interactive",
     technologies: ["React", "Axios", "OpenWeather API"],
     repoUrl: "https://github.com/yourusername/weather-app",
     content: "Weather app implementation,",
   },
-  {
-    id: "about",
-    title: "about",
-    icon: "/icons/about-icon.png",
-    description: "about me page",
-    type: "visual",
-    technologies: ["html", "css", "javascript"],
-    repoUrl: "https://github.com/yourusername/weather-app",
-    demoUrl: "",
-    content: "",
-  },
+
   {
     id: "ecommerce-platform",
     title: "E-commerce Platform",
-    icon: "/icons/ecommerce-icon.png",
+    icon: "../assets/win98-icons/icons/png/html-5.png",
     description:
       "Complete e-commerce platform with product management, user authentication, and payment processing",
     type: "interactive",
@@ -54,7 +52,7 @@ const projects: Project[] = [
   {
     id: "nonprofit-website",
     title: "Non-Profit Website Overhaul",
-    icon: "/icons/nonprofit-icon.png",
+    icon: "../assets/win98-icons/icons/png/internet_options-5.png",
     description:
       "Comprehensive redesign of a mental health organization's website with donation optimization",
     type: "visual",
@@ -67,7 +65,7 @@ const projects: Project[] = [
   {
     id: "digital-marketing-campaigns",
     title: "Digital Marketing Campaigns",
-    icon: "/icons/marketing-icon.png",
+    icon: "../assets/win98-icons/icons/png/media_player_file-0.png",
     description:
       "Strategic digital marketing campaigns across multiple platforms for various clients",
     type: "visual",
@@ -80,7 +78,7 @@ const projects: Project[] = [
   {
     id: "python-text-game",
     title: "Python Text-Based Adventure Game",
-    icon: "/icons/game-icon.png",
+    icon: "../assets/win98-icons/icons/png/joystick-5.png",
     description:
       "Interactive text-based adventure game with branching narrative paths",
     type: "interactive",
@@ -92,7 +90,7 @@ const projects: Project[] = [
   {
     id: "video-campaign",
     title: "Non-Profit Video Campaign",
-    icon: "/icons/video-icon.png",
+    icon: "../assets/win98-icons/icons/png/video_mk-5.png",
     description: "Fundraising video campaign for mental health awareness",
     type: "visual",
     technologies: ["Video Production", "Digital Storytelling", "Fundraising"],
@@ -100,18 +98,6 @@ const projects: Project[] = [
     demoUrl: "https://vimeo.com/northernlights/campaign",
     content:
       "Directed a potent video campaign to elevate brand awareness, significantly boosting fundraising efforts and donor engagement for a mental health organisation. The campaign included a series of testimonial videos, animation explainers of mental health concepts, and call-to-action segments that directly led to increased donations.",
-  },
-  {
-    id: "todo-list",
-    title: "Todo List App",
-    icon: "/icons/todo-icon.png",
-    description: "A simple todo list application with React and TypeScript",
-    type: "interactive",
-    technologies: ["React", "TypeScript", "CSS Modules"],
-    repoUrl: "https://github.com/yourusername/todo-app",
-    demoUrl: "https://todo-app.yourdomain.com",
-    content: "This could be JSX for interactive demo",
-    // Or component import for the actual interactive app
   },
 ];
 
