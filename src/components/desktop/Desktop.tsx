@@ -1,6 +1,8 @@
+// components/desktop/Desktop.tsx
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useDesktop } from '../../context/DesktopContext';
 import Icon from './Icon';
+import Folder from './Folder';
 import Taskbar from './Taskbar';
 import StartMenu from './StartMenu';
 import WindowManager from '../windows/WindowManager';
@@ -9,68 +11,80 @@ import { useSounds } from '../../hooks/useSounds';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import styles from '../styles/Desktop.module.scss';
 import { BackgroundImages } from '../../../public/backgrounds/BackgroundImages';
+import { v4 as uuidv4 } from 'uuid'; // You'll need to install this package
+
 const Desktop: React.FC = () => {
   const { state, dispatch } = useDesktop();
   const [backgroundIndex, setBackgroundIndex] = useState(0);
-  const [clicks, setClicks] = useState(0);
   const { playSound } = useSounds();
   const [contextMenu, setContextMenu] = useState<{ visible: boolean; position: { x: number; y: number } }>({
     visible: false,
     position: { x: 0, y: 0 },
   });
-  const doSingleClickThing = useCallback(() => {
-    console.log('single clicked!');
-    playSound("click");
-  }, [playSound]);
-  const doDoubleClickThing = useCallback(() => {
-    console.log('double clicked!');
-    playSound("doubleClick");
-  }, [playSound]);
-  useEffect(() => {
-    let singleClickTimer: NodeJS.Timeout;
-    if (clicks === 1) {
-      singleClickTimer = setTimeout(() => {
-        doSingleClickThing();
-        setClicks(0);
-      }, 250);
-    } else if (clicks === 2) {
-      doDoubleClickThing();
-      setClicks(0);
-    }
-    return () => clearTimeout(singleClickTimer);
-  }, [clicks, doSingleClickThing, doDoubleClickThing]);
+  
+  // Track which desktop item is being dragged
+  const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
+  
   useKeyboardShortcuts();
-  // Removed unnecessary useMemo for static backgrounds
+  
   const backgrounds = [
     BackgroundImages?.retro_background_1 || '/backgrounds/bg1.jpg',
     BackgroundImages?.retro_background_2 || '/backgrounds/bg2.jpg',
     BackgroundImages?.retro_background_3 || '/backgrounds/bg3.jpg',
   ];
+  
   useEffect(() => {
     console.log("Desktop initialized with state:", state);
   }, [state]);
+  
   const handleDesktopClick = useCallback(() => {
     if (state.startMenuOpen) {
-      dispatch({ type: 'TOGGLE_START_MENU' });
+      dispatch({ type: 'TOGGLE_START_MENU', payload: { startMenuOpen: false } });
     }
     if (contextMenu.visible) {
       setContextMenu((prev) => ({ ...prev, visible: false }));
     }
   }, [state.startMenuOpen, contextMenu.visible, dispatch]);
+  
   const cycleBackground = useCallback(() => {
     setBackgroundIndex((prev) => (prev + 1) % backgrounds.length);
-  }, [backgrounds.length]);
+    playSound('click');
+  }, [backgrounds.length, playSound]);
+  
+  // Handle right-click context menu
   const handleRightClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
+    playSound('click');
     setContextMenu({
       visible: true,
       position: { x: e.clientX, y: e.clientY },
     });
-  }, []);
+  }, [playSound]);
+  
+  // Right-click menu items
   const contextMenuItems = useMemo(() => [
     {
       label: 'Change Background',
       action: cycleBackground,
+    },
+    {
+      label: 'New Folder',
+      action: () => {
+        const folderId = uuidv4(); // Generate unique ID
+        dispatch({
+          type: 'CREATE_FOLDER',
+          payload: {
+            id: folderId,
+            title: 'New Folder',
+            icon: '/assets/win98-icons/png/directory_closed-0.png',
+            items: [],
+            position: { 
+              x: Math.max(50, contextMenu.position.x - 40), 
+              y: Math.max(50, contextMenu.position.y - 40) 
+            }
+          }
+        });
+      },
     },
     {
       label: 'Arrange Icons',
@@ -80,7 +94,9 @@ const Desktop: React.FC = () => {
       label: 'Refresh',
       action: () => window.location.reload(),
     },
-  ], [cycleBackground]);
+  ], [cycleBackground, contextMenu.position, dispatch]);
+  
+  // Handle opening a project window
   const handleIconDoubleClick = useCallback((projectId: string) => {
     const project = state.projects.find((p) => p.id === projectId);
     if (project) {
@@ -93,16 +109,21 @@ const Desktop: React.FC = () => {
           content: project.content,
           minimized: false,
           position: { x: 100, y: 100 },
+          type: 'project'
         },
       });
     }
   }, [dispatch, playSound, state.projects]);
-  const filteredProjects = useMemo(() => state.projects.filter((p) => p.id !== 'about'), [state.projects]);
+  
+  // Handle opening About me window
   const handleAboutMeClick = useCallback((e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
+    
     console.log("About Me clicked, projects:", state.projects);
+    
     playSound('click');
     playSound('windowOpen');
+    
     dispatch({
       type: 'OPEN_WINDOW',
       payload: {
@@ -115,68 +136,87 @@ const Desktop: React.FC = () => {
       },
     });
   }, [dispatch, playSound, state.projects]);
+  
+  // Toggle start menu
   const handleStartClick = useCallback(() => {
     console.log("Start menu toggle - current state:", state.startMenuOpen);
     dispatch({ type: 'TOGGLE_START_MENU' });
   }, [dispatch, state.startMenuOpen]);
-
-
-  const iconElements = useMemo(() => {
-    return filteredProjects.map((project, index) => {
-      const GRID_COLUMN_WIDTH = 100;
-      const GRID_ROW_HEIGHT = 120;
-      const GRID_COLUMNS = 5;
-
-      const col = Math.floor(index % GRID_COLUMNS);
-      const row = Math.floor(index / GRID_COLUMNS);
-      // Try to use the icon from the project, or use a fallback based on project type
-      let iconPath = project.icon;
-
-      // Provide fallbacks if icon is missing
-      if (!iconPath || iconPath.includes("../assets")) {
-        // Convert relative paths to absolute
-        iconPath = iconPath?.replace("../assets", "/assets");
-
-        // If still no icon, use a default based on project type
-        if (!iconPath) {
-          switch (project.type) {
-            case 'code':
-              iconPath = '/assets/win98-icons/png/notepad_file-0.png';
-              break;
-            case 'interactive':
-              iconPath = '/assets/win98-icons/png/joystick-5.png';
-              break;
-            case 'visual':
-              iconPath = '/assets/win98-icons/png/media_player_file-0.png';
-              break;
-            default:
-              iconPath = '/assets/win98-icons/png/briefcase-4.png';
-          }
-        }
-      }
-
-      console.log(`Project ${project.id}: using icon ${iconPath}`);
-
-      return (
-        <Icon
-          key={project.id}
-          position={{
-            x: 20 + col * GRID_COLUMN_WIDTH,
-            y: 20 + row * GRID_ROW_HEIGHT
-          }}
-          icon={iconPath}
-          label={project.title}
-          onDoubleClick={() => handleIconDoubleClick(project.id)}
-        />
-      );
-    });
-  }, [filteredProjects, handleIconDoubleClick]);
   
-  const renderStartMenu = () => {
-    return state.startMenuOpen ? <StartMenu /> : null;
-  };
+  // Drag handlers
 
-  // And the About Me icon with appropriate spacing
+  const handleDragStart = useCallback((e: React.DragEvent, itemId?: string) => {
+    if (itemId) {
+      setDraggedItemId(itemId);
+      e.dataTransfer.setData('text/plain', itemId);
+      e.dataTransfer.effectAllowed = 'move';
+    }
+  }, []);
+  
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  }, []);
+  
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    const itemId = e.dataTransfer.getData('text/plain');
+    
+    if (!itemId) return;
+    
+    // Get desktop-relative position
+    const { left, top } = e.currentTarget.getBoundingClientRect();
+    const dropX = Math.max(20, e.clientX - left);
+    const dropY = Math.max(20, e.clientY - top);
+    
+    // Move to desktop (null parent)
+    dispatch({
+      type: 'MOVE_ITEM',
+      payload: {
+        itemId,
+        newParentId: null,
+        position: { x: dropX, y: dropY }
+      }
+    });
+    
+    setDraggedItemId(null);
+  }, [dispatch]);
+  
+  // Get items currently on the desktop (not in folders)
+  const desktopItems = useMemo(() => {
+    return state.desktopItems.filter(item => !item.parentId);
+  }, [state.desktopItems]);
+  
+  // Get desktop projects (excluding About Me)
+  const desktopProjects = useMemo(() => {
+    return desktopItems
+      .filter(item => item.type === 'project' && item.id !== 'about')
+      .map(item => {
+        const project = state.projects.find(p => p.id === item.id);
+        return { ...item, project };
+      })
+      .filter(item => item.project); // Ensure project exists
+  }, [desktopItems, state.projects]);
+  
+  // Get desktop folders
+  const desktopFolders = useMemo(() => {
+    return desktopItems.filter(item => item.type === 'folder');
+  }, [desktopItems]);
+  
+  // About Me icon
+  const aboutMeItem = useMemo(() => {
+    return state.desktopItems.find(item => item.id === 'about' && !item.parentId);
+  }, [state.desktopItems]);
+  
+  const aboutMeProject = useMemo(() => {
+    return state.projects.find(p => p.id === 'about');
+  }, [state.projects]);
+  
+  // Render start menu (only if open)
+  const renderStartMenu = useCallback(() => {
+    return state.startMenuOpen ? <StartMenu /> : null;
+  }, [state.startMenuOpen]);
+  
   return (
     <div
       className={styles.desktop}
@@ -187,24 +227,79 @@ const Desktop: React.FC = () => {
       }}
       onClick={handleDesktopClick}
       onContextMenu={handleRightClick}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
     >
       <div className={styles.iconsContainer}>
-        {iconElements}
-        {/* Only show About Me icon if not already in projects */}
-        {!state.projects.some(p => p.id === 'about') && (
+        {/* Render project icons */}
+        {desktopProjects.map(item => (
           <Icon
-            position={{
-              x: 20,
-              y: 20 + Math.ceil(filteredProjects.length / 5) * 120
-            }}
+          key={item.id}
+          itemId={item.id}
+          position={item.position}
+          icon={item.project?.icon || '/assets/win98-icons/png/notepad_file-0.png'}
+          label={item.project?.title || 'Unknown'}
+          onDoubleClick={() => handleIconDoubleClick(item.id)}
+          draggable={true}
+          onDragStart={(e) => handleDragStart(e, item.id)} // Pass item.id here
+        />
+        ))}
+        
+        {/* Render folder icons */}
+        {desktopFolders.map(folder => (
+         <Folder
+         key={folder.id}
+         id={folder.id}
+         title={folder.title}
+         position={folder.position}
+         onDragStart={(e) => handleDragStart(e, folder.id)} // Pass folder.id here
+         onDragOver={handleDragOver}
+         onDrop={(e, folderId) => {
+           e.preventDefault();
+           const itemId = e.dataTransfer.getData('text/plain');
+           if (itemId) {
+             dispatch({
+               type: 'MOVE_ITEM',
+               payload: {
+                 itemId,
+                 newParentId: folderId
+               }
+             });
+           }
+         }}
+       />
+       
+        ))}
+        
+        {/* About Me icon */}
+        {aboutMeProject && !aboutMeItem && (
+          <Icon
+            position={{ x: 20, y: 20 }}
             icon="/assets/win98-icons/png/address_book_user.png"
             label="About Me"
             onDoubleClick={handleAboutMeClick}
+            itemId="about"
+            draggable={true}
+            onDragStart={handleDragStart}
+          />
+        )}
+        
+        {aboutMeItem && aboutMeProject && (
+          <Icon
+            position={aboutMeItem.position}
+            icon={aboutMeProject.icon || "/assets/win98-icons/png/address_book_user.png"}
+            label={aboutMeItem.title}
+            onDoubleClick={handleAboutMeClick}
+            itemId={aboutMeItem.id}
+            draggable={true}
+            onDragStart={handleDragStart}
           />
         )}
       </div>
+      
       <WindowManager />
       {renderStartMenu()}
+      
       {contextMenu.visible && (
         <RightClickMenu
           position={contextMenu.position}
@@ -212,8 +307,10 @@ const Desktop: React.FC = () => {
           onClose={() => setContextMenu((prev) => ({ ...prev, visible: false }))}
         />
       )}
+      
       <Taskbar onStartClick={handleStartClick} />
     </div>
   );
-}
+};
+
 export default Desktop;

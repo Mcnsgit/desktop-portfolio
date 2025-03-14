@@ -44,26 +44,30 @@ export const navLinks = [
   },
 ];
 
+
 // Services offered
 const services = [
   {
     title: "Web Developer",
     icon: web,
+    description: "Building responsive, high-performance web applications with modern frameworks. Creating interactive and user-friendly interfaces that deliver exceptional user experiences."
   },
   {
     title: "React Developer",
     icon: mobile,
+    description: "Crafting dynamic user interfaces with React and related technologies. Specializing in component-based architecture, state management, and optimized rendering."
   },
   {
     title: "Backend Developer",
     icon: backend,
+    description: "Designing robust server-side applications and APIs with Node.js, Express, and MongoDB. Implementing secure, scalable, and efficient backend solutions."
   },
   {
     title: "Digital Marketer",
     icon: creator,
+    description: "Developing strategic marketing campaigns to increase brand visibility and engagement. Skilled in SEO, content marketing, and analytics-driven optimization."
   },
 ];
-
 // Technologies skillset
 const technologies = [
   {
@@ -392,6 +396,7 @@ const projects = [
     ],
     image: "project2",
     source_code_link: "https://github.com/",
+    live_link:"https://vercel.com/",
   },
   {
     name: "Non-Profit Website Overhaul",
@@ -413,6 +418,7 @@ const projects = [
     ],
     image: "project3",
     source_code_link: "https://github.com/",
+    live_link:"https://vercel.com/",
   },
   {
     name: "Python Text-Based Game",
@@ -434,6 +440,7 @@ const projects = [
     ],
     image: "project4",
     source_code_link: "https://github.com/",
+    live_link:"https://vercel.com/",
   },
 ];
 

@@ -1,3 +1,4 @@
+// components/windows/Window.tsx
 import React, { useRef, useState, useEffect } from 'react';
 import { useDraggable } from '@neodrag/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -28,7 +29,19 @@ const Window: React.FC<WindowProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const isActive = state.activeWindowId === id;
-  const isMinimizedState = state.windows.find(w => w.id === id)?.minimized || false;
+  const windowData = state.windows.find(w => w.id === id);
+  const isMinimized = windowData?.minimized || false;
+
+  // Debug messages
+  useEffect(() => {
+    console.log(`Window ${id} rendering:`, {
+      title,
+      isActive,
+      isMinimized,
+      windowData,
+      windowsInState: state.windows.map(w => w.id),
+    });
+  }, [id, title, isActive, isMinimized, windowData, state.windows]);
 
   // Apply draggable ref directly to the window component
   useDraggable(windowRef as React.RefObject<HTMLElement>, {
@@ -68,10 +81,12 @@ const Window: React.FC<WindowProps> = ({
 
   // Window controls
   const handleClose = () => {
+    console.log(`Closing window ${id}`);
     dispatch({ type: 'CLOSE_WINDOW', payload: { id } });
   };
 
   const handleMinimize = () => {
+    console.log(`Minimizing window ${id}`);
     dispatch({ type: 'MINIMIZE_WINDOW', payload: { id } });
   };
 
@@ -106,8 +121,11 @@ const Window: React.FC<WindowProps> = ({
     document.addEventListener('mouseup', onMouseUp);
   };
 
-  // Early return if minimized - MOVED AFTER all hooks
-  if (isMinimizedState) return null;
+  // Early return if minimized or window doesn't exist in state
+  if (isMinimized || !windowData) {
+    console.log(`Window ${id} is minimized or not in state`);
+    return null;
+  }
 
   return (
     <div 

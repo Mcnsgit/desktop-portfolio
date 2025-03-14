@@ -1,15 +1,22 @@
-import { useEffect, useState } from 'react'
-import  Link from 'next/link'
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { motion } from 'framer-motion';
 
-import styles from '../styles/Navbar.module.scss'
-import { navLinks } from '../../data/index'
-import { logo, menu, close } from '../../../public/assets'
+// Import your styles
+import styles from '../styles/Navbar.module.scss';
+import { navLinks } from '../../data/index';
+import { logo } from '../../../public/assets';
+
+// You'll need to import these or create equivalents
+// import { logo, menuIcon, closeIcon } from '../assets';
+// import { navLinks } from '../constants';
 
 const Navbar = () => {
-  const [active, setActive] = useState('')
+  const [active, setActive] = useState('');
   const [scrolled, setScrolled] = useState(false);
   const [toggle, setToggle] = useState(false);
-
+  
   useEffect(() => {
     const handleScroll = () => {
       const scrollTop = window.scrollY;
@@ -21,76 +28,110 @@ const Navbar = () => {
     };
 
     window.addEventListener("scroll", handleScroll);
-
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-
   return (
     <nav
-      className={`${styles.paddingX} w-full flex items-center py-5 fixed top-0 z-20 ${ scrolled ? "bg-primary" : "bd-transparent"}`}
+      className={`${styles.navbar} ${scrolled ? styles.scrolled : ''}`}
     >
-      <div className="w-full flex justify-between items-center max-w-7xl mx-auto">
+      <div className={styles.navContent}>
         <Link href='/'
-          className='flex items-center gap-2'
+          className={styles.logoContainer}
           onClick={() => {
             setActive("");
-            window.scroll(0, 0);
+            window.scrollTo(0, 0);
           }}
         >
-          <img src={logo} alt='logo' className='w-11 h11 object-contain' />
-          <p className='text-white text-[18px] font-bold cursor-pointer flex' >
-            Miguel &nbsp;
-
-          </p>
+          <Image 
+            src={logo} 
+            alt='Miguel Cardiga' 
+            className={styles.logo} 
+            width={44}
+            height={44}
+          />
+          <span className={styles.logoText}>Miguel Cardiga</span>
         </Link>
 
-        <ul className='lit-none hidden sm:flex flex-row gap-10'>
-          {navLinks.map((nav) => (
-            <li
-              key={nav.id}
-              className={`${active === nav.title ? "text-white" : "text-secondary"
-                } hover:text-white text-[18px] font-medium cursor-pointer`}
-              onClick={() => setActive(nav.title)}
-            >
-              <a href={`#${nav.id}`}>{nav.title}</a>
+        {/* Desktop Navigation */}
+        <ul className={styles.desktopNav}>
+          {navLinks.map((link) => (
+            <li key={link.id}>
+              <a
+                href={`#${link.id}`}
+                className={`${styles.navLink} ${active === link.title ? styles.navLinkActive : ''}`}
+                onClick={() => setActive(link.title)}
+              >
+                {link.title}
+              </a>
             </li>
           ))}
         </ul>
 
-        <div className='sm:hidden flex flex-1 justify-end items-center'>
-          <img 
-            src={toggle ? close : menu}
-            alt='menu'
-            className='w-[28px] h-[28px] object-contain'
+        {/* Mobile Navigation */}
+        <div className={styles.mobileMenuContainer}>
+          <button 
+            className={styles.menuButton}
             onClick={() => setToggle(!toggle)}
-          />
-
-<div
-            className={`${
-              !toggle ? "hidden" : "flex"
-            } p-6 black-gradient absolute top-20 right-0 mx-4 my-2 min-w-[140px] z-10 rounded-xl`}
+            aria-label={toggle ? 'Close menu' : 'Open menu'}
           >
-            <ul className='list-none flex justify-end items-start flex-1 flex-col gap-4'>
-              {navLinks.map((nav) => (
-                <li
-                  key={nav.id}
-                  className={`font-poppins font-medium cursor-pointer text-[16px] ${
-                    active === nav.title ? "text-white" : "text-secondary"
-                  }`}
-                  onClick={() => {
-                    setToggle(!toggle);
-                    setActive(nav.title);
-                  }}
-                >
-                  <a href={`#${nav.id}`}>{nav.title}</a>
-                </li>
-              ))}
-            </ul>
-          </div>
+            <svg 
+              className={styles.menuIcon}
+              viewBox="0 0 24 24" 
+              fill="none" 
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              {toggle ? (
+                <path 
+                  d="M18 6L6 18M6 6L18 18" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                />
+              ) : (
+                <path 
+                  d="M4 6H20M4 12H20M4 18H20" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                />
+              )}
+            </svg>
+          </button>
+
+          {/* Mobile Menu Dropdown */}
+          {toggle && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className={styles.mobileMenu}
+            >
+              <ul className={styles.mobileNav}>
+                {navLinks.map((link) => (
+                  <li key={link.id}>
+                    <a
+                      href={`#${link.id}`}
+                      className={`${styles.navLink} ${active === link.title ? styles.navLinkActive : ''}`}
+                      onClick={() => {
+                        setToggle(false);
+                        setActive(link.title);
+                      }}
+                    >
+                      {link.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          )}
         </div>
       </div>
     </nav>
   );
 };
-export default Navbar
+
+export default Navbar;

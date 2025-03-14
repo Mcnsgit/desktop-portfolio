@@ -37,6 +37,7 @@ const MobileView: React.FC = () => {
       }
     });
   };
+  const defaultProjectIcon = "/assets/win98-icons/png/directory_closed_history-2.png"
   
   return (
     <div className={styles.mobileView}>
@@ -49,7 +50,7 @@ const MobileView: React.FC = () => {
           className={styles.projectCard}
           onClick={openAboutMe}
         >
-          <Image src="/icons/about.png" width={24} height={24} alt="About Me" className={styles.projectIcon} />
+          <Image src="/assets/win98-icons/png/address_book_user.png" width={24} height={24} alt="About Me" className={styles.projectIcon} />
           <h3>About Me</h3>
           <p>Learn more about who I am</p>
         </div>
@@ -60,7 +61,7 @@ const MobileView: React.FC = () => {
             className={styles.projectCard}
             onClick={() => handleProjectClick(project.id)}
           >
-            <Image src={project.icon} alt={project.title} width={24} height={24} className={styles.projectIcon} />
+            <Image src={defaultProjectIcon} alt={project.title} width={24} height={24} className={styles.projectIcon} />
             <h3>{project.title}</h3>
             <p>{project.description.slice(0, 50)}...</p>
           </div>
