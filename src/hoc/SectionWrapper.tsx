@@ -2,9 +2,13 @@ import { motion } from "framer-motion";
 import { styles } from "../components/cv/styles";
 import { staggerContainer } from "../utils/motion";
 import React, { useMemo } from "react";
-const StarWrapper = (Component, idName) =>
-  function HOC() {
-    const variants = useMemo(() => staggerContainer(), []); // Memoizing the variants
+type StarWrapperProps = {
+  idName: string; // Only keep the idName if that's all you need
+};
+const StarWrapper = (Component: React.FC, idName: string) => {
+  return function HOC() {
+    const variants = useMemo(() => staggerContainer(0.1, 0.2), []);
+
     return (
       <motion.section
         variants={variants}
@@ -15,10 +19,10 @@ const StarWrapper = (Component, idName) =>
       >
         <div id={idName} className="hash-span">
           &nbsp;
-        </div>{" "}
-        {/* Changed span to div */}
+        </div>
         <Component />
       </motion.section>
     );
   };
+};
 export default StarWrapper;
