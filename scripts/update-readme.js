@@ -1,48 +1,70 @@
 const fs = require("fs-extra");
 const path = require("path");
 
+/**
+ * Updates the README.md with the latest screenshot
+ */
 async function updateReadme() {
   try {
     const readmePath = path.join(__dirname, "..", "README.md");
-    console.log(`Reading Readme from ${readmePath}`);
+    console.log(`Reading README from ${readmePath}...`);
 
-    //read the current  readme content
-    let readmeContent = await fs.readFile(readmePath, "utf-8");
+    // Read the current README content
+    let readmeContent = await fs.readFile(readmePath, "utf8");
 
-    //define the screenshot section markers
+    // Define the screenshot section markers
+    const startMarker = "<!-- PORTFOLIO_SCREENSHOT_START -->";
+    const endMarker = "<!-- PORTFOLIO_SCREENSHOT_END -->";
 
-    const startMarker = "<!-- START_SCREENSHOTS -->";
-    const endMarker = "<!-- END_SCREENSHOTS -->";
-
-    //get the current date for the timestamp
+    // Get the current date for the timestamp
     const timestamp = new Date().toISOString().split("T")[0];
 
-    //create the new scree\nshot section
+    // Check which screenshot file exists
+    const screenshotsDir = path.join(__dirname, "..", "screenshots");
+    const portfolioScreenshotPath = path.join(
+      screenshotsDir,
+      "portfolio-screenshot.png"
+    );
+    const simpleScreenshotPath = path.join(screenshotsDir, "screenshot.png");
+
+    let screenshotFilename = "portfolio-screenshot.png";
+
+    // Check if the files exist and use the one that exists
+    if (await fs.pathExists(portfolioScreenshotPath)) {
+      console.log("Found portfolio-screenshot.png");
+      screenshotFilename = "portfolio-screenshot.png";
+    } else if (await fs.pathExists(simpleScreenshotPath)) {
+      console.log("Found screenshot.png, using this instead");
+      screenshotFilename = "screenshot.png";
+    } else {
+      console.log("No screenshot file found, but continuing anyway");
+    }
+
+    // Create the new screenshot section
     const screenshotSection = `${startMarker}
-        ## Portfolio Screenshot 
-        *Last updated: ${timestamp}*
+## Portfolio Screenshot
+*Last updated: ${timestamp}*
 
-        ! [Portfolio Screenshot](./screenshots/screenshot.png)]
+![Portfolio Screenshot](./screenshots/${screenshotFilename})
+${endMarker}`;
 
-        ${endMarker}`;
-
-    //check if the README already has the screenshot section
+    // Check if the README already has the screenshot section
     if (
       readmeContent.includes(startMarker) &&
       readmeContent.includes(endMarker)
     ) {
-      //replace the screenshot section
+      // Replace the existing section
       const regex = new RegExp(`${startMarker}[\\s\\S]*${endMarker}`, "g");
       readmeContent = readmeContent.replace(regex, screenshotSection);
-      console.log("Replaced existing screenshot section in README");
+      console.log("Replaced existing screenshot section in README.");
     } else {
-      //add the section to the end of the README
-      readmeContent += screenshotSection;
-      console.log("Added screenshot section to the end of README");
+      // Add the section to the end of the README
+      readmeContent += `\n\n${screenshotSection}`;
+      console.log("Added new screenshot section to README.");
     }
 
-    //write the updated README back to disk
-    await fs.writeFile(readmePath, readmeContent, "utf-8");
+    // Write the updated README back to disk
+    await fs.writeFile(readmePath, readmeContent, "utf8");
     console.log("README updated successfully!");
   } catch (error) {
     console.error("Error updating README:", error);
@@ -50,12 +72,12 @@ async function updateReadme() {
   }
 }
 
-//run the function if this script is executed directly
+// Run the function if this script is executed directly
 if (require.main === module) {
   updateReadme()
-    .then(() => console.log("Screenshot process completed"))
+    .then(() => console.log("README update process completed"))
     .catch((error) => {
-      console.error("Screenshot process failed:", error);
+      console.error("README update process failed:", error);
       process.exit(1);
     });
 }

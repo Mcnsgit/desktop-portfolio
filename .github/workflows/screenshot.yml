@@ -30,6 +30,14 @@ jobs:
       - name: Take screenshot
         run: npm run screenshot
 
+        # Debug: List files to verify screenshot was created
+      - name: List files in screenshots directory
+        run: |
+          echo "Contents of screenshots directory:"
+          ls -la screenshots/
+          echo "Current directory structure:"
+          find . -type f -name "*.png" | sort
+
       - name: Update README
         run: npm run update-readme
 
@@ -38,7 +46,20 @@ jobs:
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
 
-          git add screenshots/portfolio-screenshot.png README.md
+          # Check if the screenshot exists before adding it
+          if [ -f "screenshots/portfolio-screenshot.png" ]; then
+            git add screenshots/portfolio-screenshot.png README.md
+          elif [ -f "screenshots/screenshot.png" ]; then
+            # If the file has a different name, add that instead
+            git add screenshots/screenshot.png README.md
+            # Update the README to use the correct filename
+            sed -i 's/portfolio-screenshot.png/screenshot.png/g' README.md
+            git add README.md
+          else
+            # Add only the README if no screenshot was generated
+            git add README.md
+            echo "Warning: No screenshot file found to commit"
+          fi
 
           # Only commit and push if there are changes
           if git diff --staged --quiet; then
