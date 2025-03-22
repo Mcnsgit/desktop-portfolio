@@ -36,13 +36,10 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
 <!-- PORTFOLIO_SCREENSHOT_START -->
-
 ## Portfolio Screenshot
+*Last updated: 2025-03-22*
 
-_Last updated: [date will be inserted automatically]_
-
-![Portfolio Screenshot](./screenshots/portfolio-screenshot.png)
-
+![Portfolio Screenshot](./screenshots/screenshot.png)
 <!-- PORTFOLIO_SCREENSHOT_END -->
 
 thank to the open source/ 3d models/inspo etc: check out
