@@ -25,7 +25,7 @@ jobs:
       - name: Set website URL
         run: |
           # Replace with your actual deployed URL
-          echo "WEBSITE_URL=https://mcnsgit.github.io/desktop-portfolio" >> $GITHUB_ENV
+          echo "WEBSITE_URL=https://desktop-portfolio-git-main-mcnsgits-projects.vercel.app/" >> $GITHUB_ENV
 
       - name: Take screenshot
         run: npm run screenshot
