@@ -1,64 +1,54 @@
 const puppeteer = require("puppeteer");
 const fs = require("fs-extra");
 const path = require("path");
-
-async function takeScreenshot() {
-  console.log("Launching browser...");
-
-  //create screenshot folder if it doesn't exist
+let browser; // Keep browser instance for reuse
+async function launchBrowser() {
+  if (!browser) {
+    console.log("Launching browser...");
+    browser = await puppeteer.launch({
+      headless: "new",
+      args: ["--disable-gpu", "--no-sandbox", "--disable-setuid-sandbox"],
+    });
+  }
+}
+async function takeScreenshot(fullPage = false) {
+  await launchBrowser(); // Ensure the browser is launched
   const screenshotsDir = path.join(__dirname, "..", "screenshots");
   await fs.ensureDir(screenshotsDir);
-
-  const browser = await puppeteer.launch({
-    headless: "new",
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-  });
-
   try {
     console.log("Opening new page...");
     const page = await browser.newPage();
-
-    //set viewport to desktop size
     await page.setViewport({
       width: 1280,
       height: 800,
-      deviceScaleFactor: 2, //retina-like display
+      deviceScaleFactor: 2,
     });
-
-    //replace with you actual url
     const url =
       process.env.WEBSITE_URL ||
       "https://desktop-portfolio-git-main-mcnsgits-projects.vercel.app/";
     console.log(`Navigating to ${url}...`);
-
-    await page.goto(url, {
-      waitUntil: "networkidle2", //wait until the network is idle for 2 seconds
-      timeout: 30000, //wait for 30 seconds before timing out
+    const response = await page.goto(url, {
+      waitUntil: "networkidle2",
+      timeout: 30000,
     });
-
-    //wait for animations to complete
-    await page.waitForTimeout(3000);
-
-    //take screenshot
-
+    if (!response || !response.ok()) {
+      throw new Error(`Failed to load page: ${response.status()}`);
+    }
+    await page.waitForTimeout(1000); // Reduced wait time for animations
     const screenshotPath = path.join(screenshotsDir, "screenshot.png");
     console.log(`Taking screenshot and saving to ${screenshotPath}...`);
-
     await page.screenshot({
       path: screenshotPath,
-      fullPage: false, //set true if you want to take a full page screenshot
+      fullPage: fullPage,
     });
-
-    console.log("screenshot taken successfully");
+    console.log("Screenshot taken successfully");
     return screenshotPath;
   } catch (error) {
     console.error("Error taking screenshot:", error);
   } finally {
-    await browser.close();
+    await page.close(); // Close the page instead of the browser
   }
 }
-
-//run the function if this scrip is executed directly
 if (require.main === module) {
   takeScreenshot()
     .then(() => console.log("Screenshot process completed"))
@@ -67,5 +57,4 @@ if (require.main === module) {
       process.exit(1);
     });
 }
-
 module.exports = { takeScreenshot };
