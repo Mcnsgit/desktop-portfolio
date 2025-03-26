@@ -1,102 +1,97 @@
 // styles/Taskbar.module.scss
 .taskbar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 30px;
-    background-color: #c0c0c0;
-    border-top: 1px solid #fff;
-    display: flex;
-    align-items: center;
-    padding: 0 2px;
-    z-index: 1000;
-    box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.1);
+  background-color: #c0c0c0;
+  border-top: 2px solid #ffffff;
+  bottom: 0;
+  display: flex;
+  height: 28px;
+  left: 0;
+  position: fixed;
+  right: 0;
+  z-index: 1000;
+}
 
-    .startButton {
-        padding-left: 3%;
-        background-color: #c0c0c0;
-        border-top: 1px solid #fff;
-        border-left: 1px solid #fff;
-        border-right: 1px solid #555;
-        border-bottom: 1px solid #555;
-        padding: 1px 8px;
-        margin-right: 6px;
-        height: 22px;
-        display: flex;
-        align-items: center;
-        font-weight: bold;
-        font-size: 12px;
-        cursor: pointer;
+.startButton {
+  align-items: center;
+  background-color: #c0c0c0;
+  border: 2px solid;
+  border-color: #ffffff #808080 #808080 #ffffff;
+  cursor: pointer;
+  display: flex;
+  font-family: "MS Sans Serif", Arial, sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+  height: 22px;
+  margin: 2px 2px 2px 4px;
+  padding: 0 8px;
+  transition: background-color 0.1s;
 
-        &:active {
-            border-top: 1px solid #555;
-            border-left: 1px solid #555;
-            border-right: 1px solid #fff;
-            border-bottom: 1px solid #fff;
-        }
-    }
+  &:active {
+    border-color: #808080 #ffffff #ffffff #808080;
+    padding: 1px 7px 0 9px;
+  }
 
-    .windowButtons {
-        display: flex;
-        flex: 1;
-        height: 22px;
-        overflow-x: auto;
-        margin: 0 4px;
+  &:hover {
+    background-color: #d0d0d0;
+  }
+}
 
-        &::-webkit-scrollbar {
-            height: 0;
-            display: none;
-        }
+.windowButtons {
+  display: flex;
+  flex: 1;
+  margin: 2px;
+  overflow-x: auto;
+  gap: 2px;
 
-        .windowButton {
-            background-color: #c0c0c0;
-            border-top: 1px solid #fff;
-            border-left: 1px solid #fff;
-            border-right: 1px solid #555;
-            border-bottom: 1px solid #555;
-            padding: 1px 8px;
-            margin-right: 4px;
-            min-width: 100px;
-            max-width: 150px;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            font-size: 12px;
-            cursor: pointer;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+  // Hide scrollbar but allow scrolling
+  &::-webkit-scrollbar {
+    height: 0;
+    width: 0;
+  }
+}
 
-            &.active {
-                border-top: 1px solid #555;
-                border-left: 1px solid #555;
-                border-right: 1px solid #fff;
-                border-bottom: 1px solid #fff;
-                background-color: #d1d1d1;
-            }
+.windowButton {
+  align-items: center;
+  background-color: #c0c0c0;
+  border: 2px solid;
+  border-color: #ffffff #808080 #808080 #ffffff;
+  cursor: pointer;
+  display: flex;
+  font-family: "MS Sans Serif", Arial, sans-serif;
+  font-size: 11px;
+  height: 22px;
+  margin-right: 2px;
+  min-width: 120px;
+  max-width: 200px;
+  padding: 0 8px;
+  white-space: nowrap;
 
-            span {
-                margin-left: 5px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-        }
-    }
+  &.active {
+    border-color: #808080 #ffffff #ffffff #808080;
+    background-color: #d0d0d0;
+    font-weight: bold;
+  }
 
-    .systemTray {
-        display: flex;
-        align-items: center;
-        height: 22px;
-        border-top: 1px solid #555;
-        border-left: 1px solid #555;
-        border-right: 1px solid #fff;
-        border-bottom: 1px solid #fff;
-        padding: 0 8px;
+  span {
+    margin-left: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
 
-        .clock {
-            font-size: 12px;
-        }
-    }
+.systemTray {
+  align-items: center;
+  border-left: 1px solid #808080;
+  display: flex;
+  margin: 2px 4px 2px 0;
+  padding-left: 4px;
+}
+
+.clock {
+  background-color: #c0c0c0;
+  border: 1px solid;
+  border-color: #808080 #ffffff #ffffff #808080;
+  font-family: "MS Sans Serif", Arial, sans-serif;
+  font-size: 11px;
+  padding: 1px 6px;
 }

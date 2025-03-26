@@ -1,32 +1,33 @@
 // components/windows/WindowTypes/AboutWindow.tsx
-import React from 'react';
-import styles from '../../styles/AboutWindow.module.scss';
-import Image from 'next/image';
+import React from "react";
+import styles from "../../styles/AboutWindow.module.scss";
+import Image from "next/image";
 const imageDimensions = { width: 24, height: 24 };
-
 
 const AboutWindow: React.FC = () => {
   return (
     <div className={styles.aboutWindow}>
       <div className={styles.profile}>
-        <Image 
-          src="/images/profile.jpg"
-          alt="Profile" className={styles.profileImage} 
+        <Image
+          src="desktop-portfolio/public/images/profile.png"
+          alt="Profile"
+          className={styles.profileImage}
           width={imageDimensions.width}
-          height={imageDimensions.height}/>
-        <h2>Your Name</h2>
+          height={imageDimensions.height}
+        />
+        <h2>Miguel Cardiga</h2>
         <p className={styles.title}>Full Stack Developer</p>
       </div>
-      
+
       <div className={styles.section}>
         <h3>About Me</h3>
         <p>
-          Hello! I&apos;m a passionate web developer with expertise in building 
-          modern, responsive web applications. I enjoy solving complex problems 
+          Hello! I&apos;m a passionate web developer with expertise in building
+          modern, responsive web applications. I enjoy solving complex problems
           and creating intuitive user experiences.
         </p>
       </div>
-      
+
       <div className={styles.section}>
         <h3>Skills</h3>
         <div className={styles.skillContainer}>
@@ -39,7 +40,7 @@ const AboutWindow: React.FC = () => {
               <li>Tailwind CSS</li>
             </ul>
           </div>
-          
+
           <div className={styles.skillCategory}>
             <h4>Backend</h4>
             <ul className={styles.skillList}>
@@ -49,7 +50,7 @@ const AboutWindow: React.FC = () => {
               <li>MySQL</li>
             </ul>
           </div>
-          
+
           <div className={styles.skillCategory}>
             <h4>Tools</h4>
             <ul className={styles.skillList}>
@@ -61,9 +62,12 @@ const AboutWindow: React.FC = () => {
           </div>
         </div>
       </div>
-      
+
       <div className={styles.footer}>
-        <p>This portfolio was built with Next.js and styled to resemble a retro operating system.</p>
+        <p>
+          This portfolio was built with Next.js and styled to resemble a retro
+          operating system.
+        </p>
       </div>
     </div>
   );

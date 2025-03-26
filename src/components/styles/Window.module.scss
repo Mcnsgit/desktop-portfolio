@@ -1,91 +1,128 @@
-
 // styles/Window.module.scss
 .window {
-    position: absolute;
-    background-color: #c0c0c0;
-    border: 2px solid;
-    border-color: #dfdfdf #0a0a0a #0a0a0a #dfdfdf;
-    box-shadow: inset 1px 1px 0px #ffffff, inset -1px -1px 0px #808080;
-    display: flex;
-    flex-direction: column;
-    min-width: 200px;
-    min-height: 150px;
-    overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: fixed !important;
+  overflow: hidden;
+  z-index: 9999!important;
+  transition: box-shadow 0.2s ease;
+&.dragging {
+  transition: none !important;
+  cursor: grabbing !important;
+}
+  &.active {
+    box-shadow: 4px 4px 15px rgba(0, 0, 0, 0.4);
+    z-index: 10 !important; // Make sure active window is always on top
+  }
 
-    &.active {
-        z-index: 10;
-    }
+  // Swapy specific styles
+  [data-swapy-slot] {
+    width: 100%;
+    height: 100%;
+  }
+
+  [data-swapy-item] {
+    width: 100%;
+    height: 100%;
+  }
+
+  [data-swapy-dragging] {
+    opacity: 0.8;
+    cursor: grabbing;
+  }
+
+  [data-swapy-highlighted] {
+    border-color: #0078d7;
+    outline: 2px dashed #0078d7;
+  }
+}
+
+.windowContent {
+  z-index: 9999 !important;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background-color: #c0c0c0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  border: 2px solid;
+  border-color: #dfdfdf #808080 #808080 #dfdfdf;
 }
 
 .titleBar {
-    background-color: #000080;
-    height: 25px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 5px;
-    color: white;
-    font-weight: bold;
-    user-select: none;
+  z-index: 10000 !important;
+  background: linear-gradient(to right, #000080, #1084d0);
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 4px;
+  height: 18px;
+  cursor: grab !important;
+  user-select: none;
+
+  &:active {
+    cursor: grabbing !important;
+  }
 }
 
 .title {
-    font-size: 12px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  font-size: 12px;
+  font-weight: bold;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 10px;
 }
 
 .controls {
-    display: flex;
-    align-items: center;
+  display: flex;
+  align-items: center;
 }
 
 .control {
-    width: 16px;
-    height: 16px;
-    margin-left: 2px;
-    background-color: #c0c0c0;
-    border: 2px solid;
-    border-color: #ffffff #808080 #808080 #ffffff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 10px;
-    color: black;
-    cursor: pointer;
+  background-color: #c0c0c0;
+  border: 1px solid;
+  border-color: #dfdfdf #808080 #808080 #dfdfdf;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 14px;
+  margin-left: 2px;
+  padding: 0;
+  font-size: 12px;
+  cursor: pointer;
 
-    &:active {
-        border-color: #808080 #ffffff #ffffff #808080;
-    }
+  &:active {
+    border-color: #808080 #dfdfdf #dfdfdf #808080;
+  }
 }
 
 .content {
-    flex: 1;
-    padding: 10px;
-    overflow: auto;
-    background-color: #ffffff;
-    border: 2px solid;
-    border-color: #808080 #ffffff #ffffff #808080;
-    margin: 4px;
+  flex: 1;
+  overflow: auto;
+  background-color: #ffffff;
+  position: relative;
 }
 
 .resizeHandle {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 16px;
-    height: 16px;
-    cursor: nwse-resize;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 16px;
+  height: 16px;
+  cursor: nwse-resize;
+  background-image: url("/assets/win98-icons/png/resize_handle.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: bottom right;
+}
 
-    &::after {
-        content: '';
-        position: absolute;
-        right: 3px;
-        bottom: 3px;
-        width: 8px;
-        height: 8px;
-        border-bottom: 2px solid #808080;
-        border-right: 2px solid #808080;
-    }
+// Media queries for responsive behavior
+@media (max-width: 768px) {
+  .window {
+    min-width: 300px !important;
+  }
 }

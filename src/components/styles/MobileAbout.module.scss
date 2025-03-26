@@ -1,0 +1,104 @@
+.container {
+  width: 100%;
+  padding: 15px;
+  font-family: "MS Sans Serif", Arial, sans-serif;
+}
+
+.sectionHeadText {
+  font-size: 28px;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 5px;
+}
+
+.sectionSubText {
+  font-size: 14px;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 15px;
+}
+
+.introduction {
+  background-color: rgba(0, 0, 0, 0.15);
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  p {
+    color: #e0e0e0;
+    line-height: 1.6;
+    font-size: 15px;
+  }
+}
+
+.servicesContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.servicesTitle {
+  font-size: 20px;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 10px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.serviceCard {
+  background-color: rgba(30, 30, 60, 0.8);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid rgba(100, 100, 255, 0.2);
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.serviceContent {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.iconContainer {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(
+    145deg,
+    rgba(80, 80, 255, 0.2),
+    rgba(200, 70, 200, 0.2)
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+  padding: 10px;
+}
+
+.icon {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 10px;
+}
+
+.description {
+  color: #aaa;
+  font-size: 14px;
+  line-height: 1.5;
+}

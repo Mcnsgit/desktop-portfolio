@@ -1,0 +1,187 @@
+.container {
+  width: 100%;
+  padding: 15px;
+  font-family: "MS Sans Serif", Arial, sans-serif;
+}
+
+.sectionHeadText {
+  font-size: 28px;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 5px;
+}
+
+.sectionSubText {
+  font-size: 14px;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 15px;
+}
+
+.introduction {
+  background-color: rgba(0, 0, 0, 0.15);
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  p {
+    color: #e0e0e0;
+    line-height: 1.6;
+    font-size: 15px;
+  }
+}
+
+.featuredSection {
+  margin-bottom: 25px;
+}
+
+.featuredTitle {
+  font-size: 20px;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 15px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.techGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.techItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.techImageContainer {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(
+    145deg,
+    rgba(30, 30, 80, 0.3),
+    rgba(60, 60, 120, 0.3)
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 5px;
+  padding: 8px;
+  border: 1px solid rgba(100, 100, 255, 0.2);
+}
+
+.techImage {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
+.techName {
+  font-size: 12px;
+  color: #bbb;
+}
+
+.categoriesSection {
+  margin-top: 20px;
+}
+
+.categoriesTitle {
+  font-size: 20px;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 15px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.category {
+  margin-bottom: 10px;
+  background-color: rgba(30, 30, 60, 0.5);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(100, 100, 255, 0.1);
+}
+
+.categoryHeader {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  cursor: pointer;
+
+  &:active {
+    background-color: rgba(50, 50, 100, 0.5);
+  }
+}
+
+.categoryIcon {
+  margin-right: 10px;
+  color: #aaa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.categoryTitle {
+  flex: 1;
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+}
+
+.arrow {
+  font-size: 16px;
+  color: #aaa;
+  transition: transform 0.3s ease;
+}
+
+.arrowOpen {
+  transform: rotate(180deg);
+}
+
+.skillList {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 10px 15px;
+  background-color: rgba(20, 20, 40, 0.5);
+  gap: 8px;
+  animation: slideDown 0.3s ease-out;
+}
+
+.skillPill {
+  background-color: rgba(80, 80, 200, 0.2);
+  border: 1px solid rgba(100, 100, 255, 0.2);
+  border-radius: 15px;
+  padding: 5px 10px;
+  font-size: 12px;
+  color: #ddd;
+  display: inline-block;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 500px;
+  }
+}
+
+// Responsive adjustments for very small screens
+@media (max-width: 320px) {
+  .techGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .skillPill {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+}

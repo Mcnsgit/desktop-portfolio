@@ -11,12 +11,11 @@ import {
   Game,
 } from "../../public/assets/win98-icons";
 
-
 const projects: Project[] = [
   {
     id: "todo-list",
     title: "Todo List App",
-    icon: "../assets/win98-icons/icons/png/notepad_file-0.png",
+    icon: "/assets/win98-icons/icons/png/notepad_file-0.png",
     description: "A simple todo list application with React and JavaScript",
     type: "interactive",
     technologies: ["React", "JavaScript", "CSS Modules"],
@@ -28,7 +27,7 @@ const projects: Project[] = [
   {
     id: "weather-app",
     title: "Weather App",
-    icon: "../assets/win98-icons/icons/png/world-5.png",
+    icon: "/assets/win98-icons/icons/png/world-5.png",
     description: "Weather application using OpenWeather API",
     type: "interactive",
     technologies: ["React", "Axios", "OpenWeather API"],
@@ -39,7 +38,7 @@ const projects: Project[] = [
   {
     id: "ecommerce-platform",
     title: "E-commerce Platform",
-    icon: "../assets/win98-icons/icons/png/html-5.png",
+    icon: "/assets/win98-icons/icons/png/html-5.png",
     description:
       "Complete e-commerce platform with product management, user authentication, and payment processing",
     type: "interactive",
@@ -52,7 +51,7 @@ const projects: Project[] = [
   {
     id: "nonprofit-website",
     title: "Non-Profit Website Overhaul",
-    icon: "../assets/win98-icons/icons/png/internet_options-5.png",
+    icon: "/assets/win98-icons/icons/png/internet_options-5.png",
     description:
       "Comprehensive redesign of a mental health organization's website with donation optimization",
     type: "visual",
@@ -65,7 +64,7 @@ const projects: Project[] = [
   {
     id: "digital-marketing-campaigns",
     title: "Digital Marketing Campaigns",
-    icon: "../assets/win98-icons/icons/png/media_player_file-0.png",
+    icon: "/assets/win98-icons/icons/png/media_player_file-0.png",
     description:
       "Strategic digital marketing campaigns across multiple platforms for various clients",
     type: "visual",
@@ -78,7 +77,7 @@ const projects: Project[] = [
   {
     id: "python-text-game",
     title: "Python Text-Based Adventure Game",
-    icon: "../assets/win98-icons/icons/png/joystick-5.png",
+    icon: "/assets/win98-icons/icons/png/joystick-5.png",
     description:
       "Interactive text-based adventure game with branching narrative paths",
     type: "interactive",
@@ -90,7 +89,7 @@ const projects: Project[] = [
   {
     id: "video-campaign",
     title: "Non-Profit Video Campaign",
-    icon: "../assets/win98-icons/icons/png/video_mk-5.png",
+    icon: "/assets/win98-icons/icons/png/video_mk-5.png",
     description: "Fundraising video campaign for mental health awareness",
     type: "visual",
     technologies: ["Video Production", "Digital Storytelling", "Fundraising"],

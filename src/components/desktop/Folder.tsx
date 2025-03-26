@@ -3,11 +3,13 @@ import { useSounds } from "@/hooks/useSounds";
 import { useDesktop } from "@/context/DesktopContext";
 import styles from "../styles/Icon.module.scss";
 import { center } from "maath/dist/declarations/src/buffer";
+import Image from "next/image";
 
 interface FolderProps {
   id: string;
   title: string;
   position: { x: number; y: number };
+  onDoubleClick: (e: React.MouseEvent) => void;
   onDragStart?: (e: React.DragEvent, id: string) => void;
   onDragOver?: (e: React.DragEvent) => void;
   onDrop?: (e: React.DragEvent, folderId: string) => void;
@@ -123,7 +125,7 @@ const Folder: React.FC<FolderProps> = ({
           height: "40px",
         }}
       >
-        <img
+        <Image
           src="/assets/win98-icons/png/directory_closed-1.png"
           alt={title}
           width={32}

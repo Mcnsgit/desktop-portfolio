@@ -8,7 +8,7 @@ import { SectionWrapper } from "../../hoc";
 import { styles } from "./styles";
 import { projects } from "../../data/index";
 import { fadeIn, textVariant } from "../../utils/motion";
-import { GithubLogo, ArrowSquareOut } from "@phosphor-icons/react";
+import { GithubLogo, ArrowSquareOut, X } from "@phosphor-icons/react";
 import { StaticImageData } from "next/image";
 
 interface ProjectCardProps {
@@ -17,8 +17,10 @@ interface ProjectCardProps {
   description: string;
   tags: Array<{ name: string; color: string }>;
   image: string | StaticImageData;
-  source_code_link: string;
+  source_code_link?: string;
   live_link?: string;
+  isExpanded: boolean;
+  onClick: () => void;
 }
 
 const ProjectCard: React.FC<ProjectCardProps> = ({
@@ -29,48 +31,42 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
   image,
   source_code_link,
   live_link,
+  isExpanded,
+  onClick,
 }) => {
-  const [isHovered, setIsHovered] = useState(false);
-
   return (
     <motion.div
       variants={fadeIn("up", "spring", index * 0.5, 0.75)}
-      className="bg-tertiary p-5 rounded-2xl sm:w-[360px] w-full h-full"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      className="bg-tertiary p-5 rounded-2xl sm:w-[360px] w-full relative cursor-pointer"
+      onClick={onClick}
     >
       <div className="relative w-full h-[230px] overflow-hidden rounded-2xl">
         {typeof image === "string" ? (
           <Image
-            src={image}
+            src="/placeholder.jpg"
             alt={name}
             className="w-full h-full object-cover"
             width={360}
             height={230}
             style={{
-              transform: isHovered ? "scale(1.05)" : "scale(1)",
               transition: "transform 0.5s ease",
             }}
           />
         ) : (
           <Image
-            src={image}
+            src="/placeholder.jpg"
             alt={name}
             className="w-full h-full object-cover"
             style={{
-              transform: isHovered ? "scale(1.05)" : "scale(1)",
               transition: "transform 0.5s ease",
             }}
           />
         )}
 
-        {/* Project Links */}
-        <div className="absolute inset-0 flex items-end justify-end gap-2 m-3 opacity-0 hover:opacity-100 transition-opacity duration-300">
+        {/* Project Links - Always visible */}
+        <div className="absolute top-2 right-2 flex gap-2">
           {/* GitHub Link */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={isHovered ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
-            transition={{ duration: 0.3 }}
+          <div
             className="black-gradient w-10 h-10 rounded-full flex justify-center items-center cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
@@ -79,14 +75,11 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
             title="View Source Code"
           >
             <GithubLogo className="w-1/2 h-1/2 text-white" />
-          </motion.div>
+          </div>
 
           {/* Live Demo Link (if available) */}
           {live_link && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={isHovered ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
-              transition={{ duration: 0.3, delay: 0.1 }}
+            <div
               className="black-gradient w-10 h-10 rounded-full flex justify-center items-center cursor-pointer"
               onClick={(e) => {
                 e.stopPropagation();
@@ -95,14 +88,16 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
               title="View Live Demo"
             >
               <ArrowSquareOut className="w-1/3 h-1/3 text-white" />
-            </motion.div>
+            </div>
           )}
         </div>
       </div>
 
       <div className="mt-5">
         <h3 className="text-white font-bold text-[24px]">{name}</h3>
-        <p className="mt-2 text-secondary text-[14px]">{description}</p>
+        <p className="mt-2 text-secondary text-[14px] line-clamp-2">
+          {description}
+        </p>
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
@@ -116,46 +111,110 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
         ))}
       </div>
 
-      {/* Hover reveal overlay */}
-      <motion.div
-        className="absolute inset-0 bg-tertiary/80 backdrop-blur-sm rounded-2xl flex items-center justify-center p-8"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isHovered ? 1 : 0 }}
-        transition={{ duration: 0.3 }}
-        style={{ pointerEvents: isHovered ? "auto" : "none" }}
-      >
-        <div className="text-center">
-          <h3 className="text-white font-bold text-[24px] mb-4">{name}</h3>
-          <p className="text-white text-[16px]">{description}</p>
-
-          <div className="mt-6 flex justify-center gap-4">
-            <a
-              href={source_code_link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-primary hover:bg-primary/80 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors duration-300"
+      {/* Expanded project details - only shown when expanded */}
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <motion.div
+              className="bg-tertiary rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", duration: 0.4 }}
             >
-              <GithubLogo /> View Code
-            </a>
+              <div className="relative">
+                <div className="relative w-full h-[300px] overflow-hidden">
+                  {typeof image === "string" ? (
+                    <Image
+                      src="/placeholder.jpg"
+                      alt={name}
+                      className="w-full h-full object-cover"
+                      width={800}
+                      height={300}
+                    />
+                  ) : (
+                    <Image
+                      src="/placeholder.jpg"
+                      alt={name}
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                </div>
+                <button
+                  className="absolute top-4 right-4 bg-black/50 text-white p-2 rounded-full hover:bg-black/80 transition-colors duration-300"
+                  onClick={onClick}
+                >
+                  <X size={24} />
+                </button>
+              </div>
 
-            {live_link && (
-              <a
-                href={live_link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-white hover:bg-white/80 text-primary px-4 py-2 rounded-md flex items-center gap-2 transition-colors duration-300"
-              >
-                <ArrowSquareOut /> Live Demo
-              </a>
-            )}
-          </div>
-        </div>
-      </motion.div>
+              <div className="p-6">
+                <h2 className="text-white font-bold text-[32px] mb-4">
+                  {name}
+                </h2>
+                <p className="text-secondary text-[16px] mb-6">{description}</p>
+
+                <div className="mb-6">
+                  <h3 className="text-white font-bold text-[18px] mb-2">
+                    Technologies
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {tags.map((tag) => (
+                      <span
+                        key={`modal-${name}-${tag.name}`}
+                        className={`text-[14px] ${tag.color} px-2 py-1 rounded-md bg-black/20`}
+                      >
+                        #{tag.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-4">
+                  <a
+                    href={source_code_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-primary hover:bg-primary/80 text-white px-6 py-3 rounded-md flex items-center gap-2 transition-colors duration-300"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <GithubLogo size={20} /> View Code
+                  </a>
+
+                  {live_link && (
+                    <a
+                      href={live_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-white hover:bg-white/80 text-primary px-6 py-3 rounded-md flex items-center gap-2 transition-colors duration-300"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <ArrowSquareOut size={20} /> Live Demo
+                    </a>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
 
 const Works = () => {
+  const [expandedProject, setExpandedProject] = useState<number | null>(null);
+
+  const handleProjectClick = (index: number) => {
+    setExpandedProject(expandedProject === index ? null : index);
+  };
+
   return (
     <>
       <motion.div variants={textVariant(0.1)}>
@@ -187,6 +246,8 @@ const Works = () => {
             image={project.image || "/placeholder.jpg"}
             source_code_link={project.source_code_link}
             live_link={project.live_link}
+            isExpanded={expandedProject === index}
+            onClick={() => handleProjectClick(index)}
           />
         ))}
       </div>
