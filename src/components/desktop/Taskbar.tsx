@@ -1,6 +1,5 @@
 // components/desktop/Taskbar.tsx
-import React, { useState, useEffect } from "react";
-
+import React, { useState, useEffect, useCallback } from "react";
 import { Resize } from "@phosphor-icons/react";
 import { useDesktop } from "../../context/DesktopContext";
 import { useSounds } from "../../hooks/useSounds";
@@ -52,50 +51,52 @@ const Taskbar: React.FC<TaskbarProps> = ({ onStartClick }) => {
     playSound("click");
     onStartClick();
   };
-// Taskbar item click handler to properly restore windows
-const handleTaskbarItemClick = (windowId) => {
-  const windowData = state.windows.find(w => w.id === windowId);
-  
-  if (!windowData) return;
-  
-  // Log for debugging
-  console.log(`Taskbar item clicked for window ${windowId}`, {
-    isMinimized: windowData.minimized,
-    isActive: state.activeWindowId === windowId
-  });
-  
-  if (windowData.minimized) {
-    // If window is minimized, restore it (un-minimize it)
-    dispatch({
-      type: "FOCUS_WINDOW",
-      payload: { id: windowId }
+
+  // Taskbar item click handler to properly restore windows
+  const handleTaskbarItemClick = (windowId: string) => {
+    const windowData = state.windows.find(w => w.id === windowId);
+
+    if (!windowData) return;
+
+    // Log for debugging
+    console.log(`Taskbar item clicked for window ${windowId}`, {
+      isMinimized: windowData.minimized,
+      isActive: state.activeWindowId === windowId
     });
-    
-    // Additional dispatch to explicitly un-minimize
-    dispatch({
-      type: "RESTORE_WINDOW", // Add this action type to DesktopContext.tsx
-      payload: { id: windowId }
-    });
-    
-    console.log(`Dispatched restore for window ${windowId}`);
-  } else if (state.activeWindowId === windowId) {
-    // If window is already active, minimize it
-    dispatch({
-      type: "MINIMIZE_WINDOW",
-      payload: { id: windowId }
-    });
-    
-    console.log(`Dispatched minimize for active window ${windowId}`);
-  } else {
-    // If window is not minimized but not active, focus it
-    dispatch({
-      type: "FOCUS_WINDOW", 
-      payload: { id: windowId }
-    });
-    
-    console.log(`Dispatched focus for window ${windowId}`);
-  }
-};
+
+    if (windowData.minimized) {
+      // If window is minimized, restore it (un-minimize it)
+      dispatch({
+        type: "FOCUS_WINDOW",
+        payload: { id: windowId }
+      });
+
+      // Additional dispatch to explicitly un-minimize
+      dispatch({
+        type: "RESTORE_WINDOW",
+        payload: { id: windowId }
+      });
+
+      console.log(`Dispatched restore for window ${windowId}`);
+    } else if (state.activeWindowId === windowId) {
+      // If window is already active, minimize it
+      dispatch({
+        type: "MINIMIZE_WINDOW",
+        payload: { id: windowId }
+      });
+
+      console.log(`Dispatched minimize for active window ${windowId}`);
+    } else {
+      // If window is not minimized but not active, focus it
+      dispatch({
+        type: "FOCUS_WINDOW",
+        payload: { id: windowId }
+      });
+
+      console.log(`Dispatched focus for window ${windowId}`);
+    }
+  };
+
   return (
     <div className={styles.taskbar} onClick={(e) => e.stopPropagation()}>
       <div className={styles.startButton} onClick={handleStartClick}>
@@ -106,10 +107,9 @@ const handleTaskbarItemClick = (windowId) => {
         {state.windows.map((window) => (
           <div
             key={window.id}
-            className={`${styles.windowButton} ${
-              state.activeWindowId === window.id ? styles.active : ""
-            }`}
-            onClick={(e) => handleWindowClick(window.id, e)}
+            className={`${styles.windowButton} ${state.activeWindowId === window.id ? styles.active : ""
+              }`}
+            onClick={() => handleTaskbarItemClick(window.id)}
           >
             <Resize size={16} />
             <span>{window.title}</span>

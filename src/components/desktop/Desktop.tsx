@@ -29,13 +29,13 @@ interface WindowState {
   type: string;
 }
 
-const debugWindowState = (windowsState: WindowState[]): void => {
+const debugWindowState = (windowsState: WindowState[], activeWindowId: string | null): void => {
   console.log("Current window state:", {
     totalWindows: windowsState.length,
     openWindows: windowsState.filter((w) => !w.minimized).length,
     minimizedWindows: windowsState.filter((w) => w.minimized).length,
     activeWindow:
-      windowsState.find((w) => w.id === state.activeWindowId)?.id || "none",
+      windowsState.find((w) => w.id === activeWindowId)?.id || "none",
     windowDetails: windowsState.map((w) => ({
       id: w.id,
       title: w.title,
@@ -74,7 +74,13 @@ const Desktop: React.FC = function Desktop() {
   );
   useEffect(() => {
     // Debug window state whenever it changes
-    debugWindowState(state.windows);
+    debugWindowState(
+      state.windows.map((window) => ({
+        ...window,
+        type: window.type || "unknown", // Ensure type is always a string
+      })),
+      state.activeWindowId
+    );
 
     // Force rerender WindowManager if windows exist but aren't showing
     if (state.windows.length > 0) {
@@ -103,7 +109,7 @@ const Desktop: React.FC = function Desktop() {
         }
       }, 500);
     }
-  }, [state.windows, dispatch]);
+  }, [state.windows, dispatch, state.activeWindowId]);
 
   // Initialize Swapy for desktop icons - FIXED
   useEffect(() => {
@@ -229,7 +235,7 @@ const Desktop: React.FC = function Desktop() {
           content: { type: "project", projectId: project.id },
           minimized: false,
           position: { x: 100, y: 100 },
-          type: "project",
+          type: "project" as const, // Ensure type matches the allowed string literals
         };
 
         console.log("Dispatching OPEN_WINDOW with payload:", windowPayload);

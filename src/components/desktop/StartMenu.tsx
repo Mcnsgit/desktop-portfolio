@@ -9,7 +9,7 @@ import {
   openTextEditor,
   openFileExplorer,
   openWeatherApp,
-} from "../../utils/fileHandlers";
+} from "../../utils/windowServices/fileHandlers";
 
 // Define menu items with proper icons and actions
 const menuItems = [
@@ -160,7 +160,7 @@ const StartMenu: React.FC = () => {
               <Image
                 width={16}
                 height={16}
-                src="/assets/win98-icons/png/directory_program_group.png"
+                src="/assets/win98-icons/png/directory_dial_up_networking-0.png"
                 alt="Programs"
               />
               <span>Programs</span>
@@ -213,7 +213,7 @@ const StartMenu: React.FC = () => {
               <Image
                 width={16}
                 height={16}
-                src="/assets/win98-icons/png/control_panel_cool-0.png"
+                src="/assets/win98-icons/png/directory_control_panel_cool-0.png"
                 alt="Settings"
               />
               <span>Settings</span>

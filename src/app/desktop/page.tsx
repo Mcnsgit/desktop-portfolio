@@ -8,6 +8,7 @@ import projectsData from "@/data/project"; // Ensure this imports an array of pr
 import Link from "next/link";
 import { useDesktop } from "@/context/DesktopContext"; // Importing context at the top
 import LoadingScreen from "@/components/3d/LoadingScreen";
+import { FileSystemProvider } from "@/context/FileSystemContext";
 
 export default function DesktopPage() {
   const [isMobile, setIsMobile] = useState(false);
@@ -30,7 +31,9 @@ export default function DesktopPage() {
   }
 
   return (
+    
     <DesktopProvider>
+      <FileSystemProvider>
       <DesktopInitializer />
       <div className="desktop-container">
         {/* Back to 3D View Button */}
@@ -51,12 +54,13 @@ export default function DesktopPage() {
               fontSize: "12px",
               cursor: "pointer",
             }}
-          >
+            >
             Back to 3D View
           </button>
         </Link>
         {isMobile ? <MobileView /> : <Desktop />}
       </div>
+</FileSystemProvider>
     </DesktopProvider>
   );
 }

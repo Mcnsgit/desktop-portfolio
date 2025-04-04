@@ -22,9 +22,9 @@ export const useWindowMonitor = () => {
     const visibleWindows = state.windows.filter((window) => !window.minimized);
 
     // Identify windows that need position adjustment
-    const windowsToAdjust = visibleWindows.filter((window) => {
-      const position = window.position;
-      const size = window.size || { width: 500, height: 400 };
+    const windowsToAdjust = visibleWindows.filter((win) => {
+      const position = win.position;
+      const size = win.size || { width: 500, height: 400 };
 
       // Check if window bottom extends beyond viewport height - taskbar
       if (typeof window !== "undefined") {

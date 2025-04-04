@@ -1,0 +1,115 @@
+// src/components/styles/_variables.scss
+// Global style variables for RetroOS
+
+// Colors
+$color-window-bg: #c0c0c0;
+$color-window-border-light: #dfdfdf;
+$color-window-border-dark: #808080;
+$color-window-active-border-light: #efefef;
+$color-window-active-border-dark: #505050;
+$color-title-bar-active: #000080;
+$color-title-bar-inactive: #808080;
+$color-title-text: #ffffff;
+$color-content-bg: #ffffff;
+$color-control-bg: #c0c0c0;
+$color-shadow: rgba(0, 0, 0, 0.3);
+$color-text-primary: #000000;
+$color-text-secondary: #666666;
+
+// Sizes
+$taskbar-height: 30px;
+$title-bar-height: 22px;
+$control-size: 16px;
+$border-width: 3px;
+$window-min-width: 300px;
+$window-min-height: 200px;
+
+// Z-indices
+$z-index-desktop: 1;
+$z-index-window-base: 1000;
+$z-index-window-active: 2000;
+$z-index-taskbar: 2500;
+$z-index-context-menu: 3000;
+$z-index-dialog: 4000;
+
+// Fonts
+$font-family-primary: 'MS Sans Serif', Arial, sans-serif;
+$font-size-small: 11px;
+$font-size-normal: 12px;
+$font-size-large: 14px;
+
+// Animations
+$transition-fast: 0.2s;
+$transition-normal: 0.3s;
+$transition-slow: 0.5s;
+
+// Shadows
+$shadow-normal: 2px 2px 8px rgba(0, 0, 0, 0.2);
+$shadow-active: 3px 3px 10px rgba(0, 0, 0, 0.3);
+
+// Breakpoints
+$breakpoint-mobile: 480px;
+$breakpoint-tablet: 768px;
+$breakpoint-desktop-small: 1024px;
+$breakpoint-desktop: 1280px;
+
+// Mixins
+@mixin window-border($light, $dark) {
+    border: $border-width solid;
+    border-color: $light $dark $dark $light;
+}
+
+@mixin control-border {
+    border: 1px solid;
+    border-color: #ffffff #808080 #808080 #ffffff;
+
+    &:active {
+        border-color: #808080 #ffffff #ffffff #808080;
+    }
+}
+
+@mixin ellipsis {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@mixin window-shadow {
+    box-shadow: $shadow-normal;
+
+    &.active {
+        box-shadow: $shadow-active;
+    }
+}
+
+@mixin no-select {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+@mixin scrollbar {
+    &::-webkit-scrollbar {
+        width: 16px;
+        height: 16px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background-color: $color-window-bg;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: $color-window-bg;
+        border: 1px solid;
+        border-color: $color-window-border-dark $color-window-border-light $color-window-border-light $color-window-border-dark;
+    }
+
+    &::-webkit-scrollbar-button {
+        background-color: $color-window-bg;
+        border: 1px solid;
+        border-color: $color-window-border-light $color-window-border-dark $color-window-border-dark $color-window-border-light;
+        width: 16px;
+        height: 16px;
+    }
+}

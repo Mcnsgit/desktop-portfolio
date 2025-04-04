@@ -1,6 +1,5 @@
-// styles/Window.module.scss
-@use "../styles/globals.scss" as *; // Use as * to import all styles
-
+/* styles/globals.scss */
+/* Window Styles */
 .window {
   background-color: var(--win98-bg);
   border: 2px solid;
@@ -9,49 +8,24 @@
   position: absolute;
   overflow: hidden;
   transition: all var(--transition-normal);
-  border-radius: var(--border-radius-sm);
-
-  /* Fixed positioning values */
-  top: 60px !important;
-  /* Position at the top of the screen */
-  left: 60px;
-
-  /* Force windows to display on top */
-  z-index: 9999 !important;
-  /* Very high z-index to ensure it's on top */
-
-  /* Default size */
-  width: 500px;
-  height: 400px;
 }
 
 .window.active {
-  z-index: 10000 !important;
-  /* Even higher for active window */
+  z-index: var(--z-index-window-active);
 }
 
 .window.minimized {
-  display: none !important;
-  visibility: hidden !important;
+  display: none;
 }
 
-.window.maximized {
-  top: 0 !important;
-  left: 0 !important;
-  width: calc(100vw - 4px) !important;
-  height: calc(100vh - 40px) !important;
-  /* Account for taskbar */
-  border-radius: 0;
-}
-
-.windowContent {
+.window-content {
   display: flex;
   flex-direction: column;
   height: 100%;
   width: 100%;
 }
 
-.titleBar {
+.title-bar {
   background-color: var(--win98-title-inactive);
   color: var(--win98-title-text);
   display: flex;
@@ -60,10 +34,9 @@
   padding: var(--spacing-xs) var(--spacing-sm);
   user-select: none;
   cursor: move;
-  height: 24px;
 }
 
-.window.active .titleBar {
+.window.active .title-bar {
   background-color: var(--win98-title-active);
 }
 
@@ -73,7 +46,6 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-family: 'MS Sans Serif', Arial, sans-serif;
 }
 
 .controls {
@@ -93,8 +65,6 @@
   justify-content: center;
   cursor: pointer;
   padding: 0;
-  margin: 0;
-  outline: none;
 }
 
 .control:active {
@@ -108,7 +78,7 @@
   background-color: white;
 }
 
-.resizeHandle {
+.resize-handle {
   position: absolute;
   bottom: 0;
   right: 0;
@@ -143,7 +113,7 @@
   }
 }
 
-.maximizing {
+.window.maximizing {
   animation: maximize 0.2s ease-out;
 }
 
@@ -158,6 +128,33 @@
   }
 }
 
-.restoring {
+.window.restoring {
   animation: restore 0.2s ease-out;
+}
+/* Classes for layout components */
+.desktopContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 40px;
+  /* Account for taskbar */
+  z-index: var(--z-index-desktop);
+}
+
+.windowContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 40px;
+  /* Account for taskbar */
+  z-index: var(--z-index-window);
+  pointer-events: none;
+  /* Allow clicking through the container */
+}
+
+.windowContainer>* {
+  pointer-events: auto;
+  /* Re-enable pointer events for children */
 }

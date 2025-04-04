@@ -8,6 +8,54 @@
   --font-mono: var(--font-geist-mono);
   --background: #ffffff;
   --foreground: #171717;
+
+      /* Base colors */
+      --primary-bg: #050816;
+      --secondary-bg: #151030;
+      --text-primary: #000000;
+      --text-secondary: #444444;
+      --accent-color: #0078d7;
+  
+      /* Windows 98 style colors */
+      --win98-bg: #c0c0c0;
+      --win98-border-light: #dfdfdf;
+      --win98-border-dark: #808080;
+      --win98-title-active: #000080;
+      --win98-title-inactive: #808080;
+      --win98-title-text: #ffffff;
+      --win98-button-face: #c0c0c0;
+      --win98-button-highlight: #ffffff;
+      --win98-button-shadow: #808080;
+  
+      /* Shadows */
+      --shadow-light: rgba(255, 255, 255, 0.8);
+      --shadow-dark: rgba(0, 0, 0, 0.5);
+  
+      /* Spacing */
+      --spacing-xs: 4px;
+      --spacing-sm: 8px;
+      --spacing-md: 16px;
+      --spacing-lg: 24px;
+      --spacing-xl: 32px;
+  
+      /* Border radius */
+      --border-radius-sm: 2px;
+      --border-radius-md: 4px;
+      --border-radius-lg: 8px;
+  
+      /* Transitions */
+      --transition-fast: 0.1s ease;
+      --transition-normal: 0.2s ease;
+      --transition-slow: 0.3s ease;
+  
+      /* Z-index layers */
+      --z-index-desktop: 1;
+      --z-index-window: 10;
+      --z-index-window-active: 100;
+      --z-index-taskbar: 1000;
+      --z-index-start-menu: 1100;
+      --z-index-context-menu: 1200;
+    
 }
 
 @media (prefers-color-scheme: dark) {

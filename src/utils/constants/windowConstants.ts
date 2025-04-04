@@ -105,20 +105,13 @@ export const WINDOW_CONTROLS = {
 /**
  * Sound effects for window actions
  */
-type Sounds = {
-  FOCUS: string;
-  CLOSE: string;
-  MINIMIZE: string;
-  MAXIMIZE: string;
-  RESTORE: string;
-};
-
-export const WINDOW_SOUNDS: Record<keyof Sounds, keyof Sounds> = {
-  FOCUS: "FOCUS",
-  CLOSE: "CLOSE",
-  MINIMIZE: "MINIMIZE",
-  MAXIMIZE: "MAXIMIZE",
-  RESTORE: "RESTORE",
+export const WINDOW_SOUNDS = {
+  OPEN: "windowOpen",
+  CLOSE: "windowClose",
+  MINIMIZE: "windowClose",
+  MAXIMIZE: "windowOpen",
+  RESTORE: "windowOpen",
+  FOCUS: "click",
 };
 
 /**

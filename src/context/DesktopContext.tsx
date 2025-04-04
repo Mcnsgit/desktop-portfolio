@@ -1,13 +1,13 @@
 // Updated DesktopContext with fixes for infinite update loops
 import React, { createContext, useReducer, useContext, useRef } from "react";
-import { Project, Window, Folder, FileSystemItem } from "../types";
+import { Project, Window, Folder, DesktopItem } from "../types";
 
 type DesktopState = {
   windows: Window[];
   activeWindowId: string | null;
   projects: Project[];
   folders: Folder[];
-  desktopItems: FileSystemItem[];
+  desktopItems: DesktopItem[];
   startMenuOpen: boolean;
   path?: string;
 };
@@ -234,7 +234,7 @@ const desktopReducer = (
     }
 
     case "CREATE_FOLDER": {
-      const newFolderItem: FileSystemItem = {
+      const newFolderItem: DesktopItem = {
         id: action.payload.id,
         title: action.payload.title,
         icon: action.payload.icon,
