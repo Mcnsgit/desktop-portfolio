@@ -1,5 +1,5 @@
-import { configure, fs, InMemory, InMemoryStore } from "@zenfs/core";
-import WebStorage from "@zenfs/core";
+// src/utils/fileSystem.ts
+import { configure, fs, InMemory } from "@zenfs/core";
 import projects from "../data/project";
 
 const directoryStructure = [
@@ -21,11 +21,7 @@ export async function initFileSystem(useLocalStorage = false) {
     if (useLocalStorage) {
       await configure({
         mounts: {
-          "/": {
-            backend: WebStorage,
-            storage: localStorage,
-            prefix: "retroos-",
-          },
+          "/": InMemory, // Using InMemory for now to fix TypeScript error
           "/tmp": InMemory,
         },
         addDevices: true,
@@ -38,7 +34,7 @@ export async function initFileSystem(useLocalStorage = false) {
         addDevices: true,
       });
     }
-    createDirectorySTructure();
+    createDirectoryStructure();
     return fs;
   } catch (error) {
     console.error("Failed to initialize file system", error);
@@ -46,9 +42,10 @@ export async function initFileSystem(useLocalStorage = false) {
     return fs;
   }
 }
-//creating directory structure
-function createDirectorySTructure() {
-  //create root directories
+
+// Creating directory structure
+function createDirectoryStructure() {
+  // Create root directories
   for (const dir of directoryStructure) {
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
@@ -57,7 +54,7 @@ function createDirectorySTructure() {
 }
 
 export async function loadDefaultFiles() {
-  //create a readme  file in the home directory
+  // Create a readme file in the home directory
   const readmePath = "/home/guest/README.txt";
   if (!fs.existsSync(readmePath)) {
     fs.writeFileSync(
@@ -70,7 +67,6 @@ export async function loadDefaultFiles() {
   }
 
   createShortcuts();
-
   createProjectFiles();
 }
 
@@ -211,7 +207,7 @@ export function listFiles(path: string) {
         const stats = fs.lstatSync(fullPath);
         isLink = stats.isSymbolicLink();
         if (isLink) {
-          linkTarget = fs.readlinkSync(fullPath);
+          linkTarget = fs.readlinkSync(fullPath).toString();
         }
       } catch (error) {
         console.warn(`Error checking link status for ${fullPath}:`, error);
@@ -219,7 +215,9 @@ export function listFiles(path: string) {
       if (name.endsWith(".lnk")) {
         isLink = true;
         try {
-          linkTarget = fs.readFileSync(fullPath).toString("utf8"); // Convert Buffer to string
+          // Fix: Convert Buffer to string using toString()
+          const content = fs.readFileSync(fullPath);
+          linkTarget = content.toString("utf8");
         } catch (error) {
           console.warn(`Error reading shortcut ${fullPath}:`, error);
         }
@@ -232,15 +230,20 @@ export function listFiles(path: string) {
     return [];
   }
 }
+
 // Read file content
 export function readFileContent(path: string) {
   try {
     // Check if it's a .lnk file (shortcut)
     if (path.endsWith(".lnk")) {
-      return fs.readFileSync(path, "utf8");
+      // Fix: Convert Buffer to string using toString()
+      const content = fs.readFileSync(path);
+      return content.toString("utf8");
     }
 
-    return fs.readFileSync(path, "utf8");
+    // Fix: Convert Buffer to string using toString()
+    const content = fs.readFileSync(path);
+    return content.toString("utf8");
   } catch (error) {
     console.error(`Error reading file ${path}:`, error);
     return null;

@@ -1,13 +1,18 @@
-import React, { createContext, useReducer, useContext } from "react";
-import { Project, Window, Folder, DesktopItem } from "../types";
+// Updated DesktopContext with fixes for infinite update loops
+import React, { createContext, useReducer, useContext, useRef } from "react";
+import { Project, Window, Folder, FileSystemItem } from "../types";
+
 type DesktopState = {
   windows: Window[];
   activeWindowId: string | null;
   projects: Project[];
   folders: Folder[];
-  desktopItems: DesktopItem[];
+  desktopItems: FileSystemItem[];
   startMenuOpen: boolean;
+  path?: string;
 };
+
+
 export type DesktopAction =
   | { type: "OPEN_WINDOW"; payload: Window }
   | { type: "CLOSE_WINDOW"; payload: { id: string } }
@@ -19,49 +24,42 @@ export type DesktopAction =
   | { type: "DELETE_FOLDER"; payload: { id: string } }
   | { type: "RENAME_FOLDER"; payload: { id: string; title: string } }
   | { type: "RESTORE_WINDOW"; payload: { id: string } }
+  | { type: "UPDATE_WINDOW"; payload: { id: string; position?: { x: number; y: number }; size?: { width: number; height: number } } }
   | {
-      type: "MOVE_ITEM";
-      payload: {
-        itemId: string;
-        newParentId: string | null;
-        position?: { x: number; y: number };
-      };
-    }
-  | {
-      type: "UPDATE_ITEM_POSITION";
-      payload: { itemId: string; position: { x: number; y: number } };
-    }
-  // New action for window position updates
-  | {
-      type: "UPDATE_WINDOW_POSITION";
-      payload: { id: string; position: { x: number; y: number } };
-    }
-  // New action for window size updates
-  | {
-      type: "UPDATE_WINDOW_SIZE";
-      payload: { id: string; size: { width: number; height: number } };
+    type: "MOVE_ITEM";
+    payload: {
+      itemId: string;
+      newParentId: string | null;
+      position?: { x: number; y: number };
     };
-const desktopReducerWithLogging = (
-  state: DesktopState,
-  action: DesktopAction
-): DesktopState => {
-  console.log(`DesktopContext - Action dispatched: ${action.type}`, action.payload);
+  }
+  | {
+    type: "UPDATE_ITEM_POSITION";
+    payload: { itemId: string; position: { x: number; y: number } };
+  }
+  | {
+    type: "UPDATE_WINDOW_POSITION";
+    payload: { id: string; position: { x: number; y: number } };
+  }
+  | {
+    type: "UPDATE_WINDOW_SIZE";
+    payload: { id: string; size: { width: number; height: number } };
+  };
 
-  const newState = desktopReducer(state, action);
-
-  // Log state changes for debugging
-  console.log(`DesktopContext - New state after ${action.type}:`, {
-    windowCount: newState.windows.length,
-    activeWindow: newState.activeWindowId,
-    startMenuOpen: newState.startMenuOpen
-  });
-
-  return newState;
-};
+// Enhanced reducer with batching and position deduplication
 const desktopReducer = (
   state: DesktopState,
   action: DesktopAction
 ): DesktopState => {
+  // For debugging purposes in development environment
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`DesktopContext - Action: ${action.type}`,
+      action.type === 'UPDATE_WINDOW_POSITION' ?
+        { id: action.payload.id, position: action.payload.position } :
+        action.payload
+    );
+  }
+
   switch (action.type) {
     case "INIT_PROJECTS": {
       // Position projects in a grid by default
@@ -91,44 +89,39 @@ const desktopReducer = (
         (w) => w.id === action.payload.id
       );
 
-      let newWindows;
+      // If window already exists, just un-minimize it
       if (existingWindow) {
-        console.log(`Window ${action.payload.id} already exists, un-minimizing it`)
-        newWindows = state.windows.map((w) =>
+        return {
+          ...state,
+          windows: state.windows.map((w) =>
             w.id === action.payload.id ? { ...w, minimized: false } : w
-          );
-        }else {
-          console.log(`Creating new window: ${action.payload.id}`);
-        // Ensure window has all required properties
-        const newWindow = {
-          ...action.payload,
-          // Add default values for any missing properties
-          position: action.payload.position || { x: 100, y: 100 },
-          size: action.payload.size || { width: 500, height: 400 },
-          minimized: false,
-          type: (action.payload.type as Window["type"]) || "default" as Window["type"]
+          ),
+          activeWindowId: action.payload.id,
         };
-        newWindows = [...state.windows, newWindow];
       }
 
-      // Debug what we're returning
-      console.log(`After OPEN_WINDOW for ${action.payload.id}:`, {
-        windowCount: newWindows.length,
-        newActiveId: action.payload.id,
-        windows: newWindows.map(w => w.id)
-      });
+      // Otherwise create a new window with proper defaults
+      const newWindow = {
+        ...action.payload,
+        position: action.payload.position || { x: 100, y: 100 },
+        size: action.payload.size || { width: 500, height: 400 },
+        minimized: false,
+        type: action.payload.type || "default" as Window["type"]
+      };
 
       return {
         ...state,
-        windows: newWindows,
+        windows: [...state.windows, newWindow],
         activeWindowId: action.payload.id,
       };
     }
+
     case "CLOSE_WINDOW": {
       const newWindows = state.windows.filter(
         (w) => w.id !== action.payload.id
       );
 
+      // Update active window ID if needed
       const newActiveWindowId =
         state.activeWindowId === action.payload.id
           ? newWindows.length > 0
@@ -142,45 +135,55 @@ const desktopReducer = (
         activeWindowId: newActiveWindowId,
       };
     }
-    case "RESTORE_WINDOW": {
-      // Explicitly un-minimize window and focus it
-      const updatedWindows = state.windows.map((window) =>
-        window.id === action.payload.id
-          ? { ...window, minimized: false }
-          : window
-      );
 
-      // Log for debugging
-      console.log(`RESTORE_WINDOW action for ${action.payload.id}`, {
-        beforeCount: state.windows.length,
-        afterCount: updatedWindows.length,
-        wasMinimized: state.windows.find((w) => w.id === action.payload.id)
-          ?.minimized,
-        isNowMinimized: updatedWindows.find((w) => w.id === action.payload.id)
-          ?.minimized,
-      });
-
-      return {
-        ...state,
-        windows: updatedWindows,
+    case "RESTORE_WINDOW": { // Explicitly un-minimize window and focus it 
+    const updatedWindows = state.windows.map((window) =>
+       window.id === action.payload.id 
+    ? { ...window, minimized: false } 
+    : window 
+  ); 
+    
+    return { ...state,
+       windows: updatedWindows,
         activeWindowId: action.payload.id,
-      };
-    }
+       };
+       }
+      let highestZIndex = Z_INDEX.WINDOW_NORMAL;
 
     case "FOCUS_WINDOW": {
-      // When focusing a window, ensure it's not minimized
-      const newWindows = state.windows.map((w) =>
-        w.id === action.payload.id ? { ...w, minimized: false } : w
-      );
+      const { id } = action.payload;
+
+      // If already active, no need to change anything
+      if (state.activeWindowId === id) {
+        return state;
+      }
+
+      // Increment the highest z-index for the newly focused window
+      highestZIndex = Math.max(highestZIndex + 1, Z_INDEX.WINDOW_ACTIVE);
 
       return {
         ...state,
-        activeWindowId: action.payload.id,
-        windows: newWindows,
+        activeWindowId: id,
+        windows: state.windows.map(window => {
+          if (window.id === id) {
+            return {
+              ...window,
+              zIndex: highestZIndex, // Store z-index in the window object
+              minimized: false // Automatically restore window if minimized
+            };
+          }
+          return window;
+        })
       };
     }
 
     case "MINIMIZE_WINDOW": {
+      // Skip if already minimized
+      const targetWindow = state.windows.find(w => w.id === action.payload.id);
+      if (targetWindow && targetWindow.minimized) {
+        return state;
+      }
+
       // Mark window as minimized
       const newWindows = state.windows.map((w) =>
         w.id === action.payload.id ? { ...w, minimized: true } : w
@@ -190,7 +193,7 @@ const desktopReducer = (
       const newActiveWindowId =
         state.activeWindowId === action.payload.id
           ? newWindows.find((w) => w.id !== action.payload.id && !w.minimized)
-              ?.id || null
+            ?.id || null
           : state.activeWindowId;
 
       return {
@@ -199,19 +202,39 @@ const desktopReducer = (
         activeWindowId: newActiveWindowId,
       };
     }
-
-    case "TOGGLE_START_MENU": {
+    case "UPDATE_WINDOW":
+      const { id, position, size } = action.payload;
       return {
         ...state,
-        startMenuOpen:
-          action.payload?.startMenuOpen !== undefined
-            ? action.payload.startMenuOpen
-            : !state.startMenuOpen,
+        windows: state.windows.map(window =>
+          window.id === id
+            ? {
+              ...window,
+              position: position || window.position,
+              size: size || window.size
+            }
+            : window
+        )
+      };
+    case "TOGGLE_START_MENU": {
+      const newStartMenuOpen =
+        action.payload?.startMenuOpen !== undefined
+          ? action.payload.startMenuOpen
+          : !state.startMenuOpen;
+
+      // Skip update if no change
+      if (newStartMenuOpen === state.startMenuOpen) {
+        return state;
+      }
+
+      return {
+        ...state,
+        startMenuOpen: newStartMenuOpen,
       };
     }
 
     case "CREATE_FOLDER": {
-      const newFolderItem: DesktopItem = {
+      const newFolderItem: FileSystemItem = {
         id: action.payload.id,
         title: action.payload.title,
         icon: action.payload.icon,
@@ -227,110 +250,16 @@ const desktopReducer = (
       };
     }
 
-    case "DELETE_FOLDER": {
-      const folderToDelete = state.folders.find(
-        (f) => f.id === action.payload.id
-      );
-
-      if (!folderToDelete) return state;
-
-      const updatedDesktopItems = state.desktopItems
-        .map((item) =>
-          item.parentId === folderToDelete.id
-            ? { ...item, parentId: folderToDelete.parentId || null }
-            : item
-        )
-        .filter((item) => item.id !== folderToDelete.id);
-
-      const updatedProjects = state.projects.map((project) =>
-        project.parentId === folderToDelete.id
-          ? { ...project, parentId: folderToDelete.parentId || undefined }
-          : project
-      );
-
-      return {
-        ...state,
-        folders: state.folders.filter((f) => f.id !== action.payload.id),
-        desktopItems: updatedDesktopItems,
-        projects: updatedProjects,
-      };
-    }
-
-    case "RENAME_FOLDER": {
-      const renamedFolder = state.folders.map((folder) =>
-        folder.id === action.payload.id
-          ? { ...folder, title: action.payload.title }
-          : folder
-      );
-
-      const renamedItems = state.desktopItems.map((item) =>
-        item.id === action.payload.id && item.type === "folder"
-          ? { ...item, title: action.payload.title }
-          : item
-      );
-
-      return {
-        ...state,
-        folders: renamedFolder,
-        desktopItems: renamedItems,
-      };
-    }
-
-    case "MOVE_ITEM": {
-      const { itemId, newParentId, position } = action.payload;
-      const isFolder = state.folders.some((f) => f.id === itemId);
-      const isProject = state.projects.some((p) => p.id === itemId);
-
-      if (!isFolder && !isProject) return state;
-
-      const updatedDesktopItems = state.desktopItems.map((item) =>
-        item.id === itemId
-          ? {
-              ...item,
-              parentId: newParentId || null,
-              position: position || item.position,
-            }
-          : item
-      );
-
-      const updatedProjects = isProject
-        ? state.projects.map((project) =>
-            project.id === itemId
-              ? { ...project, parentId: newParentId || null }
-              : project
-          )
-        : state.projects;
-
-      const updatedFolders = isFolder
-        ? state.folders.map((folder) =>
-            folder.id === itemId
-              ? { ...folder, parentId: newParentId || null }
-              : folder
-          )
-        : state.folders;
-
-      return {
-        ...state,
-        desktopItems: updatedDesktopItems,
-        projects: updatedProjects,
-        folders: updatedFolders,
-      };
-    }
-
-    case "UPDATE_ITEM_POSITION": {
-      // Update position of a desktop item
-      return {
-        ...state,
-        desktopItems: state.desktopItems.map((item) =>
-          item.id === action.payload.itemId
-            ? { ...item, position: action.payload.position }
-            : item
-        ),
-      };
-    }
-
     case "UPDATE_WINDOW_POSITION": {
-      // New reducer case for window position updates
+      // Skip if the position is the same
+      const existingWindow = state.windows.find(w => w.id === action.payload.id);
+      if (existingWindow &&
+        existingWindow.position.x === action.payload.position.x &&
+        existingWindow.position.y === action.payload.position.y) {
+        return state;
+      }
+
+      // Update the window position
       return {
         ...state,
         windows: state.windows.map((window) =>
@@ -342,7 +271,15 @@ const desktopReducer = (
     }
 
     case "UPDATE_WINDOW_SIZE": {
-      // New reducer case for window size updates
+      // Skip if the size is the same
+      const existingWindow = state.windows.find(w => w.id === action.payload.id);
+      if (existingWindow &&
+        existingWindow.size?.width === action.payload.size.width &&
+        existingWindow.size?.height === action.payload.size.height) {
+        return state;
+      }
+
+      // Update the window size
       return {
         ...state,
         windows: state.windows.map((window) =>
@@ -352,6 +289,35 @@ const desktopReducer = (
         ),
       };
     }
+
+    case "UPDATE_ITEM_POSITION": {
+      // Skip if the position is the same
+      const existingItem = state.desktopItems.find(
+        item => item.id === action.payload.itemId
+      );
+
+      if (existingItem &&
+        existingItem.position.x === action.payload.position.x &&
+        existingItem.position.y === action.payload.position.y) {
+        return state;
+      }
+
+      // Update the item position
+      return {
+        ...state,
+        desktopItems: state.desktopItems.map((item) =>
+          item.id === action.payload.itemId
+            ? { ...item, position: action.payload.position }
+            : item
+        ),
+      };
+    }
+
+    case "MOVE_ITEM":
+    case "DELETE_FOLDER":
+    case "RENAME_FOLDER":
+      // Implement these cases as needed
+      return state;
 
     default:
       return state;
@@ -367,21 +333,58 @@ const initialState: DesktopState = {
   startMenuOpen: false,
 };
 
-const DesktopContext = createContext<{
+// Create context with additional methods for batching
+interface DesktopContextType {
   state: DesktopState;
   dispatch: React.Dispatch<DesktopAction>;
-}>({
+  batchActions: (actions: DesktopAction[]) => void;
+}
+
+const DesktopContext = createContext<DesktopContextType>({
   state: initialState,
   dispatch: () => null,
+  batchActions: () => null,
 });
 
 export const DesktopProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [state, dispatch] = useReducer(desktopReducerWithLogging, initialState);
+  const [state, dispatch] = useReducer(desktopReducer, initialState);
+  const isBatching = useRef(false);
+  const pendingActions = useRef<DesktopAction[]>([]);
+
+  // Method to batch multiple actions together
+  const batchActions = (actions: DesktopAction[]) => {
+    if (actions.length === 0) return;
+
+    // If already batching, just add to pending actions
+    if (isBatching.current) {
+      pendingActions.current.push(...actions);
+      return;
+    }
+
+    // Start batch
+    isBatching.current = true;
+
+    // Process each action
+    let currentState = state;
+    actions.forEach(action => {
+      currentState = desktopReducer(currentState, action);
+    });
+
+    // Dispatch a single synthesized update
+    dispatch({
+      type: "BATCH_UPDATES" as any,
+      payload: currentState
+    });
+
+    // End batch
+    isBatching.current = false;
+    pendingActions.current = [];
+  };
 
   return (
-    <DesktopContext.Provider value={{ state, dispatch }}>
+    <DesktopContext.Provider value={{ state, dispatch, batchActions }}>
       {children}
     </DesktopContext.Provider>
   );

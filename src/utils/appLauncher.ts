@@ -1,7 +1,14 @@
+// Enhanced appLauncher.ts with launchApplication export
 import { Dispatch } from "react";
 import { DesktopAction } from "../context/DesktopContext";
-import { text } from "stream/consumers";
-export const launchApp = (
+
+/**
+ * Launch an application with the given name
+ * @param appName Name of the application to launch
+ * @param dispatch Dispatch function from DesktopContext
+ * @param options Optional configuration for the application
+ */
+export const launchApplication = (
   appName: string,
   dispatch: Dispatch<DesktopAction>,
   options: any = {}
@@ -90,6 +97,9 @@ export const launchApp = (
     payload: { startMenuOpen: false },
   });
 };
+
+// For backward compatibility, export launchApp as an alias of launchApplication
+export const launchApp = launchApplication;
 
 // Get icon for app
 export const getAppIcon = (appName: string): string => {
