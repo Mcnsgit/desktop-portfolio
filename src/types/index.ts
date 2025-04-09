@@ -69,7 +69,7 @@ export interface Window {
   size: Size;
   minimized: boolean;
   type: string;
-  zIndex: number;
+  zIndex?: number;
   isActive?: boolean;
   isMaximized?: boolean;
   isMinimized?: boolean;
@@ -133,6 +133,8 @@ export interface Folder {
   title: string;
   icon?: string;
   items?: string[]; // File paths or item IDs
+  position?: { x: number; y: number }; // Added position property
+  parentId?: string | null; // Added parentId property
 }
 
 // --- DESKTOP CONTEXT TYPES ---
@@ -140,13 +142,26 @@ export interface Folder {
 /**
  * Desktop state
  */
+export interface DesktopItem {
+  id: string;
+  title: string;
+  icon?: string;
+  type: "project" | "folder" | "shortcut" | string;
+  position: Position;
+  parentId: string | null;
+  zIndex?: number;
+}
+
 export interface DesktopState {
   windows: Window[];
   activeWindowId: string | null;
   projects: Project[];
   folders: Folder[];
-  theme: string;
-  wallpaper: string;
+  desktopItems: DesktopItem[];
+  startMenuOpen: boolean;
+  theme?: string;
+  wallpaper?: string;
+  path?: string;
 }
 
 /**

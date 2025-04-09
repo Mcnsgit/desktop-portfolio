@@ -184,7 +184,7 @@ export const KEYBOARD_SHORTCUTS = {
 // App settings
 export const DEFAULT_PERSIST_FILES = false;
 export const MAX_RECENT_FILES = 10;
-export const PIXEL_RATIO = window.devicePixelRatio || 1;
+// export const PIXEL_RATIO = devicePixelRatio || 1;
 
 // Utility constants
 export const MILLISECONDS_IN_SECOND = 1000;
@@ -213,6 +213,6 @@ export const CONTEXT_ERROR = "error";
 
 // Browser compatibility
 export const STORAGE_AVAILABLE = typeof localStorage !== "undefined";
-export const IS_TOUCH_DEVICE =
-  "ontouchstart" in window || navigator.maxTouchPoints > 0;
+// export const IS_TOUCH_DEVICE =
+//   "ontouchstart" in window || navigator.maxTouchPoints > 0;
 

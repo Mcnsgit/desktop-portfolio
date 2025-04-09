@@ -35,7 +35,6 @@ export const WINDOW_SIZE_CONSTRAINTS = {
   PROJECT_HEIGHT: 500,
   WEATHER_WIDTH: 500,
   WEATHER_HEIGHT: 460,
-
 };
 
 // Window position constants
@@ -47,6 +46,7 @@ export const WINDOW_POSITIONS = {
   CASCADE_OFFSET_Y: 20,
   MIN_VISIBLE_PART: 100,
 };
+
 /**
  * Default window sizes by type
  */
@@ -59,6 +59,7 @@ export const WINDOW_DEFAULT_SIZES = {
   contact: { width: 500, height: 400 },
   skills: { width: 550, height: 450 },
   weatherapp: { width: 500, height: 460 },
+  folder: { width: 550, height: 400 },
   default: { width: 500, height: 400 },
 };
 
@@ -87,10 +88,10 @@ export const WINDOW_CLASSES = {
   MAXIMIZING: "maximizing",
   DRAGGING: "dragging",
   RESIZING: "resizing",
-  TITLE_BAR: 'title-bar',
-  CONTENT: 'content',
-  CONTROLS: 'controls',
-}
+  TITLE_BAR: "title-bar",
+  CONTENT: "content",
+  CONTROLS: "controls",
+};
 
 /**
  * Window control button identifiers
@@ -106,12 +107,11 @@ export const WINDOW_CONTROLS = {
  * Sound effects for window actions
  */
 export const WINDOW_SOUNDS = {
-  OPEN: "windowOpen",
+  FOCUS: "click",
   CLOSE: "windowClose",
   MINIMIZE: "windowClose",
   MAXIMIZE: "windowOpen",
   RESTORE: "windowOpen",
-  FOCUS: "click",
 };
 
 /**
@@ -126,4 +126,3 @@ export const TIMING = {
   MENU_TRANSITION: 150,
   DOUBLE_CLICK_THRESHOLD: 500, // Time threshold for double-click detection
 };
-

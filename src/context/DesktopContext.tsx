@@ -1,6 +1,7 @@
 // Updated DesktopContext with fixes for infinite update loops
 import React, { createContext, useReducer, useContext, useRef } from "react";
 import { Project, Window, Folder, DesktopItem } from "../types";
+import { Z_INDEX } from "../utils/constants/windowConstants";
 
 type DesktopState = {
   windows: Window[];
@@ -10,6 +11,7 @@ type DesktopState = {
   desktopItems: DesktopItem[];
   startMenuOpen: boolean;
   path?: string;
+
 };
 
 
@@ -24,6 +26,7 @@ export type DesktopAction =
   | { type: "DELETE_FOLDER"; payload: { id: string } }
   | { type: "RENAME_FOLDER"; payload: { id: string; title: string } }
   | { type: "RESTORE_WINDOW"; payload: { id: string } }
+
   | { type: "UPDATE_WINDOW"; payload: { id: string; position?: { x: number; y: number }; size?: { width: number; height: number } } }
   | {
     type: "MOVE_ITEM";
@@ -85,37 +88,38 @@ const desktopReducer = (
     }
 
     case "OPEN_WINDOW": {
-      const existingWindow = state.windows.find(
-        (w) => w.id === action.payload.id
-      );
-
-      // If window already exists, just un-minimize it
+      // First check if the window already exists to avoid duplicates
+      const existingWindow = state.windows.find(w => w.id === action.payload.id);
       if (existingWindow) {
+        // If window exists, just focus it and ensure it's not minimized
         return {
           ...state,
-          windows: state.windows.map((w) =>
-            w.id === action.payload.id ? { ...w, minimized: false } : w
+          windows: state.windows.map(window =>
+            window.id === action.payload.id
+              ? { ...window, minimized: false }
+              : window
           ),
-          activeWindowId: action.payload.id,
+          activeWindowId: action.payload.id
         };
       }
 
-      // Otherwise create a new window with proper defaults
+      // Calculate highest z-index BEFORE using it
+      const highestZIndex = Math.max(...state.windows.map(w => w.zIndex || 0), 0);
+
+      // Now we can safely use highestZIndex
       const newWindow = {
         ...action.payload,
+        zIndex: highestZIndex + 1,
         position: action.payload.position || { x: 100, y: 100 },
         size: action.payload.size || { width: 500, height: 400 },
-        minimized: false,
-        type: action.payload.type || "default" as Window["type"]
       };
 
       return {
         ...state,
         windows: [...state.windows, newWindow],
-        activeWindowId: action.payload.id,
+        activeWindowId: action.payload.id
       };
     }
-
     case "CLOSE_WINDOW": {
       const newWindows = state.windows.filter(
         (w) => w.id !== action.payload.id
@@ -148,8 +152,7 @@ const desktopReducer = (
         activeWindowId: action.payload.id,
        };
        }
-      let highestZIndex = Z_INDEX.WINDOW_NORMAL;
-
+       
     case "FOCUS_WINDOW": {
       const { id } = action.payload;
 
@@ -158,8 +161,14 @@ const desktopReducer = (
         return state;
       }
 
-      // Increment the highest z-index for the newly focused window
-      highestZIndex = Math.max(highestZIndex + 1, Z_INDEX.WINDOW_ACTIVE);
+      // Calculate highest zIndex from existing windows
+      const highestCurrentZIndex = state.windows.reduce(
+        (highest, window) => Math.max(highest, window.zIndex || Z_INDEX.WINDOW_NORMAL),
+        Z_INDEX.WINDOW_NORMAL
+      );
+
+      // New window gets higher z-index than any existing window
+      const newZIndex = highestCurrentZIndex + 1;
 
       return {
         ...state,
@@ -168,7 +177,7 @@ const desktopReducer = (
           if (window.id === id) {
             return {
               ...window,
-              zIndex: highestZIndex, // Store z-index in the window object
+              zIndex: newZIndex,
               minimized: false // Automatically restore window if minimized
             };
           }
@@ -176,7 +185,6 @@ const desktopReducer = (
         })
       };
     }
-
     case "MINIMIZE_WINDOW": {
       // Skip if already minimized
       const targetWindow = state.windows.find(w => w.id === action.payload.id);
@@ -239,7 +247,7 @@ const desktopReducer = (
         title: action.payload.title,
         icon: action.payload.icon,
         type: "folder",
-        position: action.payload.position,
+        position: action.payload.position || { x: 0, y: 0 },
         parentId: action.payload.parentId ?? null,
       };
 

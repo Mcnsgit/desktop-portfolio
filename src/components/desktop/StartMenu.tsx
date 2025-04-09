@@ -94,6 +94,7 @@ const StartMenu: React.FC = () => {
             position: { x: 150, y: 100 },
             size: { width: 500, height: 400 },
             type: "about",
+            zIndex: 1,
           },
         });
         break;
@@ -118,6 +119,7 @@ const StartMenu: React.FC = () => {
             position: { x: 180, y: 120 },
             size: { width: 450, height: 380 },
             type: "contact",
+            zIndex: 1,
           },
         });
         break;

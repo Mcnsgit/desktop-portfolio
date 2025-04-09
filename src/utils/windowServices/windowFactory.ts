@@ -1,17 +1,26 @@
-// src/utils/WindowFactory.ts
-import { WindowContent, Window, WindowOptions } from "../../types";
+// src/utils/windowServices/windowFactory.ts
+import { WindowContent, Window } from "../../types";
 import { WINDOW_TYPES } from "../constants";
 import {
   WINDOW_DEFAULT_SIZES,
   WINDOW_SIZE_CONSTRAINTS,
   Z_INDEX,
 } from "../constants/windowConstants";
-import {
-  calculateWindowPosition,
-  ensureWindowVisibility,
-  getDefaultWindowSize,
-} from "./WindowPositionService";
+import windowPositionService from "./WindowPositionService";
 
+interface WindowOptions {
+  id?: string;
+  title?: string;
+  content?: WindowContent;
+  position?: { x: number; y: number };
+  size?: { width: number; height: number };
+  minimized?: boolean;
+  type?: string;
+}
+
+/**
+ * Factory class for creating window objects
+ */
 class WindowFactory {
   /**
    * Create a window with specified options
@@ -29,15 +38,19 @@ class WindowFactory {
     const id = options.id || `${type}-${Date.now()}`;
 
     // Get default size for this window type
-    const defaultSize = getDefaultWindowSize(type);
+    const defaultSize = windowPositionService.getDefaultWindowSize(type);
 
     // Set position with cascading effect if not specified
     const position =
-      options.position || calculateWindowPosition(type, existingWindows);
+      options.position ||
+      windowPositionService.calculateWindowPosition(type, existingWindows);
 
     // Ensure position is valid (window will be visible)
     const size = options.size || defaultSize;
-    const validPosition = ensureWindowVisibility(position, size);
+    const validPosition = windowPositionService.ensureWindowVisibility(
+      position,
+      size
+    );
 
     // Create the window object
     return {
@@ -78,9 +91,12 @@ class WindowFactory {
       filePath,
     };
 
+    // Create a new options object without type to prevent type conflicts
+    const { type: _, ...optionsWithoutType } = options;
+
     // Create window with the prepared content
     return this.create(type, existingWindows, {
-      ...options,
+      ...optionsWithoutType,
       id,
       title,
       content,
@@ -107,8 +123,11 @@ class WindowFactory {
       initialPath,
     };
 
+    // Create a new options object without type to prevent type conflicts
+    const { type: _, ...optionsWithoutType } = options;
+
     return this.create(type, existingWindows, {
-      ...options,
+      ...optionsWithoutType,
       id,
       title: options.title || "File Explorer",
       content,
@@ -143,8 +162,11 @@ class WindowFactory {
       filePath,
     };
 
+    // Create a new options object without type to prevent type conflicts
+    const { type: _, ...optionsWithoutType } = options;
+
     return this.create(type, existingWindows, {
-      ...options,
+      ...optionsWithoutType,
       id,
       title,
       content,
@@ -173,8 +195,11 @@ class WindowFactory {
       projectId,
     };
 
+    // Create a new options object without type to prevent type conflicts
+    const { type: _, ...optionsWithoutType } = options;
+
     return this.create(type, existingWindows, {
-      ...options,
+      ...optionsWithoutType,
       id,
       title: options.title || projectTitle,
       content,
@@ -198,8 +223,11 @@ class WindowFactory {
       type: "weatherapp",
     };
 
+    // Create a new options object without type to prevent type conflicts
+    const { type: _, ...optionsWithoutType } = options;
+
     return this.create(type, existingWindows, {
-      ...options,
+      ...optionsWithoutType,
       id,
       title: options.title || "Weather App",
       content,
@@ -228,8 +256,11 @@ class WindowFactory {
       folderId,
     };
 
+    // Create a new options object without type to prevent type conflicts
+    const { type: _, ...optionsWithoutType } = options;
+
     return this.create(type, existingWindows, {
-      ...options,
+      ...optionsWithoutType,
       id,
       title: options.title || folderTitle,
       content,
@@ -271,3 +302,4 @@ class WindowFactory {
 // Export singleton instance
 export const windowFactory = new WindowFactory();
 export default windowFactory;
+export type { WindowOptions };

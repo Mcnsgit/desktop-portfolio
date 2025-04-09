@@ -14,7 +14,7 @@ import dynamic from "next/dynamic";
 import { useSounds } from "@/hooks/useSounds";
 import ErrorBoundary from "../error/ErrorBoundary";
 import { useWindowMonitor } from "@/hooks/useWindowMonitor";
-
+import fixStyles from "../styles/WindowFix.module.scss";
 // Dynamic imports for window content components
 const AboutWindow = dynamic(() => import("./WindowTypes/AboutWindow"), {
   ssr: false,
@@ -69,6 +69,7 @@ const isObject = (value: any): value is Record<string, any> =>
  * WindowManager - Manages and renders all windows in the desktop environment
  */
 const WindowManager: React.FC = () => {
+
   const { state, dispatch } = useDesktop();
   const { playSound } = useSounds();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -242,6 +243,48 @@ const WindowManager: React.FC = () => {
     );
   }, [state.projects]);
 
+  // Debug windows function - MOVED BEFORE CONDITIONAL RETURN
+  const debugWindows = useCallback(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log("WindowManager Debug Info:");
+      console.log("- Total windows in state:", state.windows.length);
+      console.log("- Visible windows:", visibleWindows.length);
+      console.log("- Active window ID:", state.activeWindowId);
+
+      // Check DOM for window elements
+      const windowElements = document.querySelectorAll('[data-window-id]');
+      console.log("- DOM window elements:", windowElements.length);
+
+      // List each window's properties
+      state.windows.forEach(windowItem => {
+        console.log(`Window ${windowItem.id}:`, {
+          title: windowItem.title,
+          minimized: windowItem.minimized,
+          position: windowItem.position,
+          size: windowItem.size,
+          zIndex: windowItem.zIndex,
+          type: windowItem.type
+        });
+
+        // Check if this window is in the DOM
+        const element = document.querySelector(`[data-window-id="${windowItem.id}"]`);
+        console.log(`- In DOM: ${!!element}`);
+
+        if (element) {
+          // Fix the type issue with proper casting
+          const styles = globalThis.getComputedStyle(element as Element);
+          console.log(`- Element styles:`, {
+            display: styles.display,
+            visibility: styles.visibility,
+            zIndex: styles.zIndex,
+            top: styles.top,
+            left: styles.left,
+          });
+        }
+      });
+    }
+  }, [state.windows, visibleWindows, state.activeWindowId]);
+
   if (state.windows.length === 0) {
     return (
       <div
@@ -253,13 +296,21 @@ const WindowManager: React.FC = () => {
     );
   }
 
+  // Render the component
   return (
     <div
       ref={containerRef}
-      className="window-container"
+      className={`window-container ${fixStyles.windowContainer}`}
       style={{ position: "relative", width: "100%", height: "100%" }}
       data-testid="window-container"
     >
+      {/* Visible windows debugging */}
+      {process.env.NODE_ENV === 'development' && (
+        <div style={{ position: 'fixed', top: 0, right: 0, background: 'white', padding: '5px', zIndex: 99999 }}>
+          Windows: {visibleWindows.length}/{state.windows.length}
+        </div>
+      )}
+
       {/* Only render non-minimized windows */}
       {visibleWindows.map((window) => (
         <ErrorBoundary
@@ -284,5 +335,4 @@ const WindowManager: React.FC = () => {
     </div>
   );
 };
-
 export default React.memo(WindowManager);

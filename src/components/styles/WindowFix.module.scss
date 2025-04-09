@@ -1,0 +1,58 @@
+/* Add this to a new file: src/styles/WindowFix.module.scss */
+
+/* CRITICAL FIX: This ensures windows are visible and properly positioned */
+.windowFixOverride {
+    /* Force visibility */
+    visibility: visible !important;
+    display: block !important;
+    opacity: 1 !important;
+
+    /* Reset any transforms that might be hiding it */
+    transform: none !important;
+
+    /* Ensure it's positioned correctly */
+    position: absolute !important;
+
+    /* Force it above everything */
+    z-index: 10000 !important;
+
+    /* Ensure it's not clipped */
+    overflow: visible !important;
+
+    /* Make sure it's not outside the viewport */
+    top: 50px !important;
+    left: 50px !important;
+
+    /* Default size if none provided */
+    min-width: 300px !important;
+    min-height: 200px !important;
+}
+
+/* Make active windows even higher z-index */
+.active {
+    z-index: 11000 !important;
+}
+
+/* Window container should be positioned correctly */
+.windowContainer {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 40px !important;
+    /* Space for taskbar */
+    z-index: 9000 !important;
+    pointer-events: none !important;
+    /* Let clicks through to desktop */
+}
+
+/* Individual windows should have pointer events */
+.windowContainer>div {
+    pointer-events: auto !important;
+}
+
+/* Hide minimized windows properly */
+.minimized {
+    display: none !important;
+    visibility: hidden !important;
+}

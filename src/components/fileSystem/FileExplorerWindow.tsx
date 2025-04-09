@@ -110,13 +110,38 @@ const FileExplorerWindow: React.FC<FileExplorerWindowProps> = ({
             payload: {
               id: `texteditor-${Date.now()}`,
               title: `Text Editor - ${item.name}`,
-              content: { filePath: item.path },
+              content: { type: 'texteditor', filePath: item.path },
               minimized: false,
               position: { x: 120, y: 120 },
+              size: { width: 800, height: 600 },
+              zIndex: 1,
               type: 'texteditor',
             }
           });
           break;
+
+        case 'jpg':
+        case 'jpeg':
+        case 'png':
+        case 'gif':
+        case 'bmp':
+        case 'svg':
+          // Open in image viewer
+          dispatch({
+            type: 'OPEN_WINDOW',
+            payload: {
+              id: `imageviewer-${Date.now()}`,
+              title: `Image Viewer - ${item.name}`,
+              content: { type: 'imageviewer', filePath: item.path },
+              minimized: false,
+              position: { x: 150, y: 150 },
+              size: { width: 800, height: 600 },
+              zIndex: 1,
+              type: 'imageviewer',
+            }
+          });
+          break;
+
         default:
           // Default to text editor for unknown types
           dispatch({
@@ -124,12 +149,15 @@ const FileExplorerWindow: React.FC<FileExplorerWindowProps> = ({
             payload: {
               id: `texteditor-${Date.now()}`,
               title: `Text Editor - ${item.name}`,
-              content: { filePath: item.path },
+              content: { type: 'texteditor', filePath: item.path },
               minimized: false,
               position: { x: 120, y: 120 },
+              size: { width: 800, height: 600 },
+              zIndex: 1,
               type: 'texteditor',
             }
           });
+          break;
       }
     }
   };

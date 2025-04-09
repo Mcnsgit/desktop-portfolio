@@ -16,7 +16,7 @@ import {
   TIMING,
 } from "@/utils/constants/windowConstants";
 import {ensureWindowVisibility,getRestorePosition,} from "@/utils/windowServices/WindowPositionService";
-
+import fixStyles from "../styles/WindowFix.module.scss";
 import styles from "../styles/Window.module.scss";
 import { WINDOW_ANIMATIONS } from "@/utils/constants/windowConstants";
 
@@ -151,7 +151,7 @@ const Window: React.FC<WindowProps> = ({
     if (!isActive && !isUpdatingState.current) {
       isUpdatingState.current = true;
       dispatch({ type: "FOCUS_WINDOW", payload: { id } });
-      playSound(WINDOW_SOUNDS.FOCUS);
+      playSound("windowFocus");
       setTimeout(() => {
         isUpdatingState.current = false;
       }, 0);
@@ -161,7 +161,7 @@ const Window: React.FC<WindowProps> = ({
   const handleClose = useCallback(() => {
     if (!isUpdatingState.current) {
       isUpdatingState.current = true;
-      playSound(WINDOW_SOUNDS.CLOSE);
+      playSound("windowClose");
       dispatch({ type: "CLOSE_WINDOW", payload: { id } });
       setTimeout(() => {
         isUpdatingState.current = false;
@@ -177,7 +177,7 @@ const Window: React.FC<WindowProps> = ({
         animationClass: 'minimizing'
       }));
 
-      playSound(WINDOW_SOUNDS.MINIMIZE);
+      playSound("windowMinimize");
 
       // Delay the actual minimize action for animation to complete
       setTimeout(() => {
@@ -221,7 +221,7 @@ const Window: React.FC<WindowProps> = ({
           }
         });
       }
-      playSound(WINDOW_SOUNDS.RESTORE);
+      playSound("windowOpen");
     } else {
       // Save current state before maximizing
       setWindowState(prev => ({
@@ -249,7 +249,7 @@ const Window: React.FC<WindowProps> = ({
         }
       });
 
-      playSound(WINDOW_SOUNDS.MAXIMIZE);
+      playSound("windowOpen");
     }
 
     // Clear animation class after animation completes
@@ -487,14 +487,17 @@ const Window: React.FC<WindowProps> = ({
     return null;
   }
 
-  // Compose CSS classes
   const windowClasses = [
     styles.window,
+    fixStyles.windowFixOverride, // Add this critical fix class
     isActive ? styles.active : "",
+    isActive ? fixStyles.active : "", // Also add the fix active class
     isMaximized ? styles.maximized : "",
     windowState.animationClass ? styles[windowState.animationClass] : "",
     windowState.isDragging ? styles.dragging : "",
     windowState.isResizing ? styles.resizing : "",
+    isMinimized ? styles.minimized : "",
+    isMinimized ? fixStyles.minimized : "", // Add minimized fix class
     className,
   ].filter(Boolean).join(" ");
 
@@ -502,7 +505,12 @@ const Window: React.FC<WindowProps> = ({
     <div
       ref={windowRef}
       className={windowClasses}
-      style={windowStyle}
+      style={{
+        ...windowStyle,
+        // Force these styles inline to override any CSS
+        display: isMinimized ? 'none' : 'block',
+        visibility: isMinimized ? 'hidden' : 'visible',
+      }}
       onClick={handleWindowClick}
       data-window-id={id}
       data-window-minimized={isMinimized ? "true" : "false"}

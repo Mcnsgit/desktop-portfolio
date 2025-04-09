@@ -1,4 +1,4 @@
-// src/utils/fileHandlers.ts
+// src/utils/windowServices/fileHandlers.ts
 import { Dispatch } from "react";
 import { DesktopAction } from "../../context/DesktopContext";
 import { windowFactory } from "./windowFactory";
@@ -72,14 +72,7 @@ export const openFolder = (
 ) => {
   dispatch({
     type: "OPEN_WINDOW",
-    payload: windowFactory.create("folder", [], {
-      id: `folder-${folderId}`,
-      title: folderTitle,
-      content: {
-        type: "folder",
-        folderId,
-      },
-    }),
+    payload: windowFactory.createFolderWindow([], folderId, folderTitle),
   });
 };
 

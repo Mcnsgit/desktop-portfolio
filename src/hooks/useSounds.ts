@@ -2,12 +2,14 @@
 import { useCallback, useEffect, useRef } from "react";
 
 interface Sounds {
+  windowFocus: HTMLAudioElement;
   startup: HTMLAudioElement;
   click: HTMLAudioElement;
   doubleClick: HTMLAudioElement;
   error: HTMLAudioElement;
   windowOpen: HTMLAudioElement;
   windowClose: HTMLAudioElement;
+  windowMinimize: HTMLAudioElement;
 }
 
 // Global variable to track if startup sound has been played

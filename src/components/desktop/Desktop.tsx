@@ -19,6 +19,7 @@ import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
 import styles from "../styles/Desktop.module.scss";
 import { BackgroundImages } from "../../../public/backgrounds/BackgroundImages";
 import { v4 as uuidv4 } from "uuid";
+import { context } from "@react-three/fiber";
 
 // Debug function to check window state
 interface WindowState {
@@ -235,6 +236,8 @@ const Desktop: React.FC = function Desktop() {
           content: { type: "project", projectId: project.id },
           minimized: false,
           position: { x: 100, y: 100 },
+          size: { width: 800, height: 600 }, // Default size for the window
+          zIndex: 1, // Default zIndex for the window
           type: "project" as const, // Ensure type matches the allowed string literals
         };
 
@@ -242,7 +245,7 @@ const Desktop: React.FC = function Desktop() {
 
         dispatch({
           type: "OPEN_WINDOW",
-          payload: windowPayload
+          payload: windowPayload,
         });
 
         // Force focus after a slight delay

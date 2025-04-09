@@ -1,34 +1,33 @@
-// src/utils/WindowPositionService.ts
+// src/utils/windowServices/WindowPositionService.ts
 import {
   WINDOW_POSITIONS,
   WINDOW_DEFAULT_SIZES,
 } from "../constants/windowConstants";
 
-
-export interface Position{
-    x: number;
-    y: number;
+export interface Position {
+  x: number;
+  y: number;
 }
 
 export interface Size {
-    width: number;
-    height: number;
+  width: number;
+  height: number;
 }
 
 export interface Window {
-    id: string;
-    position: Position;
-    size?: Size;
-    type?: string;
-    minimized?: boolean;
+  id: string;
+  position: Position;
+  size?: Size;
+  type?: string;
+  minimized?: boolean;
 }
 
 /**
- * Service to handle  all window position related operations
+ * Service to handle all window position related operations
  */
 class WindowPositionService {
   /**
-   * * Ensures a window is visible within the viewport
+   * Ensures a window is visible within the viewport
    * @param position Current window position
    * @param size Window size
    * @returns Adjusted position to ensure window is visible
@@ -73,6 +72,7 @@ class WindowPositionService {
 
     return { x: adjustedX, y: adjustedY };
   }
+
   /**
    * Get cascading position for a new window based on existing windows
    * @param existingWindows Array of existing windows
@@ -172,15 +172,21 @@ class WindowPositionService {
   }
 }
 
-// Export singleton instance
-export const windowPositionService = new WindowPositionService();
+// Create and export a singleton instance
+const windowPositionService = new WindowPositionService();
+export default windowPositionService;
 
-// Also export individual methods for easier testing and reuse
-export const {
-  ensureWindowVisibility,
-  getCascadingPosition,
-  getCenteredPosition,
-  getDefaultWindowSize,
-  getRestorePosition,
-  calculateWindowPosition,
-} = windowPositionService;
+// Also export individual methods directly from the instance for easier use
+export const ensureWindowVisibility =
+  windowPositionService.ensureWindowVisibility.bind(windowPositionService);
+export const getCascadingPosition =
+  windowPositionService.getCascadingPosition.bind(windowPositionService);
+export const getCenteredPosition =
+  windowPositionService.getCenteredPosition.bind(windowPositionService);
+export const getDefaultWindowSize =
+  windowPositionService.getDefaultWindowSize.bind(windowPositionService);
+export const getRestorePosition = windowPositionService.getRestorePosition.bind(
+  windowPositionService
+);
+export const calculateWindowPosition =
+  windowPositionService.calculateWindowPosition.bind(windowPositionService);

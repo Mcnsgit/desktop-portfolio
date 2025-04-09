@@ -41,14 +41,18 @@ const Folder: React.FC<FolderProps> = ({
       payload: {
         id: `folder-${id}`,
         title: title,
-        content: id,
         minimized: false,
         position: { x: 100, y: 100 },
         size: { width: 500, height: 400 },
         type: "folder",
+        zIndex: 1,
+        content: {
+          type: "folder",
+          folderId: id, // Use folderId instead of id to match expected structure
+        },
       },
     });
-  };
+  }
 
   const handleDragStart = (e: React.DragEvent) => {
     if (onDragStart) {
