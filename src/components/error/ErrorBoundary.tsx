@@ -1,9 +1,13 @@
-// src/components/errors/ErrorBoundary.tsx
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+// src/components/error/ErrorBoundary.tsx
+import React, { Component, ErrorInfo, ReactNode } from "react";
+import { useSounds } from "@/hooks/useSounds";
+import styles from "../styles/ErrorBoundary.module.scss";
 
 interface Props {
     children: ReactNode;
-    fallback?: ReactNode;
+    fallback?: ReactNode | ((error: Error, resetError: () => void) => ReactNode);
+    onError?: (error: Error, errorInfo: ErrorInfo) => void;
+    componentName?: string;
 }
 
 interface State {
@@ -11,56 +15,92 @@ interface State {
     error: Error | null;
 }
 
-/**
- * ErrorBoundary component to catch errors in child components
- * and display a fallback UI instead of crashing the entire app
- */
+// Wrapper for sound hook (can't use hooks in class components)
+const ErrorSound: React.FC<{ error: Error | null }> = ({ error }) => {
+    const { playSound } = useSounds();
+
+    React.useEffect(() => {
+        if (error) {
+            playSound("error");
+        }
+    }, [error, playSound]);
+
+    return null;
+};
+
 class ErrorBoundary extends Component<Props, State> {
     constructor(props: Props) {
         super(props);
-        this.state = {
-            hasError: false,
-            error: null
-        };
+        this.state = { hasError: false, error: null };
     }
 
     static getDerivedStateFromError(error: Error): State {
+        // Update state so the next render will show the fallback UI
         return { hasError: true, error };
     }
 
     componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-        // Log error to console in development
-        if (process.env.NODE_ENV === 'development') {
-            console.error('ErrorBoundary caught an error:', error, errorInfo);
-        }
+        // Log the error
+        console.error(`Error in ${this.props.componentName || 'component'}:`, error, errorInfo);
 
-        // You could also send error to an error reporting service here
+        // Call any custom error handler
+        if (this.props.onError) {
+            this.props.onError(error, errorInfo);
+        }
     }
+
+    resetError = (): void => {
+        this.setState({ hasError: false, error: null });
+    };
 
     render(): ReactNode {
         if (this.state.hasError) {
-            // Render custom fallback UI or default error message
+            // Render custom fallback if provided
             if (this.props.fallback) {
-                return this.props.fallback;
+                if (typeof this.props.fallback === 'function') {
+                    return (
+                        <>
+                            <ErrorSound error={this.state.error} />
+                            {this.props.fallback(this.state.error!, this.resetError)}
+                        </>
+                    );
+                }
+                return (
+                    <>
+                        <ErrorSound error={this.state.error} />
+                        {this.props.fallback}
+                    </>
+                );
             }
 
+            // Otherwise render default error UI
             return (
-                <div
-                    style={{
-                        margin: '20px',
-                        padding: '20px',
-                        backgroundColor: '#ffdddd',
-                        border: '1px solid #cc0000',
-                        borderRadius: '4px',
-                        color: '#333',
-                        fontFamily: 'MS Sans Serif, Arial, sans-serif',
-                        fontSize: '12px'
-                    }}
-                >
-                    <h3 style={{ margin: '0 0 10px 0' }}>Something went wrong</h3>
-                    <p>
-                        {this.state.error?.message || 'An unknown error occurred.'}
-                    </p>
+                <div className={styles.errorContainer}>
+                    <ErrorSound error={this.state.error} />
+                    <div className={styles.errorDialog}>
+                        <div className={styles.errorHeader}>
+                            <div className={styles.errorIcon}>✕</div>
+                            <div className={styles.errorTitle}>
+                                Error in {this.props.componentName || 'Component'}
+                            </div>
+                        </div>
+                        <div className={styles.errorBody}>
+                            <p className={styles.errorMessage}>
+                                {this.state.error?.message || "An unexpected error occurred"}
+                            </p>
+                            <p className={styles.errorDetail}>
+                                {this.state.error?.stack?.split('\n')[0] || ""}
+                            </p>
+                        </div>
+                        <div className={styles.errorFooter}>
+                            <button
+                                className={styles.errorButton}
+                                onClick={this.resetError}
+                            >
+                                Try Again
+                            </button>
+                        </div>
+                    </div>
                 </div>
             );
         }

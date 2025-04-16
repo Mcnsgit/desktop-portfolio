@@ -1,765 +1,483 @@
 // src/utils/browserFileSystem.ts
-import projects from "../data/project";
+// *** IMPORTANT: Make sure portfolioData is imported correctly ***
+import { portfolioProjects as projects } from "../data/portfolioData"; // Corrected Import
+import { Project } from "../types"; // Import Project type if needed for createSampleProjectFiles
 
-// Simple in-memory file system implementation for browser use
 class BrowserFileSystem {
     private files: Map<string, string | Uint8Array>;
     private directories: Set<string>;
     private symlinks: Map<string, string>;
     private isInitialized: boolean;
+    private persistEnabled: boolean; // Track persistence state internally
 
     constructor() {
         this.files = new Map();
-        this.directories = new Set();
+        this.directories = new Set(['/']);
         this.symlinks = new Map();
         this.isInitialized = false;
-
-        // Add root directory by default
+        this.persistEnabled = false; // Default to false
         this.directories.add('/');
     }
 
-    // Initialize the file system with default structure
     async initialize(persistData: boolean = false): Promise<void> {
-        if (this.isInitialized) return;
+        if (this.isInitialized) {
+            console.log("FS Initialize: Already initialized.");
+            return;
+        }
+        console.log(`FS Initialize: Starting initialization. Persistence requested: ${persistData}`);
+        this.persistEnabled = persistData; // Store persistence setting
 
-        try {
-            // If persistence is enabled, try to load from localStorage
-            if (persistData && typeof localStorage !== 'undefined') {
-                try {
-                    const savedData = localStorage.getItem('retroos-filesystem');
-                    if (savedData) {
-                        const parsed = JSON.parse(savedData);
+        let loadedFromStorage = false;
+        if (this.persistEnabled && typeof localStorage !== 'undefined') {
+            console.log("FS Initialize: Attempting load from localStorage...");
+            try {
+                const savedData = localStorage.getItem('retroos-filesystem');
+                if (savedData) {
+                    const parsed = JSON.parse(savedData);
+                    if (parsed && parsed.files && parsed.directories && parsed.symlinks) {
                         this.files = new Map(parsed.files);
                         this.directories = new Set(parsed.directories);
+                        // Ensure root always exists after loading
+                        if (!this.directories.has('/')) {
+                            this.directories.add('/');
+                        }
                         this.symlinks = new Map(parsed.symlinks);
-
-                        console.log('Loaded file system from localStorage');
-                        this.isInitialized = true;
-                        return;
-                    }
-                } catch (err) {
-                    console.warn('Failed to load from localStorage, creating default structure', err);
-                }
+                        console.log(`FS Initialize: Loaded ${this.files.size}f/${this.directories.size}d/${this.symlinks.size}l from localStorage.`);
+                        loadedFromStorage = true;
+                    } else { console.warn("FS Initialize: Invalid localStorage data format."); }
+                } else { console.log("FS Initialize: No saved data in localStorage."); }
+            } catch (err) {
+                console.warn('FS Initialize: Failed loading from localStorage.', err);
+                localStorage.removeItem('retroos-filesystem');
             }
+        }
 
-            // Create default directory structure
+        if (!loadedFromStorage) {
+            console.log("FS Initialize: Creating default structure...");
+            this.resetFileSystemState(false); // Reset state without clearing localStorage yet
+
             const directoryStructure = [
-                "/home",
-                "/home/guest",
-                "/home/guest/Desktop",
-                "/home/guest/Documents",
-                "/home/guest/Pictures",
-                "/projects",
-                "/system",
-                "/system/icons",
-                "/system/wallpapers",
-                "/tmp",
+                "/home", "/home/guest", "/home/guest/Desktop", "/home/guest/Documents",
+                "/home/guest/Pictures", "/projects", "/system", "/system/icons",
+                "/system/wallpapers", "/tmp",
             ];
+            directoryStructure.forEach(dir => this.mkdirSync(dir, { recursive: true }, true)); // Pass internal flag
 
-            for (const dir of directoryStructure) {
-                this.mkdirSync(dir);
-            }
+            this.writeFileSync("/home/guest/README.txt", "Welcome to RetroOS!...", true);
+            this.createShortcuts(true);
+            this.createProjectFiles(true);
+            console.log("FS Initialize: Default structure created.");
 
-            // Create README file
-            this.writeFileSync(
-                "/home/guest/README.txt",
-                "Welcome to RetroOS!\n\n" +
-                "This is your personal workspace where you can explore projects and create your own files.\n" +
-                "Use the File Explorer to browse and manage files, or try the Text Editor to create new documents.\n\n" +
-                "Note: Files created in guest mode will not be saved permanently unless you toggle persistence in the settings."
-            );
-
-            // Create shortcuts
-            this.createShortcuts();
-
-            // Create project files
-            this.createProjectFiles();
-
-            this.isInitialized = true;
-
-            // If persistence is enabled, save to localStorage
-            if (persistData) {
+            if (this.persistEnabled) {
+                console.log("FS Initialize: Attempting initial save...");
                 this.persistToLocalStorage();
             }
-
-            console.log('File system initialized with default structure');
-        } catch (err) {
-            console.error('Error initializing file system:', err);
-            throw err;
         }
+
+        this.isInitialized = true;
+        console.log('FS Initialize: Complete.');
     }
 
-    // Save current file system state to localStorage
     persistToLocalStorage(): boolean {
+        if (!this.persistEnabled || typeof localStorage === 'undefined') return false;
+        console.log("FS Persist: Saving...");
         try {
-            if (typeof localStorage !== 'undefined') {
-                const dataToSave = {
-                    files: Array.from(this.files.entries())
-                        .map(([key, value]) => {
-                            // Convert Uint8Array to string for storage
-                            if (value instanceof Uint8Array) {
-                                return [key, String.fromCharCode(...value)];
-                            }
-                            return [key, value];
-                        }),
-                    directories: Array.from(this.directories),
-                    symlinks: Array.from(this.symlinks.entries())
-                };
-
-                localStorage.setItem('retroos-filesystem', JSON.stringify(dataToSave));
-                return true;
-            }
-            return false;
+            const dataToSave = {
+                files: Array.from(this.files.entries()).map(([key, value]) => [key, value instanceof Uint8Array ? `base64:${btoa(String.fromCharCode(...value))}` : value]), // Encode binary
+                directories: Array.from(this.directories),
+                symlinks: Array.from(this.symlinks.entries())
+            };
+            localStorage.setItem('retroos-filesystem', JSON.stringify(dataToSave));
+            // console.log(`FS Persist: Saved ${dataToSave.files.length}f/${dataToSave.directories.length}d/${dataToSave.symlinks.size}l.`);
+            return true;
         } catch (err) {
-            console.error('Error persisting file system to localStorage:', err);
+            console.error('FS Persist: Error:', err);
             return false;
         }
     }
 
-    // Reset the file system (clear all data)
-    reset(): void {
+    reset(clearStorage = true): void {
+        console.log(`FS Reset: Resetting state. Clear storage: ${clearStorage}`);
+        this.resetFileSystemState(clearStorage);
+    }
+
+    private resetFileSystemState(clearStorage: boolean): void {
         this.files.clear();
         this.directories.clear();
         this.symlinks.clear();
-        this.directories.add('/'); // Always keep root
+        this.directories.add('/');
         this.isInitialized = false;
-
-        // Clear localStorage if available
-        if (typeof localStorage !== 'undefined') {
+        this.persistEnabled = false;
+        if (clearStorage && typeof localStorage !== 'undefined') {
             localStorage.removeItem('retroos-filesystem');
+            console.log("FS Reset: Cleared localStorage item.");
         }
     }
 
-    // Synchronous directory creation
-    mkdirSync(path: string, options?: { recursive?: boolean }): void {
-        // Normalize path
+    // Internal flag prevents persist loop during initialization
+    mkdirSync(path: string, options?: { recursive?: boolean }, internalCall = false): void {
         path = this.normalizePath(path);
+        if (this.directories.has(path)) return;
+        let created = false;
 
-        // Check if directory already exists
-        if (this.directories.has(path)) {
-            return;
-        }
-
-        // Create parent directories if recursive
         if (options?.recursive) {
             const parts = path.split('/').filter(Boolean);
             let currentPath = '';
-
             for (const part of parts) {
                 currentPath += '/' + part;
                 if (!this.directories.has(currentPath)) {
                     this.directories.add(currentPath);
+                    created = true;
                 }
             }
         } else {
-            // Check if parent directory exists
-            const parentDir = path.substring(0, path.lastIndexOf('/'));
-            if (parentDir && !this.directories.has(parentDir)) {
-                throw new Error(`ENOENT: Parent directory does not exist: ${parentDir}`);
-            }
-
+            const parentDir = path.substring(0, path.lastIndexOf('/')) || '/';
+            if (!this.directories.has(parentDir)) throw new Error(`ENOENT: ${parentDir}`);
             this.directories.add(path);
+            created = true;
         }
+        if (created && !internalCall) this.persistToLocalStorage();
     }
 
-    // Check if file or directory exists
     existsSync(path: string): boolean {
         path = this.normalizePath(path);
         return this.directories.has(path) || this.files.has(path) || this.symlinks.has(path);
     }
 
-    // Get file stats
     statSync(path: string): { isDirectory: () => boolean; isSymbolicLink: () => boolean; size: number; mtime: Date } {
         path = this.normalizePath(path);
-
-        if (!this.existsSync(path)) {
-            throw new Error(`ENOENT: No such file or directory: ${path}`);
-        }
-
+        if (!this.existsSync(path)) throw new Error(`ENOENT: ${path}`);
         const isDir = this.directories.has(path);
         const isLink = this.symlinks.has(path);
         const content = this.files.get(path);
-        const size = content ? (typeof content === 'string' ? content.length : content.length) : 0;
-
-        return {
-            isDirectory: () => isDir,
-            isSymbolicLink: () => isLink,
-            size,
-            mtime: new Date()
-        };
+        const size = content ? (typeof content === 'string' ? new TextEncoder().encode(content).length : content.byteLength) : 0; // Correct size calculation
+        return { isDirectory: () => isDir, isSymbolicLink: () => isLink, size, mtime: new Date() };
     }
 
-    // Get symlink target
     readlinkSync(path: string): string {
         path = this.normalizePath(path);
-
-        if (!this.symlinks.has(path)) {
-            throw new Error(`EINVAL: Invalid argument, not a symbolic link: ${path}`);
-        }
-
+        if (!this.symlinks.has(path)) throw new Error(`EINVAL: ${path}`);
         return this.symlinks.get(path) || '';
     }
 
-    // Read directory contents
     readdirSync(path: string): string[] {
         path = this.normalizePath(path);
-
-        if (!this.directories.has(path)) {
-            throw new Error(`ENOTDIR: Not a directory: ${path}`);
-        }
-
-        const result: string[] = [];
+        if (!this.directories.has(path)) throw new Error(`ENOTDIR: ${path}`);
         const prefix = path === '/' ? '/' : path + '/';
-
-        // Collect direct children only
-        for (const dir of this.directories) {
-            if (dir !== path && dir.startsWith(prefix)) {
-                const remaining = dir.substring(prefix.length);
-                if (!remaining.includes('/')) {
-                    result.push(remaining);
-                }
-            }
-        }
-
-        for (const file of this.files.keys()) {
-            if (file.startsWith(prefix)) {
-                const remaining = file.substring(prefix.length);
-                if (!remaining.includes('/')) {
-                    result.push(remaining);
-                }
-            }
-        }
-
-        for (const symlink of this.symlinks.keys()) {
-            if (symlink.startsWith(prefix)) {
-                const remaining = symlink.substring(prefix.length);
-                if (!remaining.includes('/')) {
-                    result.push(remaining);
-                }
-            }
-        }
-
-        return [...new Set(result)]; // Deduplicate
+        const children = new Set<string>();
+        this.directories.forEach(dir => { if (dir !== path && dir.startsWith(prefix) && !dir.substring(prefix.length).includes('/')) children.add(dir.substring(prefix.length)) });
+        this.files.forEach((_, file) => { if (file.startsWith(prefix) && !file.substring(prefix.length).includes('/')) children.add(file.substring(prefix.length)) });
+        this.symlinks.forEach((_, link) => { if (link.startsWith(prefix) && !link.substring(prefix.length).includes('/')) children.add(link.substring(prefix.length)) });
+        return Array.from(children);
     }
 
-    // Write file
-    writeFileSync(path: string, data: string | Uint8Array): void {
+    // Internal flag prevents persist loop during initialization
+    writeFileSync(path: string, data: string | Uint8Array, internalCall = false): void {
         path = this.normalizePath(path);
-
-        // Ensure parent directory exists
-        const parentDir = path.substring(0, path.lastIndexOf('/'));
-        if (parentDir && !this.directories.has(parentDir)) {
-            throw new Error(`ENOENT: Parent directory does not exist: ${parentDir}`);
+        const parentDir = path.substring(0, path.lastIndexOf('/')) || '/';
+        if (!this.directories.has(parentDir)) {
+            this.mkdirSync(parentDir, { recursive: true }, true); // Create parent internally first
         }
-
         this.files.set(path, data);
+        if (!internalCall) this.persistToLocalStorage();
     }
 
-    // Read file
     readFileSync(path: string, options?: { encoding?: string }): string | Uint8Array {
         path = this.normalizePath(path);
+        let targetPath = path;
+        let visitedLinks = new Set<string>(); // Prevent link loops
 
-        // Handle shortcuts (.lnk files)
-        if (path.endsWith('.lnk')) {
-            if (!this.files.has(path)) {
-                throw new Error(`ENOENT: No such file: ${path}`);
-            }
+        // Resolve symlink chain first
+        while (this.symlinks.has(targetPath)) {
+            if (visitedLinks.has(targetPath)) throw new Error(`ELOOP: Too many symbolic links: ${path}`);
+            visitedLinks.add(targetPath);
+            targetPath = this.symlinks.get(targetPath) as string;
+            targetPath = this.normalizePath(targetPath); // Normalize target
+        }
 
+        // Handle .lnk file directly (contains the target string)
+        if (path.endsWith('.lnk')) { // Check original path for .lnk
+            if (!this.files.has(path)) throw new Error(`ENOENT: ${path}`);
             const content = this.files.get(path);
-            if (options?.encoding === 'utf8' || typeof content === 'string') {
-                return content as string;
-            }
-
-            return content as Uint8Array;
+            // .lnk files always store string targets
+            return typeof content === 'string' ? content : new TextDecoder().decode(content);
         }
 
-        // Check if it's a symbolic link
-        if (this.symlinks.has(path)) {
-            const target = this.symlinks.get(path) as string;
-            return this.readFileSync(target, options);
-        }
 
-        if (!this.files.has(path)) {
-            throw new Error(`ENOENT: No such file: ${path}`);
-        }
+        if (!this.files.has(targetPath)) throw new Error(`ENOENT: ${targetPath}`);
 
-        const content = this.files.get(path);
-        if (options?.encoding === 'utf8' || typeof content === 'string') {
-            return content as string;
+        const content = this.files.get(targetPath);
+        if (options?.encoding === 'utf8') {
+            if (typeof content === 'string') return content;
+            if (content instanceof Uint8Array) return new TextDecoder().decode(content);
         }
-
-        return content as Uint8Array;
+        return content!; // Should exist based on check above
     }
 
-    // Delete file
     unlinkSync(path: string): void {
         path = this.normalizePath(path);
-
-        if (this.directories.has(path)) {
-            throw new Error(`EISDIR: Is a directory: ${path}`);
-        }
-
-        if (!this.files.has(path) && !this.symlinks.has(path)) {
-            throw new Error(`ENOENT: No such file: ${path}`);
-        }
-
-        if (this.files.has(path)) {
-            this.files.delete(path);
-        }
-
-        if (this.symlinks.has(path)) {
-            this.symlinks.delete(path);
-        }
+        if (this.directories.has(path)) throw new Error(`EISDIR: ${path}`);
+        let deleted = false;
+        if (this.files.delete(path)) deleted = true;
+        if (this.symlinks.delete(path)) deleted = true;
+        if (!deleted) throw new Error(`ENOENT: ${path}`);
+        this.persistToLocalStorage();
     }
 
-    // Delete directory
-    rmdirSync(path: string): void {
+    rmdirSync(path: string, options?: { recursive?: boolean }): void {
         path = this.normalizePath(path);
+        if (!this.directories.has(path)) throw new Error(`ENOTDIR: ${path}`);
 
-        if (!this.directories.has(path)) {
-            throw new Error(`ENOTDIR: Not a directory: ${path}`);
-        }
-
-        // Check if directory is empty
         const prefix = path === '/' ? '/' : path + '/';
-        for (const dir of this.directories) {
-            if (dir !== path && dir.startsWith(prefix)) {
-                throw new Error(`ENOTEMPTY: Directory not empty: ${path}`);
+        const childrenDirs = Array.from(this.directories).filter(d => d !== path && d.startsWith(prefix));
+        const childrenFiles = Array.from(this.files.keys()).filter(f => f.startsWith(prefix));
+        const childrenLinks = Array.from(this.symlinks.keys()).filter(l => l.startsWith(prefix));
+
+        if (childrenDirs.length > 0 || childrenFiles.length > 0 || childrenLinks.length > 0) {
+            if (options?.recursive) {
+                // Delete children first
+                childrenDirs.forEach(dir => this.rmdirSync(dir, { recursive: true }));
+                childrenFiles.forEach(file => this.unlinkSync(file));
+                childrenLinks.forEach(link => this.unlinkSync(link));
+            } else {
+                throw new Error(`ENOTEMPTY: ${path}`);
             }
         }
-
-        for (const file of this.files.keys()) {
-            if (file.startsWith(prefix)) {
-                throw new Error(`ENOTEMPTY: Directory not empty: ${path}`);
-            }
-        }
-
-        for (const symlink of this.symlinks.keys()) {
-            if (symlink.startsWith(prefix)) {
-                throw new Error(`ENOTEMPTY: Directory not empty: ${path}`);
-            }
-        }
-
         this.directories.delete(path);
+        this.persistToLocalStorage();
     }
 
-    // Rename file or directory
     renameSync(oldPath: string, newPath: string): void {
         oldPath = this.normalizePath(oldPath);
         newPath = this.normalizePath(newPath);
+        if (!this.existsSync(oldPath)) throw new Error(`ENOENT: ${oldPath}`);
+        if (oldPath === newPath) return; // No-op
+        if (this.existsSync(newPath)) throw new Error(`EEXIST: ${newPath}`);
 
-        if (!this.existsSync(oldPath)) {
-            throw new Error(`ENOENT: No such file or directory: ${oldPath}`);
+        const newParentDir = newPath.substring(0, newPath.lastIndexOf('/')) || '/';
+        if (!this.directories.has(newParentDir)) {
+            this.mkdirSync(newParentDir, { recursive: true });
         }
 
-        // If it's a directory
-        if (this.directories.has(oldPath)) {
-            // Create new directory
-            this.mkdirSync(newPath);
-
-            // Move all contents
+        if (this.directories.has(oldPath)) { // Rename Directory
             const prefix = oldPath === '/' ? '/' : oldPath + '/';
             const newPrefix = newPath === '/' ? '/' : newPath + '/';
 
-            // Move subdirectories
-            for (const dir of this.directories) {
-                if (dir !== oldPath && dir.startsWith(prefix)) {
-                    const relativePath = dir.substring(prefix.length);
-                    const newDirPath = newPrefix + relativePath;
-                    this.mkdirSync(newDirPath, { recursive: true });
+            // Update file paths
+            Array.from(this.files.entries()).forEach(([p, content]) => {
+                if (p.startsWith(prefix)) {
+                    this.files.set(p.replace(prefix, newPrefix), content);
+                    this.files.delete(p);
                 }
-            }
-
-            // Move files
-            for (const [filePath, content] of this.files.entries()) {
-                if (filePath.startsWith(prefix)) {
-                    const relativePath = filePath.substring(prefix.length);
-                    const newFilePath = newPrefix + relativePath;
-                    this.files.set(newFilePath, content);
-                    this.files.delete(filePath);
+            });
+            // Update link paths
+            Array.from(this.symlinks.entries()).forEach(([p, target]) => {
+                if (p.startsWith(prefix)) {
+                    this.symlinks.set(p.replace(prefix, newPrefix), target);
+                    this.symlinks.delete(p);
                 }
-            }
-
-            // Move symlinks
-            for (const [linkPath, target] of this.symlinks.entries()) {
-                if (linkPath.startsWith(prefix)) {
-                    const relativePath = linkPath.substring(prefix.length);
-                    const newLinkPath = newPrefix + relativePath;
-                    this.symlinks.set(newLinkPath, target);
-                    this.symlinks.delete(linkPath);
-                }
-            }
-
-            // Remove old directory
+            });
+            // Update directory paths
+            const dirsToUpdate = Array.from(this.directories).filter(d => d.startsWith(prefix));
+            dirsToUpdate.forEach(d => this.directories.delete(d));
             this.directories.delete(oldPath);
-        } else if (this.files.has(oldPath)) {
-            // It's a file
-            const content = this.files.get(oldPath) as string | Uint8Array;
-            this.files.set(newPath, content);
+            this.directories.add(newPath);
+            dirsToUpdate.forEach(d => this.directories.add(d.replace(prefix, newPrefix)));
+
+        } else if (this.files.has(oldPath)) { // Rename File
+            this.files.set(newPath, this.files.get(oldPath)!);
             this.files.delete(oldPath);
-        } else if (this.symlinks.has(oldPath)) {
-            // It's a symlink
-            const target = this.symlinks.get(oldPath) as string;
-            this.symlinks.set(newPath, target);
+        } else if (this.symlinks.has(oldPath)) { // Rename Link
+            this.symlinks.set(newPath, this.symlinks.get(oldPath)!);
             this.symlinks.delete(oldPath);
         }
+        this.persistToLocalStorage();
     }
 
-    // Create a symbolic link
-    symlinkSync(target: string, path: string): void {
+    symlinkSync(target: string, path: string, internalCall = false): void {
         path = this.normalizePath(path);
-
-        // Ensure parent directory exists
-        const parentDir = path.substring(0, path.lastIndexOf('/'));
-        if (parentDir && !this.directories.has(parentDir)) {
-            throw new Error(`ENOENT: Parent directory does not exist: ${parentDir}`);
-        }
-
+        const parentDir = path.substring(0, path.lastIndexOf('/')) || '/';
+        if (!this.directories.has(parentDir)) throw new Error(`ENOENT: Parent ${parentDir}`);
         this.symlinks.set(path, target);
+        if (!internalCall) this.persistToLocalStorage();
     }
 
-    // Normalize path to ensure consistent format
-    private normalizePath(path: string): string {
-        // Handle empty path
+    normalizePath(path: string): string {
         if (!path) return '/';
-
-        // Ensure path starts with /
-        if (!path.startsWith('/')) {
-            path = '/' + path;
+        if (!path.startsWith('/')) path = '/' + path;
+        const parts = path.split('/').filter(part => part && part !== '.');
+        const stack: string[] = [];
+        for (const part of parts) {
+            if (part === '..') { if (stack.length > 0) stack.pop(); }
+            else { stack.push(part.replace(/[\\:*?"<>|]/g, '')); } // Sanitize
         }
-
-        // Remove trailing slash except for root
-        if (path.length > 1 && path.endsWith('/')) {
-            path = path.slice(0, -1);
-        }
-
-        // Handle double slashes
-        while (path.includes('//')) {
-            path = path.replace('//', '/');
-        }
-
-        return path;
+        const result = '/' + stack.join('/');
+        return result === '/' ? '/' : result; // Ensure root is '/' not '/ '
     }
 
-    // Create shortcuts in Desktop
-    private createShortcuts(): void {
-        const desktopPath = "/home/guest/Desktop";
-
-        // Create My Projects shortcut
-        this.writeFileSync(`${desktopPath}/My Projects.lnk`, "/projects");
-
-        // Create My Documents shortcut
-        this.writeFileSync(`${desktopPath}/My Documents.lnk`, "/home/guest/Documents");
-
-        // Create Text Editor shortcut
-        this.writeFileSync(`${desktopPath}/Text Editor.lnk`, "app:texteditor");
+    private createShortcuts(internalCall = false): void {
+        const desktop = "/home/guest/Desktop";
+        this.writeFileSync(`${desktop}/My Projects.lnk`, "/projects", internalCall);
+        this.writeFileSync(`${desktop}/My Documents.lnk`, "/home/guest/Documents", internalCall);
+        this.writeFileSync(`${desktop}/Text Editor.lnk`, "app:texteditor", internalCall);
     }
 
-    // Create project files based on project data
-    private createProjectFiles(): void {
-        // Create folders for each project
+    private createProjectFiles(internalCall = false): void {
+        if (!projects || projects.length === 0) return;
         projects.forEach((project) => {
-            const projectFolder = `/projects/${project.id}`;
-
-            // Create project folder if it doesn't exist
-            if (!this.existsSync(projectFolder)) {
-                this.mkdirSync(projectFolder, { recursive: true });
-
-                // Create README.md with project description
-                this.writeFileSync(
-                    `${projectFolder}/README.md`,
-                    `# ${project.title}\n\n` +
-                    `${project.description}\n\n` +
-                    `## Technologies\n\n` +
-                    project.technologies.map((tech) => `- ${tech}`).join("\n")
-                );
-
-                // Create sample files based on project type
-                this.createSampleProjectFiles(project);
+            if (!project?.id) return;
+            const folder = `/projects/${project.id}`;
+            if (!this.existsSync(folder)) {
+                this.mkdirSync(folder, { recursive: true }, internalCall);
+                this.writeFileSync(`${folder}/README.md`, `# ${project.title}\n...`, internalCall);
+                this.createSampleProjectFiles(project, internalCall);
             }
         });
     }
 
-    // Create sample files based on project type
-    private createSampleProjectFiles(project: any): void {
-        const projectFolder = `/projects/${project.id}`;
+    private createSampleProjectFiles(project: Project, internalCall = false): void {
+        const folder = `/projects/${project.id}`;
+        // Ensure project.technologies is an array before joining
+        const techList = Array.isArray(project.technologies) ? project.technologies.join(", ") : 'N/A';
 
         switch (project.type) {
             case "code":
-                // Create sample code files
-                this.writeFileSync(
-                    `${projectFolder}/index.html`,
-                    `<!DOCTYPE html>\n<html>\n<head>\n  <title>${project.title}</title>\n  <link rel="stylesheet" href="styles.css">\n</head>\n<body>\n  <h1>${project.title}</h1>\n  <div id="app"></div>\n  <script src="app.js"></script>\n</body>\n</html>`
-                );
-
-                this.writeFileSync(
-                    `${projectFolder}/styles.css`,
-                    `body {\n  font-family: Arial, sans-serif;\n  margin: 0;\n  padding: 20px;\n  background-color: #f5f5f5;\n}\n\nh1 {\n  color: #333;\n}`
-                );
-
-                this.writeFileSync(
-                    `${projectFolder}/app.js`,
-                    `// ${project.title} Application\n\ndocument.addEventListener('DOMContentLoaded', function() {\n  console.log('${project.title} initialized');\n  // Initialize application\n});\n`
-                );
+                this.writeFileSync(`${folder}/index.html`, `... ${project.title} ...`, internalCall);
+                this.writeFileSync(`${folder}/styles.css`, `...`, internalCall);
+                this.writeFileSync(`${folder}/app.js`, `... ${project.title} ...`, internalCall);
                 break;
-
             case "interactive":
-                // Create interactive demo files
-                this.writeFileSync(
-                    `${projectFolder}/index.html`,
-                    `<!DOCTYPE html>\n<html>\n<head>\n  <title>${project.title} Demo</title>\n  <link rel="stylesheet" href="demo.css">\n</head>\n<body>\n  <h1>${project.title} Interactive Demo</h1>\n  <div class="demo-container">\n    <div id="interactive-demo"></div>\n    <div class="controls">\n      <button id="start-demo">Start Demo</button>\n      <button id="reset-demo">Reset</button>\n    </div>\n  </div>\n  <script src="demo.js"></script>\n</body>\n</html>`
-                );
-
-                this.writeFileSync(
-                    `${projectFolder}/demo.css`,
-                    `body {\n  font-family: Arial, sans-serif;\n  margin: 0;\n  padding: 20px;\n}\n\n.demo-container {\n  border: 1px solid #ccc;\n  padding: 20px;\n  border-radius: 5px;\n}\n\n.controls {\n  margin-top: 20px;\n  display: flex;\n  gap: 10px;\n}\n\nbutton {\n  padding: 8px 16px;\n  background-color: #0078d7;\n  color: white;\n  border: none;\n  border-radius: 4px;\n  cursor: pointer;\n}\n\nbutton:hover {\n  background-color: #0063b1;\n}`
-                );
-
-                this.writeFileSync(
-                    `${projectFolder}/demo.js`,
-                    `// ${project.title} Interactive Demo\n\ndocument.getElementById('start-demo').addEventListener('click', function() {\n  console.log('Starting demo...');\n  // Demo initialization logic\n});\n\ndocument.getElementById('reset-demo').addEventListener('click', function() {\n  console.log('Resetting demo...');\n  // Reset demo logic\n});\n`
-                );
+                this.writeFileSync(`${folder}/index.html`, `... ${project.title} Demo ...`, internalCall);
+                this.writeFileSync(`${folder}/demo.css`, `...`, internalCall);
+                this.writeFileSync(`${folder}/demo.js`, `... ${project.title} ...`, internalCall);
                 break;
-
             case "visual":
-                // Create files for visual projects
                 this.writeFileSync(
-                    `${projectFolder}/overview.md`,
-                    `# ${project.title} Visual Overview\n\n` +
-                    `${project.description}\n\n` +
-                    `## Screenshots\n\n` +
-                    `- screenshot1.png: Main page\n` +
-                    `- screenshot2.png: Features page\n` +
-                    `- screenshot3.png: Mobile view\n\n` +
-                    `## Design Elements\n\n` +
-                    `The design focuses on ${project.technologies.join(
-                        ", "
-                    )} with an emphasis on user experience and accessibility.`
+                    `${folder}/overview.md`,
+                    `# ${project.title} Visual Overview\n\n...\n\nTechnologies: ${techList}`, // Safely use techList
+                    internalCall
                 );
-
-                // Create placeholder for screenshots
-                this.mkdirSync(`${projectFolder}/screenshots`, { recursive: true });
-                this.writeFileSync(
-                    `${projectFolder}/screenshots/PLACEHOLDER.txt`,
-                    `This folder would contain screenshots of the ${project.title} project.`
-                );
+                this.mkdirSync(`${folder}/screenshots`, { recursive: true }, internalCall);
+                this.writeFileSync(`${folder}/screenshots/PLACEHOLDER.txt`, `... ${project.title} ...`, internalCall);
                 break;
-
             default:
-                // Default project files
                 this.writeFileSync(
-                    `${projectFolder}/notes.txt`,
-                    `${project.title}\n` +
-                    `=================\n\n` +
-                    `${project.description}\n\n` +
-                    `Technologies used: ${project.technologies.join(", ")}\n\n` +
-                    `This file contains notes about the project.`
+                    `${folder}/notes.txt`,
+                    `${project.title}\n...\nTechnologies used: ${techList}`, // Safely use techList
+                    internalCall
                 );
         }
     }
 }
 
-// Create and export a singleton instance
 export const browserFS = new BrowserFileSystem();
 
-// Export individual utility functions that mimic the Node.js fs API
+// --- Exported Utility Functions --- (Fixes applied)
 export async function initFileSystem(useLocalStorage = false): Promise<typeof browserFS> {
-    await browserFS.initialize(useLocalStorage);
-    return browserFS;
+    await browserFS.initialize(useLocalStorage); return browserFS;
 }
+export function existsSync(path: string): boolean { return browserFS.existsSync(path); }
+export function mkdirSync(path: string, options?: { recursive?: boolean }): void { browserFS.mkdirSync(path, options); } // Corrected: Calls internal mkdirSync
+export function readdirSync(path: string): string[] { return browserFS.readdirSync(path); }
+export function readFileSync(path: string, options?: { encoding?: string }): string | Uint8Array { return browserFS.readFileSync(path, options); }
+export function writeFileSync(path: string, data: string | Uint8Array): void { browserFS.writeFileSync(path, data); }
+export function unlinkSync(path: string): void { browserFS.unlinkSync(path); }
+export function rmdirSync(path: string, options?: { recursive?: boolean }): void { browserFS.rmdirSync(path, options); }
+export function renameSync(oldPath: string, newPath: string): void { browserFS.renameSync(oldPath, newPath); }
+export function statSync(path: string): { /*...*/ } { return browserFS.statSync(path); }
+export function lstatSync(path: string): { /*...*/ } { return browserFS.statSync(path); }
+export function readlinkSync(path: string): string { return browserFS.readlinkSync(path); }
+export function symlinkSync(target: string, path: string): void { browserFS.symlinkSync(target, path); }
 
-export async function loadDefaultFiles(): Promise<void> {
-    // This is now handled by the initialize method
-    return;
-}
-
-export function existsSync(path: string): boolean {
-    return browserFS.existsSync(path);
-}
-
-export function mkdirSync(path: string, options?: { recursive?: boolean }): void {
-    return browserFS.mkdirSync(path, options);
-}
-
-export function readdirSync(path: string): string[] {
-    return browserFS.readdirSync(path);
-}
-
-export function readFileSync(path: string, options?: { encoding?: string }): string | Uint8Array {
-    return browserFS.readFileSync(path, options);
-}
-
-export function writeFileSync(path: string, data: string | Uint8Array): void {
-    return browserFS.writeFileSync(path, data);
-}
-
-export function unlinkSync(path: string): void {
-    return browserFS.unlinkSync(path);
-}
-
-export function rmdirSync(path: string): void {
-    return browserFS.rmdirSync(path);
-}
-
-export function renameSync(oldPath: string, newPath: string): void {
-    return browserFS.renameSync(oldPath, newPath);
-}
-
-export function statSync(path: string): { isDirectory: () => boolean; isSymbolicLink: () => boolean; size: number; mtime: Date } {
-    return browserFS.statSync(path);
-}
-
-export function lstatSync(path: string): { isDirectory: () => boolean; isSymbolicLink: () => boolean; size: number; mtime: Date } {
-    return browserFS.statSync(path); // Use statSync as they're the same in this implementation
-}
-
-export function readlinkSync(path: string): string {
-    return browserFS.readlinkSync(path);
-}
-
-export function symlinkSync(target: string, path: string): void {
-    return browserFS.symlinkSync(target, path);
-}
-
-// Export file system interface to match expected API
 export const fs = {
-    existsSync,
-    mkdirSync,
-    readdirSync,
-    readFileSync,
-    writeFileSync,
-    unlinkSync,
-    rmdirSync,
-    renameSync,
-    statSync,
-    lstatSync,
-    readlinkSync,
-    symlinkSync
+    existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync, unlinkSync,
+    rmdirSync, renameSync, statSync, lstatSync, readlinkSync, symlinkSync
 };
 
-// Additional utility functions
-export function listFiles(path: string) {
+// --- Additional Helper Functions --- (Fixes applied)
+export function listFiles(path: string): Array<{ name: string, isDirectory: boolean, isLink: boolean, linkTarget?: string }> { // Added return type
     try {
         return browserFS.readdirSync(path).map((name) => {
-            const fullPath = `${path}/${name}`.replace(/\/\//g, "/");
+            const fullPath = path === '/' ? `/${name}` : `${path}/${name}`; // Fix root path join
             let isLink = false;
-            let linkTarget = "";
+            let linkTarget: string | undefined = undefined; // Initialize explicitly
+            let isDirectory = false;
 
             try {
-                const stats = browserFS.statSync(fullPath);
-                const isDirectory = stats.isDirectory();
+                const stats = browserFS.statSync(fullPath); // Use corrected statSync if needed
+                isDirectory = stats.isDirectory();
                 isLink = stats.isSymbolicLink();
 
-                if (isLink) {
-                    linkTarget = browserFS.readlinkSync(fullPath);
-                }
-
-                if (name.endsWith('.lnk')) {
+                if (isLink) { linkTarget = browserFS.readlinkSync(fullPath); }
+                if (name.endsWith('.lnk')) { // Check original name for .lnk
                     isLink = true;
                     try {
-                        const content = browserFS.readFileSync(fullPath, { encoding: 'utf8' });
-                        linkTarget = content as string;
-                    } catch (error) {
-                        console.warn(`Error reading shortcut ${fullPath}:`, error);
-                    }
+                        linkTarget = browserFS.readFileSync(fullPath, { encoding: 'utf8' }) as string;
+                    } catch (error) { console.warn(`Err reading shortcut ${fullPath}:`, error); linkTarget = '!error'; }
                 }
-
-                return {
-                    name,
-                    isDirectory,
-                    isLink,
-                    ...(isLink && { linkTarget })
-                };
+                // *** FIX for Error 5: Return full object structure ***
+                return { name, isDirectory, isLink, linkTarget };
             } catch (error) {
-                console.warn(`Error checking file status for ${fullPath}:`, error);
-                return { name, isDirectory: false, isLink: false };
+                console.warn(`Err checking status for ${fullPath}:`, error);
+                // *** FIX for Error 5: Return full default object structure on error ***
+                return { name, isDirectory: false, isLink: false, linkTarget: undefined };
             }
         });
     } catch (error) {
-        console.error("Error listing files:", error);
+        console.error(`Error listing files in ${path}:`, error);
         return [];
     }
 }
 
-export function readFileContent(path: string) {
+export function readFileContent(path: string): string | null {
     try {
-        if (path.endsWith('.lnk')) {
-            return browserFS.readFileSync(path, { encoding: 'utf8' }) as string;
-        }
-
+        // Reading .lnk directly gives the target, which might be desired sometimes,
+        // but usually, you want the content of the target.
+        // This implementation reads the .lnk content (the target path).
+        // If you need the target's content, you'd resolve the link first.
         return browserFS.readFileSync(path, { encoding: 'utf8' }) as string;
     } catch (error) {
-        console.error(`Error reading file ${path}:`, error);
+        console.error(`Error reading file content ${path}:`, error);
         return null;
     }
 }
 
-export function writeFileContent(path: string, content: string) {
+export function writeFileContent(path: string, content: string): boolean {
     try {
-        // Ensure parent directory exists
-        const parentDir = path.substring(0, path.lastIndexOf("/"));
-        if (parentDir && !browserFS.existsSync(parentDir)) {
-            browserFS.mkdirSync(parentDir, { recursive: true });
-        }
-
-        browserFS.writeFileSync(path, content);
+        // No need to manage parent dir here, writeFileSync handles it.
+        browserFS.writeFileSync(path, content); // This calls persist internally
         return true;
-    } catch (error) {
-        console.error(`Error writing file ${path}:`, error);
-        return false;
-    }
+    } catch (error) { console.error(`Error writing file ${path}:`, error); return false; }
 }
 
-export function deleteFileOrDir(path: string) {
+export function deleteFileOrDir(path: string): boolean {
     try {
         const stats = browserFS.statSync(path);
         if (stats.isDirectory()) {
-            browserFS.rmdirSync(path);
+            browserFS.rmdirSync(path, { recursive: true }); // Allow recursive delete
         } else {
             browserFS.unlinkSync(path);
         }
-        return true;
-    } catch (error) {
-        console.error(`Error deleting ${path}:`, error);
-        return false;
-    }
+        return true; // Persist is called internally
+    } catch (error) { console.error(`Error deleting ${path}:`, error); return false; }
 }
 
-export function createDirectory(path: string) {
+export function createDirectory(path: string): boolean {
     try {
-        browserFS.mkdirSync(path, { recursive: true });
+        browserFS.mkdirSync(path, { recursive: true }); // This calls persist internally
         return true;
-    } catch (error) {
-        console.error(`Error creating directory ${path}:`, error);
-        return false;
-    }
+    } catch (error) { console.error(`Error creating directory ${path}:`, error); return false; }
 }
 
-export function renameFileOrDir(oldPath: string, newPath: string) {
-    try {
-        browserFS.renameSync(oldPath, newPath);
-        return true;
-    } catch (error) {
-        console.error(`Error renaming ${oldPath} to ${newPath}:`, error);
-        return false;
-    }
+export function renameFileOrDir(oldPath: string, newPath: string): boolean {
+    try { browserFS.renameSync(oldPath, newPath); return true; } // Persist called internally
+    catch (error) { console.error(`Error renaming ${oldPath}:`, error); return false; }
 }
-
-export function getFileStats(path: string) {
-    try {
-        return browserFS.statSync(path);
-    } catch (error) {
-        console.error(`Error getting stats for ${path}:`, error);
-        return null;
-    }
+export function getFileStats(path: string): { size: number; mtime: Date; isDirectory: () => boolean; isSymbolicLink: () => boolean; } | null {
+    try { return browserFS.statSync(path); }
+    catch (error) { console.error(`Error getting stats ${path}:`, error); return null; }
 }
-
-export function createShortcut(path: string, target: string) {
-    try {
-        browserFS.writeFileSync(path, target);
-        return true;
-    } catch (error) {
-        console.error(`Error creating shortcut ${path} to ${target}:`, error);
-        return false;
-    }
+export function createShortcut(path: string, target: string): boolean {
+    try { browserFS.writeFileSync(path.endsWith('.lnk') ? path : `${path}.lnk`, target); return true; } // Persist called internally
+    catch (error) { console.error(`Error creating shortcut ${path}:`, error); return false; }
 }

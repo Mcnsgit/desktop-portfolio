@@ -1,25 +1,24 @@
-// components/desktop/Desktop.tsx - With Swapy fixed implementation
-import React, {
-  useState,
-  useEffect,
-  useMemo,
-  useCallback,
-  useRef,
-} from "react";
-import { createSwapy, Swapy } from "swapy";
+import React, { useState, useEffect, useMemo, useCallback, useRef, DragEvent } from "react"; // Added DragEvent
 import { useDesktop } from "../../context/DesktopContext";
 import Icon from "./Icon";
-import Folder from "./Folder";
+import FolderComponent from "./Folder"; // Renamed import
 import Taskbar from "./Taskbar";
 import StartMenu from "./StartMenu";
 import WindowManager from "../windows/WindowManager";
-import RightClickMenu from "./rigthClickMenu";
+import RightClickMenu from "./RigthClickMenu"; // Corrected import name
 import { useSounds } from "../../hooks/useSounds";
 import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
 import styles from "../styles/Desktop.module.scss";
-import { BackgroundImages } from "../../../public/backgrounds/BackgroundImages";
 import { v4 as uuidv4 } from "uuid";
-import { context } from "@react-three/fiber";
+// *** FIX: Import specific types needed ***
+import { DesktopItem, Folder as FolderType, Window as WindowType, Project, Window } from "../../types"; // Ensure Window type is imported
+
+const backgrounds = [
+  "/backgrounds/retro_background_1.jpeg",
+  "/backgrounds/retro_background_2.jpeg",
+  "/backgrounds/retro_background_3.jpeg",
+];
+
 
 // Debug function to check window state
 interface WindowState {
@@ -30,393 +29,257 @@ interface WindowState {
   type: string;
 }
 
-const debugWindowState = (windowsState: WindowState[], activeWindowId: string | null): void => {
+interface WindowStateForDebug extends Omit<WindowType, 'content'> { // Use WindowType alias for consistency
+  type: string; // Ensure type is string for logging
+}
+const debugWindowState = (windowsState: WindowType[], activeWindowId: string | null): void => {
   console.log("Current window state:", {
     totalWindows: windowsState.length,
-    openWindows: windowsState.filter((w) => !w.minimized).length,
-    minimizedWindows: windowsState.filter((w) => w.minimized).length,
-    activeWindow:
-      windowsState.find((w) => w.id === activeWindowId)?.id || "none",
+    openWindows: windowsState.filter((w) => !w).length,
+    minimizedWindows: windowsState.filter((w) => w).length,
+    activeWindow: windowsState.find((w) => w.id === activeWindowId)?.id || "none",
     windowDetails: windowsState.map((w) => ({
       id: w.id,
       title: w.title,
       minimized: w.minimized,
       position: w.position,
-      type: w.type,
+      type: w.type || "unknown",
+      zIndex: w.zIndex,
+      size: w.size,
     })),
   });
 };
+interface CommonProps {
+  key: string;
+  itemId: string;
+  label: string;
+  icon: string;
+  onDoubleClick: () => void;
+}
+
+// Interface for FolderComponent props (assuming its definition)
+interface FolderProps extends CommonProps {
+  id: string; // Expects 'id' prop specifically
+  title: string; // Expects 'title' prop specifically
+  // Add any other props FolderComponent needs, e.g., onDrop
+  onDrop?: (e: DragEvent, folderId: string) => void;
+}
+
 
 const Desktop: React.FC = function Desktop() {
-  const { state, dispatch } = useDesktop();
+  const { state, dispatch } = useDesktop(); // Get state and dispatch
   const [backgroundIndex, setBackgroundIndex] = useState(0);
   const { playSound } = useSounds();
-  const desktopRef = useRef<HTMLDivElement>(null);
-  const swapyRef = useRef<Swapy | null>(null);
-  const [contextMenu, setContextMenu] = useState<{
-    visible: boolean;
-    position: { x: number; y: number };
-  }>({
-    visible: false,
-    position: { x: 0, y: 0 },
-  });
-  // Track which desktop item is being dragged
-  const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
+  const desktopContainerRef = useRef<HTMLDivElement>(null);
+  const [contextMenu, setContextMenu] = useState<{ visible: boolean; position: { x: number; y: number }; }>({ visible: false, position: { x: 0, y: 0 } });
 
   useKeyboardShortcuts();
 
-  const backgrounds = useMemo(
-    () => [
-      BackgroundImages?.retro_background_1 || "/backgrounds/bg1.jpg",
-      BackgroundImages?.retro_background_2 || "/backgrounds/bg2.jpg",
-      BackgroundImages?.retro_background_3 || "/backgrounds/bg3.jpg",
-    ],
-    []
-  );
-  useEffect(() => {
-    // Debug window state whenever it changes
-    debugWindowState(
-      state.windows.map((window) => ({
-        ...window,
-        type: window.type || "unknown", // Ensure type is always a string
-      })),
-      state.activeWindowId
-    );
+  // --- Drag and Drop Handlers ---
+  const handleDragOver = useCallback((e: DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  }, []);
 
-    // Force rerender WindowManager if windows exist but aren't showing
-    if (state.windows.length > 0) {
-      // Check if window DOM elements exist
-      setTimeout(() => {
-        const windowElements = document.querySelectorAll('[data-window-id]');
-        console.log(`Found ${windowElements.length} window DOM elements for ${state.windows.length} windows in state`);
+  const handleDrop = useCallback((e: DragEvent) => {
+    e.preventDefault();
+    const itemId = e.dataTransfer.getData("application/retroos-icon-id");
+    const desktopRect = desktopContainerRef.current?.getBoundingClientRect();
+    if (itemId && desktopRect) {
+      let x = e.clientX - desktopRect.left;
+      let y = e.clientY - desktopRect.top;
+      const iconWidth = 80, iconHeight = 90, padding = 10;
+      const taskbarHeight = 30; // Ideally from constants
 
-        if (windowElements.length < state.windows.filter(w => !w.minimized).length) {
-          console.log("Missing window elements - forcing update");
-          // Force a small position change to trigger rerender
-          state.windows.forEach(window => {
-            if (!window.minimized) {
-              dispatch({
-                type: "UPDATE_WINDOW_POSITION",
-                payload: {
-                  id: window.id,
-                  position: {
-                    x: window.position.x + 1,
-                    y: window.position.y
-                  }
-                }
-              });
-            }
-          });
-        }
-      }, 500);
-    }
-  }, [state.windows, dispatch, state.activeWindowId]);
+      x = x - iconWidth / 2; // Center horizontally
+      y = y - iconHeight / 2; // Center vertically
 
-  // Initialize Swapy for desktop icons - FIXED
-  useEffect(() => {
-    if (desktopRef.current) {
-      if (swapyRef.current) {
-        swapyRef.current.destroy();
-      }
+      // Constrain position
+      x = Math.max(padding, Math.min(x, desktopRect.width - iconWidth - padding));
+      // Use desktopRect.height as it's already excluding taskbar space due to container styling
+      y = Math.max(padding, Math.min(y, desktopRect.height - iconHeight - padding));
 
-      // Wait a bit to let React render the icons first
-      setTimeout(() => {
-        try {
-          // Create new Swapy instance for desktop icons with React integration
-          if (desktopRef.current) {
-            swapyRef.current = createSwapy(desktopRef.current as HTMLElement, {
-              swapMode: "drop",
-              animation: "dynamic",
-              dragAxis: "both",
-              autoScrollOnDrag: true,
-              manualSwap: true, // Required for React integration
-            });
-
-            console.log("Swapy initialized successfully");
-
-            // Handle position updates when icons are moved
-            swapyRef.current.onSwap((event) => {
-              console.log("Icon swap event:", event);
-
-              if (event && event.toSlot && event.fromSlot) {
-                try {
-                  const fromSlot = event.fromSlot as unknown as HTMLElement;
-                  const toSlot = event.toSlot as unknown as HTMLElement;
-
-                  const fromId = fromSlot
-                    .getAttribute("data-swapy-slot")
-                    ?.replace("slot-", "");
-                  const toId = toSlot
-                    .getAttribute("data-swapy-slot")
-                    ?.replace("slot-", "");
-
-                  if (fromId && toId) {
-                    console.log(`Swapped icons: ${fromId} -> ${toId}`);
-
-                    // Get positions for both slots
-                    const fromRect = fromSlot.getBoundingClientRect();
-                    const toRect = toSlot.getBoundingClientRect();
-
-                    // Update positions in state
-                    dispatch({
-                      type: "UPDATE_ITEM_POSITION",
-                      payload: {
-                        itemId: fromId,
-                        position: { x: toRect.left, y: toRect.top },
-                      },
-                    });
-
-                    dispatch({
-                      type: "UPDATE_ITEM_POSITION",
-                      payload: {
-                        itemId: toId,
-                        position: { x: fromRect.left, y: fromRect.top },
-                      },
-                    });
-                  }
-                } catch (error) {
-                  console.error("Error during icon swap:", error);
-                }
-              }
-            });
-          }
-        } catch (error) {
-          console.error("Error initializing Swapy:", error);
-        }
-      }, 100);
-    }
-
-    return () => {
-      if (swapyRef.current) {
-        swapyRef.current.destroy();
-        swapyRef.current = null;
-      }
-    };
-  }, [dispatch]);
-
-  // Update Swapy when desktop items change
-  const desktopItemsPositionKey = useMemo(() => {
-    return state.desktopItems
-      .map((item) => `${item.id}-${item.position.x}-${item.position.y}`)
-      .join(",");
-  }, [state.desktopItems]);
-
-  // Update Swapy after React renders
-  useEffect(() => {
-    if (swapyRef.current) {
-      // Delay the update to ensure React has finished rendering
-      const timer = setTimeout(() => {
-        try {
-          if (swapyRef.current) {
-            swapyRef.current.update();
-            console.log("SWAPY updated after position changes");
-          }
-        } catch (error) {
-          console.error("Error updating Swapy:", error);
-        }
-      }, 100);
-
-      return () => clearTimeout(timer);
-    }
-  }, [desktopItemsPositionKey]);
-
-  // Then, update the handleIconDoubleClick function to include these additional logs:
-  const handleIconDoubleClick = useCallback(
-    (projectId: string) => {
-      console.log(`Double-clicked on project icon: ${projectId}`);
-      const project = state.projects.find((p) => p.id === projectId);
-
-      if (project) {
-        console.log(`Found project, opening window for: ${project.title}`);
-        playSound("windowOpen");
-
-        const windowPayload = {
-          id: `project-${project.id}`,
-          title: project.title,
-          content: { type: "project", projectId: project.id },
-          minimized: false,
-          position: { x: 100, y: 100 },
-          size: { width: 800, height: 600 }, // Default size for the window
-          zIndex: 1, // Default zIndex for the window
-          type: "project" as const, // Ensure type matches the allowed string literals
-        };
-
-        console.log("Dispatching OPEN_WINDOW with payload:", windowPayload);
-
-        dispatch({
-          type: "OPEN_WINDOW",
-          payload: windowPayload,
-        });
-
-        // Force focus after a slight delay
-        setTimeout(() => {
-          console.log(`Forcing focus on new window: project-${project.id}`);
-          dispatch({
-            type: "FOCUS_WINDOW",
-            payload: { id: `project-${project.id}` }
-          });
-        }, 100);
-      } else {
-        console.error(`Project not found with id: ${projectId}`);
-      }
-    },
-    [dispatch, playSound, state.projects]
-  );
-
-  const handleDesktopClick = useCallback(() => {
-    if (state.startMenuOpen) {
       dispatch({
-        type: "TOGGLE_START_MENU",
-        payload: { startMenuOpen: false },
+        type: "UPDATE_ITEM_POSITION",
+        payload: { itemId: itemId, position: { x: Math.round(x), y: Math.round(y) } },
       });
     }
-    if (contextMenu.visible) {
-      setContextMenu((prev) => ({ ...prev, visible: false }));
+  }, [dispatch]);
+  // --- End D&D Handlers ---
+
+  // --- Double Click Handler ---
+  const handleIconDoubleClick = useCallback((itemId: string) => {
+    console.log(`Double-clicked on item ID: ${itemId}`);
+    const item = state.desktopItems.find((i: DesktopItem) => i.id === itemId);
+
+    if (!item) {
+      console.error(`Item not found: ${itemId}`);
+      return;
     }
+
+    playSound("windowOpen"); // Consider using WINDOW_SOUNDS.WINDOW_OPEN
+
+    let windowPayload: WindowType | null = null; // Use WindowType alias
+    const basePosition = { x: 100 + Math.random() * 50, y: 100 + Math.random() * 50 };
+
+    if (item.type === "project") {
+      const project = state.projects.find((p: Project) => p.id === itemId); // Add type Project
+      if (project) {
+        windowPayload = {
+          id: `project-${project.id}`, title: project.title, type: "project",
+          content: { type: "project", projectId: project.id },
+          minimized: false, position: basePosition,
+          size: { width: 600, height: 500 }, zIndex: 1, // zIndex managed by reducer
+        };
+      }
+    } else if (item.type === "folder") {
+      const folder = state.folders.find((f: FolderType) => f.id === itemId); // Add type FolderType
+      if (folder) {
+        windowPayload = {
+          id: `folder-${folder.id}`, title: folder.title, type: "folder",
+          content: { type: "folder", folderId: folder.id },
+          minimized: false, position: basePosition,
+          size: { width: 550, height: 400 }, zIndex: 1,
+        };
+      }
+    } else if (item.type === "shortcut") {
+      // Placeholder: Implement shortcut handling logic
+      // e.g., read target, then potentially dispatch OPEN_WINDOW for an app or folder
+      console.log("Shortcut double-clicked:", item.title);
+      // Example: if (target === 'app:texteditor') openTextEditor(dispatch);
+      // Example: if (target === '/projects') openFileExplorer(dispatch, '/projects');
+      return; // Exit if shortcut handling is implemented elsewhere or pending
+    }
+
+    if (windowPayload) {
+      console.log("Dispatching OPEN_WINDOW:", windowPayload);
+      dispatch({ type: "OPEN_WINDOW", payload: windowPayload });
+      // Focus after a short delay
+      setTimeout(() => {
+        dispatch({ type: "FOCUS_WINDOW", payload: { id: windowPayload!.id } }) // Use non-null assertion if payload is guaranteed
+      }, 100);
+    } else {
+      console.error(`Could not find data for ${item.type} with id: ${itemId}`);
+    }
+  }, [dispatch, playSound, state.projects, state.folders, state.desktopItems]);
+  // --- End Double Click ---
+
+
+  // --- Other Handlers ---
+  const handleDesktopClick = useCallback(() => {
+    if (state.startMenuOpen) dispatch({ type: "TOGGLE_START_MENU", payload: { startMenuOpen: false } });
+    if (contextMenu.visible) setContextMenu((prev) => ({ ...prev, visible: false }));
   }, [state.startMenuOpen, contextMenu.visible, dispatch]);
 
   const cycleBackground = useCallback(() => {
-    setBackgroundIndex((prev) => (prev + 1) % backgrounds.length);
+    setBackgroundIndex(prev => (prev + 1) % backgrounds.length);
     playSound("click");
-  }, [backgrounds.length, playSound]);
+  }, [playSound]);
 
-  // Toggle start menu
   const handleStartClick = useCallback(() => {
-    console.log("Start menu toggle - current state:", state.startMenuOpen);
     dispatch({ type: "TOGGLE_START_MENU" });
-  }, [dispatch, state.startMenuOpen]);
+    playSound("click"); // Play sound on start click too
+  }, [dispatch, playSound]);
 
-  // Handle drag start for making other operations aware of dragged item
-  const handleDragStart = useCallback((e: React.DragEvent, itemId?: string) => {
-    if (itemId) {
-      setDraggedItemId(itemId);
-      console.log(`Drag started for item: ${itemId}`);
-    }
-  }, []);
-
-  // Handle right-click context menu
-  const handleRightClick = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault();
-      playSound("click");
-      setContextMenu({
-        visible: true,
-        position: { x: e.clientX, y: e.clientY },
-      });
-    },
-    [playSound]
-  );
-
-  const contextMenuItems = useMemo(
-    () => [
-      {
-        label: "Change Background",
-        action: cycleBackground,
-      },
-      {
-        label: "New Folder",
-        action: () => {
-          const folderId = uuidv4();
-          dispatch({
-            type: "CREATE_FOLDER",
-            payload: {
-              id: folderId,
-              title: "New Folder",
-              icon: "/assets/win98-icons/png/directory_closed-0.png",
-              items: [],
-              position: {
-                x: Math.max(50, contextMenu.position.x - 40),
-                y: Math.max(50, contextMenu.position.y - 40),
-              },
-            },
-          });
-          setContextMenu((prev) => ({ ...prev, visible: false }));
+  const handleRightClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    playSound("click");
+    setContextMenu({ visible: true, position: { x: e.clientX, y: e.clientY } });
+  }, [playSound]);
+  // --- End Other Handlers ---
+     // Context Menu Items
+    const contextMenuItems = useMemo(() => [
+        { label: "Change Background", action: cycleBackground },
+        {
+            label: "New Folder", action: () => {
+                const folderId = uuidv4();
+                const containerRect = desktopContainerRef.current?.getBoundingClientRect();
+                const newPosition = {
+                    x: Math.max(10, contextMenu.position.x - (containerRect?.left || 0) - 40),
+                    y: Math.max(10, contextMenu.position.y - (containerRect?.top || 0) - 45),
+                };
+                const payload: FolderType = {
+                    id: folderId, title: "New Folder", icon: "/assets/win98-icons/png/directory_closed-1.png",
+                    items: [], position: newPosition, parentId: null,
+                };
+                dispatch({ type: "CREATE_FOLDER", payload });
+                setContextMenu(prev => ({ ...prev, visible: false }));
+            }
         },
-      },
-      {
-        label: "Refresh",
-        action: () => window.location.reload(),
-      },
-    ],
-    [cycleBackground, contextMenu.position, dispatch]
-  );
+        { label: "Refresh", action: () => window.location.reload() },
+    ], [cycleBackground, contextMenu.position, dispatch]);
 
-  const desktopItems = useMemo(() => {
-    return state.desktopItems.filter((item) => !item.parentId);
-  }, [state.desktopItems]);
+    // Filtered Desktop Items
+    const desktopItems = useMemo(() => state.desktopItems.filter(item => !item.parentId), [state.desktopItems]);
 
-  const desktopProjects = useMemo(() => {
-    return desktopItems
-      .filter((item) => item.type === "project" && item.id !== "about")
-      .map((item) => {
-        const project = state.projects.find((p) => p.id === item.id);
-        return { ...item, project };
-      })
-      .filter((item) => item.project);
-  }, [desktopItems, state.projects]);
+    // Render Start Menu Callback
+    const renderStartMenu = useCallback(() => state.startMenuOpen ? <StartMenu /> : null, [state.startMenuOpen]);
 
-  const renderStartMenu = useCallback(() => {
-    return state.startMenuOpen ? <StartMenu /> : null;
-  }, [state.startMenuOpen]);
+    // Effect for Debugging Window State
+    useEffect(() => {
+        debugWindowState(state.windows, state.activeWindowId);
+    }, [state.windows, state.activeWindowId]);
 
-  return (
-    <div
-      ref={desktopRef}
-      className={styles.desktop}
-      style={{
-        backgroundImage: `url(${backgrounds[backgroundIndex]})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
-      onClick={handleDesktopClick}
-      onContextMenu={handleRightClick}
-    >
-      {/* Desktop icons with proper slot and item matching */}
-      <div className={styles.iconsContainer}>
-        {desktopProjects.map((item) => (
-          <div
-            key={`slot-${item.id}`}
-            data-swapy-slot={`slot-${item.id}`}
-            style={{
-              position: "absolute",
-              left: item.position.x,
-              top: item.position.y,
-              width: "80px",
-              height: "90px",
-            }}
-          >
-            <div data-swapy-item={`slot-${item.id}`} style={{ height: "100%" }}>
-              <Icon
-                itemId={item.id}
-                icon={
-                  item.project?.icon ||
-                  "/assets/win98-icons/png/notepad_file-0.png"
-                }
-                label={item.project?.title || "Unknown"}
-                onDoubleClick={() => handleIconDoubleClick(item.id)}
-                draggable={true}
-                onDragStart={(e) => handleDragStart(e, item.id)}
-                position={{ x: 0, y: 0 }} // Position is now on the container div
-              />
+    // --- Render ---
+    return (
+        <div
+            ref={desktopContainerRef}
+            className={styles.desktop}
+            style={{ backgroundImage: `url(${backgrounds[backgroundIndex]})`, backgroundSize: "cover", backgroundPosition: "center" }}
+            onClick={handleDesktopClick}
+            onContextMenu={handleRightClick}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+        >
+            <div className={styles.iconsContainer}>
+                {desktopItems.map((item) => {
+                    // Define common props inside the loop scope
+                    const commonProps: CommonProps = {
+                        key: item.id, // Use key directly here
+                        itemId: item.id,
+                        label: item.title,
+                        icon: item.icon || '',
+                        onDoubleClick: () => handleIconDoubleClick(item.id),
+                    };
+                    return (
+                        <div
+                            key={`wrapper-${item.id}`} // Use a unique key for the wrapper
+                            style={{
+                                position: 'absolute', left: `${item.position.x}px`, top: `${item.position.y}px`,
+                                width: '80px', height: '90px', zIndex: item.zIndex || 1
+                            }}
+                            data-testid={`desktop-item-${item.id}`}
+                        >
+                            {item.type === 'folder' ? (
+                                // Pass specific required props for FolderComponent
+                                <FolderComponent
+                                    {...commonProps} // Spread common props
+                                    id={item.id}       // Pass id explicitly
+                                    title={item.title}   // Pass title explicitly
+                                    position={item.position} // Pass position explicitly
+                                />
+                            ) : (
+                                // Icon component doesn't need position prop
+                                <Icon {...commonProps} />
+                            )}
+                        </div>
+                    );
+                })}
             </div>
-          </div>
-        ))}
-      </div>
 
-      <WindowManager />
-      {renderStartMenu()}
-      {contextMenu.visible && (
-        <RightClickMenu
-          position={contextMenu.position}
-          items={contextMenuItems}
-          onClose={() =>
-            setContextMenu((prev) => ({ ...prev, visible: false }))
-          }
-        />
-      )}
-      <Taskbar onStartClick={handleStartClick} />
-    </div>
-  );
+            <WindowManager />
+            {renderStartMenu()}
+            {contextMenu.visible && (
+                <RightClickMenu
+                    position={contextMenu.position}
+                    items={contextMenuItems}
+                    // *** FIX: Replace placeholder with actual close handler ***
+                    onClose={() => setContextMenu(prev => ({ ...prev, visible: false }))}
+                />
+            )}
+            <Taskbar onStartClick={handleStartClick} />
+        </div>
+    );
 };
 
 export default Desktop;

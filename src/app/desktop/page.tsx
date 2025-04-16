@@ -87,7 +87,7 @@ const DesktopInitializer = () => {
               title: "About Me",
               icon: "/assets/icons/win98/w98_directory_program_group.ico",
               description: "About the developer",
-              type: "visual",
+              tags:["html"],
               technologies: ["html", "css", "javascript"],
               content: "About Me content goes here",
             },

@@ -23,7 +23,7 @@ interface Service {
   description?: string;
 }
 
-// Custom Tilt Component (replacing react-next-tilt)
+// Custom Tilt Component 
 const CustomTilt: React.FC<{
   children: React.ReactNode;
   className?: string;
@@ -163,10 +163,11 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
   index,
   title,
   icon,
-  description = `${title} service for your project needs`
+  description
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   
+  const cardDescription = description || `Provinding ${title.toLowerCase()} services. `
   return (
     <motion.div
       variants={fadeIn("right", "spring", index * 0.5, 0.75)}
@@ -219,9 +220,10 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
               />
             </div>
             
-            {/* Title with animated underline */}
+            {/* Title */}
             <div className="text-center mb-4">
               <h3 className="text-white text-[20px] font-bold">{title}</h3>
+              {/*... (animated underline).. */}
               <motion.div 
                 className="h-[2px] bg-gradient-to-r from-purple-400 to-pink-400 mt-2 mx-auto"
                 initial={{ width: "0%" }}
@@ -255,36 +257,35 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
 
 const About = () => {
   return (
-    <div>
+     <>
       <motion.div variants={textVariant(0.1)}>
-        <h2 className={styles.sectionHeadText}>Overview</h2>
+         {/* Use styles from ./styles.ts */}
         <p className={styles.sectionSubText}>Introduction</p>
+        <h2 className={styles.sectionHeadText}>Overview.</h2>
       </motion.div>
+
       <motion.p
         variants={fadeIn("up", "spring", 0.1, 1)}
         className="mt-4 text-secondary text-[17px] max-w-3xl leading-[30px]"
       >
-        I&apos;m a skilled software developer with experience in Python and
-        JavaScript, and expertise in frameworks like React, Node.js, and
-        Three.js. I&apos;m a quick learner and collaborate closely with clients to
-        create efficient, scalable, and user-friendly solutions that solve
-        real-world problems.
+        I&apos;m diving into the world of software development with enthusiasm, focusing on JavaScript, Python, React, Node.js, and related technologies. While I&apos;m still relatively new to the field, I genuinely enjoy the constant learning process.
+        <br /><br />
+        To accelerate my learning and keep up with the rapid pace of technology, I strategically use AI tools. They assist me in planning projects, grasping new concepts, debugging efficiently, and building prototypes faster. This allows me to spend more energy on the creative aspects – drawing from my background in digital marketing and photography to design web experiences that aim to be distinct and engaging, rather than just replicating common patterns.
+        <br /><br />
+        My focus is always on creating functional, accessible websites that work well for everyone. Living with ADHD has also shaped my problem-solving approach, pushing me towards finding clear, intuitive solutions – much like translating complex ideas across languages, a skill I developed early on. I strive to build digital tools that feel natural and straightforward to use.
       </motion.p>
+
       <div className="mt-20 flex flex-wrap gap-10 justify-center">
-        {services.map((service, index) => (
+        {/* Ensure services data is correctly typed and mapped */}
+        {services.map((service: Service, index) => (
           <ServiceCard
             key={`${service.title}-${index}`}
             index={index}
-            title={service.title}
-            icon={service.icon}
-            description={
-              (service as Service).description || 
-              `Specialized ${service.title.toLowerCase()} services with expertise in modern technologies and best practices.`
-            }
+            {...service}
           />
         ))}
       </div>
-    </div>
+    </>
   );
 };
 

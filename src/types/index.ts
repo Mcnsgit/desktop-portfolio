@@ -1,52 +1,52 @@
-// --- WINDOW TYPES ---
+// src/types/index.ts
+import { StaticImageData } from "next/image";
 
-/**
- * Position coordinates
- */
+// --- WINDOW TYPES ---
 export interface Position {
   x: number;
   y: number;
 }
-
-/**
- * Size dimensions
- */
 export interface Size {
   width: number;
   height: number;
 }
 
-/**
- * Window content types
- */
 export interface TextEditorContent {
   type: "texteditor";
   filePath?: string;
   content?: string;
 }
-
 export interface FileExplorerContent {
   type: "fileexplorer";
   initialPath?: string;
-}
+} 
 
 export interface ImageViewerContent {
   type: "imageviewer";
   filePath: string;
 }
-
 export interface ProjectContent {
   type: "project";
   projectId: string;
 }
-
 export interface FolderContent {
   type: "folder";
   folderId: string;
 }
-
 export interface WeatherAppContent {
   type: "weatherapp";
+}
+export interface AboutContent {
+  type: "about";
+}
+export interface SkillsContent {
+  type: "skills";
+}
+export interface ContactContent {
+  type: "contact";
+}
+export interface EducationContent {
+  type: "education";
 }
 
 export type WindowContent =
@@ -56,11 +56,12 @@ export type WindowContent =
   | ProjectContent
   | FolderContent
   | WeatherAppContent
+  | AboutContent
+  | SkillsContent
+  | ContactContent
+  | EducationContent
   | { type: string; [key: string]: any };
 
-/**
- * Window object
- */
 export interface Window {
   id: string;
   title: string;
@@ -70,33 +71,10 @@ export interface Window {
   minimized: boolean;
   type: string;
   zIndex?: number;
-  isActive?: boolean;
   isMaximized?: boolean;
-  isMinimized?: boolean;
-  isClosed?: boolean;
-  isDraggable?: boolean;
-  isResizable?: boolean;
-  isFullScreen?: boolean;
-}
-
-/**
- * Window options for creation
- */
-export interface WindowOptions {
-  id?: string;
-  title?: string;
-  content?: WindowContent | any;
-  position?: Position;
-  size?: Size;
-  minimized?: boolean;
-  type?: string;
 }
 
 // --- FILE SYSTEM TYPES ---
-
-/**
- * File system item
- */
 export interface FileSystemItem {
   name: string;
   isDirectory: boolean;
@@ -108,40 +86,40 @@ export interface FileSystemItem {
 }
 
 // --- PROJECT TYPES ---
-
-/**
- * Project details
- */
+export interface ProjectTag {
+  name: string;
+  color: string;
+}
 export interface Project {
   id: string;
   title: string;
   description: string;
-  tags: string[];
-  image?: string;
-  sourceUrl?: string;
-  demoUrl?: string;
-  details?: string;
+  name: string;
+  tags: ProjectTag[];
+  image: string | StaticImageData;
+  source_code_link?: string;
+  live_link?: string;
   icon?: string;
+  technologies?: string[];
+  repoUrl?: string;
+  demoUrl?: string;
+  content?: string;
+  details?: string;
   parentId?: string | null;
+  type?: "code" | "interactive" | "visual" | string;
 }
 
-/**
- * Folder details
- */
+// --- FOLDER TYPE ---
 export interface Folder {
   id: string;
   title: string;
   icon?: string;
-  items?: string[]; // File paths or item IDs
-  position?: { x: number; y: number }; // Added position property
-  parentId?: string | null; // Added parentId property
+  items?: string[];
+  position?: Position;
+  parentId?: string | null;
 }
 
-// --- DESKTOP CONTEXT TYPES ---
-
-/**
- * Desktop state
- */
+// --- DESKTOP TYPES ---
 export interface DesktopItem {
   id: string;
   title: string;
@@ -151,7 +129,6 @@ export interface DesktopItem {
   parentId: string | null;
   zIndex?: number;
 }
-
 export interface DesktopState {
   windows: Window[];
   activeWindowId: string | null;
@@ -164,9 +141,6 @@ export interface DesktopState {
   path?: string;
 }
 
-/**
- * Desktop action types
- */
 export type DesktopActionType =
   | "OPEN_WINDOW"
   | "CLOSE_WINDOW"
@@ -174,13 +148,19 @@ export type DesktopActionType =
   | "FOCUS_WINDOW"
   | "UPDATE_WINDOW_POSITION"
   | "UPDATE_WINDOW_SIZE"
-  | "UPDATE_WINDOW" // New action for batched updates
+  | "UPDATE_WINDOW"
+  | "RESTORE_WINDOW"
+  | "TOGGLE_START_MENU"
+  | "INIT_PROJECTS"
+  | "CREATE_FOLDER"
+  | "DELETE_FOLDER"
+  | "RENAME_FOLDER"
+  | "UPDATE_ITEM_POSITION"
+  | "MOVE_ITEM"
+  | "BATCH_UPDATES"
   | "CHANGE_THEME"
   | "CHANGE_WALLPAPER";
 
-/**
- * Desktop actions
- */
 export interface DesktopAction {
   type: DesktopActionType;
   payload: any;

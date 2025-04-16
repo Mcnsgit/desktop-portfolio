@@ -1,27 +1,121 @@
+// src/utils/ImageWithFallback.tsx
 import React, { useState, useEffect } from "react";
 import Image, { ImageProps } from "next/image";
-const DefaultIconImage = { src: "https://placehold.co/600x400.png" };
-interface ImageWithFallbackProps extends Omit<ImageProps, "onError"> {
+
+interface ImageWithFallbackProps extends Omit<ImageProps, "onError" | "placeholder"> {
   fallbackSrc?: string;
+  placeholderColor?: string;
+  priority?: boolean;
+  onLoad?: () => void;
 }
+
 /**
- * A wrapper around Next.js Image component that provides a fallback
- * when the image fails to load
+ * Enhanced Image component with fallback, loading indicator, and error handling
  */
-const ImageWithFallback = ({
+const ImageWithFallback: React.FC<ImageWithFallbackProps> = ({
   src,
-  fallbackSrc = "https://placehold.co/600x400.png",
+  fallbackSrc = "/assets/placeholders/image-placeholder.svg",
   alt,
+  width,
+  height,
+  placeholderColor = "#f0f0f0",
+  priority = false,
+  onLoad,
+  className,
   ...rest
-}: ImageWithFallbackProps) => {
-  const [imgSrc, setImgSrc] = useState(src);
-  
+}) => {
+  const [imgSrc, setImgSrc] = useState<string | StaticImageData>(src);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+
+  // Reset state when src changes
   useEffect(() => {
-    setImgSrc(src); // Update imgSrc when src prop changes
+    setImgSrc(src);
+    setIsLoading(true);
+    setHasError(false);
   }, [src]);
+
+  // Handle image load error
   const handleError = () => {
+    setHasError(true);
+    setIsLoading(false);
     setImgSrc(fallbackSrc);
   };
-  return <Image {...rest} src={imgSrc} alt={alt} onError={handleError} />;
+
+  // Handle successful image load
+  const handleLoad = () => {
+    setIsLoading(false);
+    if (onLoad) onLoad();
+  };
+
+  return (
+    <div
+      className={`image-container ${className || ''}`}
+      style={{
+        position: 'relative',
+        width: typeof width === 'number' ? `${width}px` : width,
+        height: typeof height === 'number' ? `${height}px` : height,
+        overflow: 'hidden',
+      }}
+    >
+      {/* Loading indicator */}
+      {isLoading && (
+        <div
+          className="image-loading-placeholder"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: placeholderColor,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <div
+            className="loading-indicator"
+            style={{
+              width: '30%',
+              height: '30%',
+              maxWidth: '40px',
+              maxHeight: '40px',
+              border: '2px solid #ddd',
+              borderRadius: '50%',
+              borderTopColor: '#666',
+              animation: 'spin 1s infinite linear',
+            }}
+          ></div>
+        </div>
+      )}
+
+      {/* Image */}
+      <Image
+        {...rest}
+        src={imgSrc}
+        alt={alt}
+        width={width}
+        height={height}
+        onError={handleError}
+        onLoad={handleLoad}
+        priority={priority}
+        style={{
+          ...rest.style,
+          opacity: isLoading ? 0 : 1,
+          transition: 'opacity 0.3s',
+        }}
+      />
+
+      {/* CSS for loading spinner */}
+      <style jsx global>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
+    </div>
+  );
 };
+
 export default ImageWithFallback;

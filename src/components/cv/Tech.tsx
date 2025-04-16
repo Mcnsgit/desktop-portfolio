@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { Suspense, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BallCanvas } from "../3d/canvas";
+const BallCanvas = React.lazy(() => import("../3d/canvas/Ball")); // Lazy load
 import { SectionWrapper } from "../../hoc";
 import { technologies, technicalSkills } from "../../data/index";
 import { fadeIn, textVariant } from "../../utils/motion";
@@ -17,6 +17,7 @@ import {
 import Image from "next/image";
 import { StaticImageData } from "next/image";
 import styles from "../styles/Skills.module.scss";
+import { useInView } from 'react-intersection-observer'; // Import useInView
 
 // Fallback component for when 3D fails
 const FallbackTechIcon = ({
@@ -184,6 +185,10 @@ const Tech = () => {
       [category]: !prev[category],
     }));
   };
+  const { ref: techBallsRef, inView: techBallsInView } = useInView({
+    triggerOnce: true, // Only trigger once when it enters the viewport
+    threshold: 0.1, // Trigger when 10% of the section is visible
+  });
 
   return (
     <>
@@ -211,31 +216,30 @@ const Tech = () => {
         <h3 className="text-white text-xl font-medium mb-6 border-b border-secondary/30 pb-2">
           Featured Technologies
         </h3>
-        <div className="flex flex-row flex-wrap justify-center gap-10">
-          {technologies.map((technology) => (
-            <motion.div
-              key={technology.name}
-              className="w-28 h-28 flex flex-col items-center"
-              whileHover={{ y: -5, transition: { duration: 0.3 } }}
-            >
+        <div className="flex flex-row flex-wrap justify-center gap-10 min-h-[11rem]"> {/* Add min-height */}
+          {/* Conditionally render based on inView */}
+          {techBallsInView && technologies.map((technology) => (
+            <motion.div key={technology.name} className="w-28 h-28 flex flex-col items-center" whileHover={{ y: -5, transition: { duration: 0.3 } }}>
               <div className="w-full h-28">
-                <React.Suspense
-                  fallback={
-                    <div className="w-full h-full flex items-center justify-center">
-                      <div className="loader"></div>
-                    </div>
-                  }
-                >
-                  <MemoizedBallCanvas icon={technology.icon} />
-                </React.Suspense>
+                {/* Use Suspense for lazy loaded component */}
+                <Suspense fallback={<div className="w-full h-full flex items-center justify-center"><div className="loader"></div></div>}>
+                  <BallCanvas icon={technology.icon} />
+                </Suspense>
               </div>
               <p className="text-center text-white/80 mt-2 text-sm">
                 {technology.name}
               </p>
             </motion.div>
           ))}
+          {/* Show simple loader if not in view yet */}
+          {!techBallsInView && (
+            <div className="w-full flex justify-center items-center min-h-[11rem]">
+              <div className="loader"></div>
+            </div>
+          )}
         </div>
       </motion.div>
+        
 
       {/* Technical Skills Categories Section */}
       <motion.div variants={fadeIn("up", "spring", 0.5, 1)} className="mt-20">

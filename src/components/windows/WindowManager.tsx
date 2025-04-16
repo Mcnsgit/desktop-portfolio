@@ -1,55 +1,62 @@
 // components/windows/WindowManager.tsx
-import React, { useEffect, useRef, useMemo, useCallback } from "react";
+import React, { useEffect, useRef, useMemo, useCallback, Suspense } from "react";
 import { useDesktop } from "../../context/DesktopContext";
-import Window from "./Window";
-import { WINDOW_POSITIONS, TIMING } from "@/utils/constants/windowConstants";
+import Window from "./Window"; // Use the refactored Window
+// Removed TIMING import if only used for Swapy debounce
 import { Project } from "../../types";
-import {
-  initializeWindowManager,
-  destroyWindowManager,
-  updateWindowManager,
-  bringWindowToFront,
-} from "@/utils/windowManagerUtil";
+// Removed Swapy utils imports
 import dynamic from "next/dynamic";
-import { useSounds } from "@/hooks/useSounds";
 import ErrorBoundary from "../error/ErrorBoundary";
 import { useWindowMonitor } from "@/hooks/useWindowMonitor";
-import fixStyles from "../styles/WindowFix.module.scss";
+// Removed fixStyles import if WindowFix.module.scss is removed or merged
+import WindowLoading from "./WindowLoading";
+
 // Dynamic imports for window content components
 const AboutWindow = dynamic(() => import("./WindowTypes/AboutWindow"), {
   ssr: false,
-  loading: () => <div className="loading-container">Loading about information...</div>
+  loading: () => <WindowLoading message="Loading about information..." />
 });
 
 const ProjectWindow = dynamic(() => import("./WindowTypes/ProjectWindow"), {
   ssr: false,
-  loading: () => <div className="loading-container">Loading project...</div>
+  loading: () => <WindowLoading message="Loading project..." />
 });
 
 const FileExplorerWindow = dynamic(() => import("../fileSystem/FileExplorerWindow"), {
   ssr: false,
-  loading: () => <div className="loading-container">Loading file explorer...</div>
+  loading: () => <WindowLoading message="Loading file explorer..." />
 });
 
 const TextEditorWindow = dynamic(() => import("./WindowTypes/TextEditorWindow"), {
   ssr: false,
-  loading: () => <div className="loading-container">Loading text editor...</div>
+  loading: () => <WindowLoading message="Loading text editor..." />
 });
 
 const ImageViewerWindow = dynamic(() => import("./WindowTypes/ImageViewerWindow"), {
   ssr: false,
-  loading: () => <div className="loading-container">Loading image viewer...</div>
+  loading: () => <WindowLoading message="Loading image viewer..." />
 });
 
 const WeatherApp = dynamic(() => import("../projects/WeatherApp/WeatherApp"), {
   ssr: false,
-  loading: () => <div className="loading-container">Loading weather app...</div>
+  loading: () => <WindowLoading message="Loading weather app..." />
 });
 
 const FolderWindow = dynamic(() => import("../fileSystem/FolderWindow"), {
   ssr: false,
-  loading: () => <div className="loading-container">Loading folder...</div>
+  loading: () => <WindowLoading message="Loading folder..." />
 });
+
+const ContactWindow = dynamic(() => import("./WindowTypes/ContactWindow"), {
+  ssr: false,
+  loading: () => <WindowLoading message="Loading contact information..." />
+});
+
+const EducationWindow = dynamic(() => import("./WindowTypes/EducationWindow"), {
+  ssr: false,
+  loading: () => <WindowLoading message="Loading education information..." />
+});
+
 
 const MobileSkillsComponent = dynamic(() => import("../mobile/MobileSkillsComponent"), {
   ssr: false,
@@ -61,20 +68,13 @@ const MobileContactComponent = dynamic(() => import("../mobile/MobileContactComp
   loading: () => <div className="loading-container">Loading contact information...</div>
 });
 
-// Type guard for checking content types
 const isObject = (value: any): value is Record<string, any> =>
   typeof value === "object" && value !== null && !React.isValidElement(value);
 
-/**
- * WindowManager - Manages and renders all windows in the desktop environment
- */
 const WindowManager: React.FC = () => {
-
   const { state, dispatch } = useDesktop();
-  const { playSound } = useSounds();
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null); // Ref for bounds in Draggable
 
-  // Initialize window monitor to keep windows visible
   useWindowMonitor();
 
   // Get non-minimized windows for rendering
@@ -83,87 +83,33 @@ const WindowManager: React.FC = () => {
     [state.windows]
   );
 
-  // Handle window position updates from Swapy
-  const handleWindowPositionUpdate = useCallback((event: Event) => {
-    const customEvent = event as CustomEvent;
-    if (customEvent.detail && customEvent.detail.id) {
-      dispatch({
-        type: "UPDATE_WINDOW_POSITION",
-        payload: {
-          id: customEvent.detail.id,
-          position: customEvent.detail.position,
-        },
-      });
-    }
-  }, [dispatch]);
-
-  // Initialize SWAPY window manager
-  useEffect(() => {
-    if (containerRef.current && visibleWindows.length > 0) {
-      try {
-        if (process.env.NODE_ENV === 'development') {
-          console.log("WindowManager: Swapy initialization started");
-        }
-
-        const swapyInstance = initializeWindowManager(containerRef.current);
-
-        if (process.env.NODE_ENV === 'development') {
-          console.log("WindowManager: Swapy initialized successfully");
-        }
-
-        // Listen for window position updates from Swapy
-        document.addEventListener('window-position-update', handleWindowPositionUpdate);
-
-        return () => {
-          destroyWindowManager();
-          document.removeEventListener('window-position-update', handleWindowPositionUpdate);
-        };
-      } catch (error) {
-        console.error("Error initializing window manager:", error);
-      }
-    }
-  }, [visibleWindows.length, handleWindowPositionUpdate]);
-
-  // Update SWAPY when windows change
-  useEffect(() => {
-    if (visibleWindows.length > 0) {
-      const timer = setTimeout(() => {
-        try {
-          updateWindowManager();
-          if (process.env.NODE_ENV === 'development') {
-            console.log("WindowManager: Swapy updated after window changes");
-          }
-        } catch (error) {
-          console.error("Error updating window manager:", error);
-        }
-      }, TIMING.POSITION_UPDATE_DEBOUNCE);
-
-      return () => clearTimeout(timer);
-    }
-  }, [visibleWindows]);
-
-  // Bring active window to front
-  useEffect(() => {
-    if (state.activeWindowId) {
-      bringWindowToFront(state.activeWindowId);
-    }
-  }, [state.activeWindowId]);
-
   // Render appropriate content based on window type
   const renderWindowContent = useCallback((window: any) => {
     // About Me window
     if (window.id === "about" || window.type === "about") {
-      return <AboutWindow />;
-    }
-
-    // Skills window
-    if (window.id === "skills" || window.type === "skills") {
-      return <MobileSkillsComponent />;
+      return (
+        <Suspense fallback={<WindowLoading message="Loading about section..." />}>
+          <AboutWindow />
+        </Suspense>
+      );
     }
 
     // Contact window
     if (window.id === "contact" || window.type === "contact") {
-      return <MobileContactComponent />;
+      return (
+        <Suspense fallback={<WindowLoading message="Loading contact section..." />}>
+          <ContactWindow />
+        </Suspense>
+      );
+    }
+
+    // Education window
+    if (window.id === "education" || window.type === "education") {
+      return (
+        <Suspense fallback={<WindowLoading message="Loading education section..." />}>
+          <EducationWindow />
+        </Suspense>
+      );
     }
 
     // Text Editor window
@@ -172,7 +118,11 @@ const WindowManager: React.FC = () => {
         ? (window.content.filePath as string)
         : undefined;
 
-      return <TextEditorWindow filePath={filePath} />;
+      return (
+        <Suspense fallback={<WindowLoading message="Loading text editor..." />}>
+          <TextEditorWindow filePath={filePath} />
+        </Suspense>
+      );
     }
 
     // Image Viewer window
@@ -181,7 +131,11 @@ const WindowManager: React.FC = () => {
         ? (window.content.filePath as string)
         : undefined;
 
-      return <ImageViewerWindow filePath={filePath} />;
+      return (
+        <Suspense fallback={<WindowLoading message="Loading image viewer..." />}>
+          <ImageViewerWindow filePath={filePath} />
+        </Suspense>
+      );
     }
 
     // File Explorer window
@@ -190,12 +144,20 @@ const WindowManager: React.FC = () => {
         ? (window.content.initialPath as string)
         : "/home/guest";
 
-      return <FileExplorerWindow initialPath={initialPath} />;
+      return (
+        <Suspense fallback={<WindowLoading message="Loading file explorer..." />}>
+          <FileExplorerWindow initialPath={initialPath} />
+        </Suspense>
+      );
     }
 
     // Weather App window
     if (window.type === "weatherapp" || window.id.startsWith("weatherapp-")) {
-      return <WeatherApp />;
+      return (
+        <Suspense fallback={<WindowLoading message="Loading weather app..." />}>
+          <WeatherApp />
+        </Suspense>
+      );
     }
 
     // Folder windows
@@ -210,7 +172,11 @@ const WindowManager: React.FC = () => {
         folderId = window.id.replace("folder-", "");
       }
 
-      return <FolderWindow folderId={folderId} />;
+      return (
+        <Suspense fallback={<WindowLoading message="Loading folder contents..." />}>
+          <FolderWindow folderId={folderId} />
+        </Suspense>
+      );
     }
 
     // Project windows
@@ -221,7 +187,11 @@ const WindowManager: React.FC = () => {
         const project = state.projects.find((p) => p.id === projectId);
 
         if (project) {
-          return <ProjectWindow project={project} />;
+          return (
+            <Suspense fallback={<WindowLoading message="Loading project..." />}>
+              <ProjectWindow project={project} />
+            </Suspense>
+          );
         } else {
           return (
             <div className="error-container">
@@ -232,107 +202,53 @@ const WindowManager: React.FC = () => {
       }
 
       // If content is already a Project object
-      return <ProjectWindow project={window.content as unknown as Project} />;
-    }
+      return (
+        <Suspense fallback={<WindowLoading message="Loading project..." />}>
+          <ProjectWindow project={window.content as unknown as Project} />
+        </Suspense>);
+     }
+          return (<div>Content not available for window type: {window.type || "unknown"}</div>);
 
-    // Default case - unknown window type
-    return (
-      <div className="empty-window-content">
-        Content not available for window type: {window.type || "unknown"}
-      </div>
-    );
-  }, [state.projects]);
+  }, [state.projects]); // Ensure dependencies are correct
 
-  // Debug windows function - MOVED BEFORE CONDITIONAL RETURN
-  const debugWindows = useCallback(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log("WindowManager Debug Info:");
-      console.log("- Total windows in state:", state.windows.length);
-      console.log("- Visible windows:", visibleWindows.length);
-      console.log("- Active window ID:", state.activeWindowId);
 
-      // Check DOM for window elements
-      const windowElements = document.querySelectorAll('[data-window-id]');
-      console.log("- DOM window elements:", windowElements.length);
-
-      // List each window's properties
-      state.windows.forEach(windowItem => {
-        console.log(`Window ${windowItem.id}:`, {
-          title: windowItem.title,
-          minimized: windowItem.minimized,
-          position: windowItem.position,
-          size: windowItem.size,
-          zIndex: windowItem.zIndex,
-          type: windowItem.type
-        });
-
-        // Check if this window is in the DOM
-        const element = document.querySelector(`[data-window-id="${windowItem.id}"]`);
-        console.log(`- In DOM: ${!!element}`);
-
-        if (element) {
-          // Fix the type issue with proper casting
-          const styles = globalThis.getComputedStyle(element as Element);
-          console.log(`- Element styles:`, {
-            display: styles.display,
-            visibility: styles.visibility,
-            zIndex: styles.zIndex,
-            top: styles.top,
-            left: styles.left,
-          });
-        }
-      });
-    }
-  }, [state.windows, visibleWindows, state.activeWindowId]);
-
-  if (state.windows.length === 0) {
+    // Pass containerRef to children for bounds
+    // The container needs relative positioning
     return (
       <div
         ref={containerRef}
-        className="window-container"
-        style={{ position: "relative", width: "100%", height: "100%" }}
-        data-testid="empty-window-container"
-      />
+        className="window-manager-container" // Add a class for styling if needed
+        style={{ position: "absolute", inset: 0, overflow: 'hidden', pointerEvents: 'none' }} // Make it cover desktop area, allow clicks through
+        data-testid="window-manager-container"
+      >
+        {/* Development debug info */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="debug-info">Development Mode Active</div>
+        )}
+
+        {/* Render Windows */}
+        {visibleWindows.map((window) => (
+          <ErrorBoundary
+            key={window.id}
+            fallback={<div>Error loading window content.</div>}
+          >
+            {/* Pass resizable prop if needed based on window type/config */}
+            <Window
+              key={window.id} // Key on Window component itself
+              id={window.id}
+              title={window.title}
+              initialPosition={window.position} // Pass initial props
+              initialSize={window.size}
+              resizable={window.type !== 'about'} // Example: Make 'about' not resizable
+            >
+              {renderWindowContent(window)}
+            </Window>
+          </ErrorBoundary>
+        ))}
+      </div>
     );
   }
 
-  // Render the component
-  return (
-    <div
-      ref={containerRef}
-      className={`window-container ${fixStyles.windowContainer}`}
-      style={{ position: "relative", width: "100%", height: "100%" }}
-      data-testid="window-container"
-    >
-      {/* Visible windows debugging */}
-      {process.env.NODE_ENV === 'development' && (
-        <div style={{ position: 'fixed', top: 0, right: 0, background: 'white', padding: '5px', zIndex: 99999 }}>
-          Windows: {visibleWindows.length}/{state.windows.length}
-        </div>
-      )}
 
-      {/* Only render non-minimized windows */}
-      {visibleWindows.map((window) => (
-        <ErrorBoundary
-          key={window.id}
-          fallback={
-            <div className="window-error-fallback">
-              Error rendering window: {window.title}
-            </div>
-          }
-        >
-          <Window
-            key={window.id}
-            id={window.id}
-            title={window.title}
-            initialPosition={window.position}
-            initialSize={window.size}
-          >
-            {renderWindowContent(window)}
-          </Window>
-        </ErrorBoundary>
-      ))}
-    </div>
-  );
-};
-export default React.memo(WindowManager);
+  // Removed React.memo - state changes will cause re-renders anyway
+  export default WindowManager;

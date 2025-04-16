@@ -1,6 +1,6 @@
 import { useRef, Suspense, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Points, PointMaterial } from "@react-three/drei";
+import { Points, PointMaterial, Preload } from "@react-three/drei";
 import * as THREE from "three";
 // Create a type declaration for custom random function
 // Define props type for Stars component
@@ -61,8 +61,8 @@ const StarsCanvas = () => {
         <Suspense fallback={null}>
           <Stars />
         </Suspense>
-        {/* Removed Preload component that was causing errors */}
-      </Canvas>
+<Preload all/>      
+</Canvas>
     </div>
   );
 };

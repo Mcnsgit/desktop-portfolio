@@ -1,99 +1,101 @@
-import React, { useEffect, useState } from "react";
-import { useFrame, useThree } from "@react-three/fiber";
-
-interface PerformanceOptimizerProps {
-  children: React.ReactNode;
-  dpr?: number | [number, number];
-  frameRateLimit?: number;
-  active?: boolean;
-}
+import React, { useState, useEffect, useRef } from "react";
+import { useThree, useFrame } from "@react-three/fiber";
+import { supports3DTransforms } from "@/utils/browserSupport";
 
 /**
- * Component to optimize Three.js performance by:
- * 1. Dynamically adjusting pixel ratio based on performance
- * 2. Limiting frame rate when not interacting
- * 3. Reducing quality during interaction for smoother experience
+ * Component to optimize 3D performance based on device capabilities
  */
-const PerformanceOptimizer: React.FC<PerformanceOptimizerProps> = ({
+const PerformanceOptimizer: React.FC<{ children: React.ReactNode }> = ({
   children,
-  dpr = [1, 2],
-  frameRateLimit = 30,
-  active = true,
 }) => {
-  const { gl, performance: threePerformance } = useThree();
-  const [isInteracting, setIsInteracting] = useState(false);
-  const [lowPerformance, setLowPerformance] = useState(false);
+  const { gl, scene, camera } = useThree();
+  const [quality, setQuality] = useState(1.0);
+  const frameSkipRef = useRef(0);
+  const maxFrameSkip = useRef(0);
+  const lastUpdateTime = useRef(0);
+  const frameRateHistory = useRef<number[]>([]);
 
-  // Monitor performance and adjust settings
+  // Detect device capabilities on mount
   useEffect(() => {
-    if (!active) return;
+    // Check for 3D support
+    const has3D = supports3DTransforms();
 
-    let avgFps = 60;
-    let frameTimes: number[] = [];
-    let lastTime = window.performance.now();
+    // Check for limited hardware
+    const isBudgetDevice =
+      ('deviceMemory' in navigator && (navigator as any).deviceMemory < 4) ||
+      ('hardwareConcurrency' in navigator && navigator.hardwareConcurrency < 4);
 
-    const checkPerformance = () => {
-      const now = window.performance.now();
-      const frameTime = now - lastTime;
-      lastTime = now;
+    // Set initial quality based on device capabilities
+    if (!has3D || isBudgetDevice) {
+      setQuality(0.6); // Lower quality for budget devices
+      maxFrameSkip.current = 1; // Skip every other frame
+    } else {
+      // Check if it's a high-end device
+      const isHighEnd =
+        ('deviceMemory' in navigator && (navigator as any).deviceMemory >= 8) &&
+        ('hardwareConcurrency' in navigator && navigator.hardwareConcurrency >= 8);
 
-      frameTimes.push(frameTime);
-      if (frameTimes.length > 30) frameTimes.shift();
-
-      const avgFrameTime =
-        frameTimes.reduce((sum, time) => sum + time, 0) / frameTimes.length;
-      avgFps = 1000 / avgFrameTime;
-
-      // If avg FPS is consistently below 40, enter low performance mode
-      if (avgFps < 40 && !lowPerformance) {
-        setLowPerformance(true);
-        gl.setPixelRatio(Math.min(window.devicePixelRatio, 1));
-      } else if (avgFps > 50 && lowPerformance) {
-        setLowPerformance(false);
-        gl.setPixelRatio(
-          Math.min(
-            window.devicePixelRatio,
-            typeof dpr === "number" ? dpr : dpr[1]
-          )
-        );
+      if (isHighEnd) {
+        setQuality(1.0);
+        maxFrameSkip.current = 0;
+      } else {
+        // Mid-range device
+        setQuality(0.8);
+        maxFrameSkip.current = 0;
       }
-    };
+    }
 
-    const perfInterval = setInterval(checkPerformance, 1000);
+    // Set pixel ratio based on quality
+    gl.setPixelRatio(Math.min(window.devicePixelRatio * quality, 2));
 
-    // Monitor interaction events
-    const startInteraction = () => setIsInteracting(true);
-    const stopInteraction = () => {
-      setTimeout(() => setIsInteracting(false), 500);
-    };
+    // Apply other optimizations
+    gl.setClearColor(0x050816, 1);
 
-    gl.domElement.addEventListener("pointerdown", startInteraction);
-    gl.domElement.addEventListener("pointermove", startInteraction);
-    gl.domElement.addEventListener("pointerup", stopInteraction);
-    gl.domElement.addEventListener("wheel", startInteraction, {
-      passive: true,
-    });
-
+    // Return cleanup function
     return () => {
-      clearInterval(perfInterval);
-      gl.domElement.removeEventListener("pointerdown", startInteraction);
-      gl.domElement.removeEventListener("pointermove", startInteraction);
-      gl.domElement.removeEventListener("pointerup", stopInteraction);
-      gl.domElement.removeEventListener("wheel", startInteraction);
+      frameRateHistory.current = [];
     };
-  }, [active, gl, dpr, lowPerformance]);
+  }, [gl, quality]);
 
-  // Limit frame rate when not interacting
-  useFrame((state, delta) => {
-    if (!active) return;
+  // Monitor performance and adjust settings dynamically
+  useFrame(({ clock }) => {
+    const currentTime = clock.getElapsedTime();
+    const deltaTime = currentTime - lastUpdateTime.current;
 
-    if (!isInteracting && !lowPerformance) {
-      const frameInterval = 1 / frameRateLimit;
-      const elapsed = state.clock.getElapsedTime();
-      const frameFract = elapsed % frameInterval;
+    // Skip frames if needed for performance
+    if (frameSkipRef.current < maxFrameSkip.current) {
+      frameSkipRef.current++;
+      return;
+    }
 
-      if (frameFract > 0.001 && frameFract < frameInterval - 0.001) {
-        state.invalidate();
+    frameSkipRef.current = 0;
+    lastUpdateTime.current = currentTime;
+
+    // Calculate current FPS
+    const currentFPS = deltaTime > 0 ? 1 / deltaTime : 60;
+
+    // Keep a history of recent frame rates
+    frameRateHistory.current.push(currentFPS);
+    if (frameRateHistory.current.length > 60) {
+      frameRateHistory.current.shift();
+    }
+
+    // If we have enough samples, check if we need to adjust quality
+    if (frameRateHistory.current.length >= 30) {
+      const averageFPS = frameRateHistory.current.reduce((a, b) => a + b, 0) /
+        frameRateHistory.current.length;
+
+      // If FPS is consistently low, reduce quality
+      if (averageFPS < 30 && quality > 0.6) {
+        setQuality(prevQuality => Math.max(0.6, prevQuality - 0.1));
+        maxFrameSkip.current = Math.min(maxFrameSkip.current + 1, 2);
+        frameRateHistory.current = []; // Reset history after adjustment
+      }
+      // If FPS is consistently high, increase quality
+      else if (averageFPS > 55 && quality < 1.0) {
+        setQuality(prevQuality => Math.min(1.0, prevQuality + 0.1));
+        maxFrameSkip.current = Math.max(maxFrameSkip.current - 1, 0);
+        frameRateHistory.current = []; // Reset history after adjustment
       }
     }
   });

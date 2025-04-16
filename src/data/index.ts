@@ -428,6 +428,7 @@ const projects = [
       {
         name: "python",
         color: "blue-text-gradient",
+        
       },
       {
         name: "game-dev",
@@ -492,7 +493,9 @@ const technicalSkills = {
     "User Experience Analysis",
   ],
 };
+export interface Project{
 
+}
 export {
   services,
   technologies,

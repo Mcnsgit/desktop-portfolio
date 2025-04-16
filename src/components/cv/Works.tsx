@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { SectionWrapper } from "../../hoc";
 import { styles } from "./styles";
-import { projects } from "../../data/index";
+import { portfolioProjects as projects } from '../../data/portfolioData';
 import { fadeIn, textVariant } from "../../utils/motion";
 import { GithubLogo, ArrowSquareOut, X } from "@phosphor-icons/react";
 import { StaticImageData } from "next/image";
@@ -54,6 +54,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
           />
         ) : (
           <Image
+          width={800}
+          height={300}
             src="/placeholder.jpg"
             alt={name}
             className="w-full h-full object-cover"
@@ -140,6 +142,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                     />
                   ) : (
                     <Image
+                    width={800}
+                    height={300}
                       src="/placeholder.jpg"
                       alt={name}
                       className="w-full h-full object-cover"
@@ -214,6 +218,16 @@ const Works = () => {
   const handleProjectClick = (index: number) => {
     setExpandedProject(expandedProject === index ? null : index);
   };
+  // Check if projects data is loaded
+  if (!projects || projects.length === 0) {
+    console.warn("Works component: No project data found.");
+    // Optionally render a message or fallback
+    return (
+      <div className="text-center text-secondary py-10">
+        Projects coming soon...
+      </div>
+    );
+  }
 
   return (
     <>
@@ -238,14 +252,11 @@ const Works = () => {
       <div className="mt-20 flex flex-wrap gap-7 justify-center">
         {projects.map((project, index) => (
           <ProjectCard
-            key={`project-${index}`}
+            key={`project-${project.id || index}`} // Use project.id if available
             index={index}
-            name={project.name}
-            description={project.description}
-            tags={project.tags}
-            image={project.image || "/placeholder.jpg"}
-            source_code_link={project.source_code_link}
-            live_link={project.live_link}
+            {...project} // Spread the project data
+            source_code_link={project.source_code_link || project.repoUrl} // Use appropriate link field
+            live_link={project.live_link || project.demoUrl}
             isExpanded={expandedProject === index}
             onClick={() => handleProjectClick(index)}
           />

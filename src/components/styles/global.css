@@ -10,9 +10,10 @@
     /* Base colors */
     --primary-bg: #050816;
     --secondary-bg: #151030;
-    --text-primary: #000000;
-    --text-secondary: #444444;
+    --text-primary: #ffffff;
+    --text-secondary: #aaaaaa;
     --accent-color: #0078d7;
+    --accent-color-1: #915eff;
 
     /* Windows 98 style colors */
     --win98-bg: #c0c0c0;
@@ -40,21 +41,32 @@
     --border-radius-sm: 2px;
     --border-radius-md: 4px;
     --border-radius-lg: 8px;
+    /* Easing functions */
+        --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+        --ease-out: cubic-bezier(0, 0, 0.2, 1);
+        --ease-in: cubic-bezier(0.4, 0, 1, 1);
 
     /* Transitions */
     --transition-fast: 0.1s ease;
     --transition-normal: 0.2s ease;
     --transition-slow: 0.3s ease;
 
+    /* Animation durations */
+        --animation-fast: 150ms;
+        --animation-normal: 250ms;
+        --animation-slow: 350ms;
+
     /* Z-index layers - UPDATED VALUES */
     --z-index-desktop: 1;
-    --z-index-window: 2000;
+    --z-index-window: 100;
     /* Increased to ensure above taskbar */
-    --z-index-window-active: 3000;
+    --z-index-window-active: 200;
     /* Increased for active windows */
     --z-index-taskbar: 1000;
     /* Taskbar at 1000 */
-    --z-index-start-menu: 1500;
+    --z-index-start-menu: 2000;
+    --z-index-menu:2000;
+    --z-index-dialog: 3000; 
     /* Above taskbar but below windows */
     --z-index-context-menu: 4000;
     /* Highest for context menus */
@@ -235,4 +247,45 @@ body {
 
 .window.active[style] {
     z-index: var(--z-index-window-active) !important;
+}
+
+/* 3. Optimize 3D animations with keyframes */
+@keyframes float {
+    0% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+/* Apply float animation with hardware acceleration */
+.floating {
+    animation: float 3s ease-in-out infinite;
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+/* 4. Add reduced-motion support for accessibility */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    .floating {
+        animation: none !important;
+    }
+
+    .window.minimizing,
+    .window.maximizing {
+        transition: none !important;
+    }
 }

@@ -7,13 +7,22 @@
   box-shadow: 2px 2px 5px var(--shadow-dark);
   position: absolute;
   overflow: hidden;
-  transition: all var(--transition-normal);
+  will-change: transform, opacity;
+  transform: translateZ(0);  /* Force GPU acceleration */
+  backface-visibility: hidden;
+  transition: transform var(--animation-normal) var(--ease-out),
+  opacity var(--animation-normal) var(--ease-out);
+  
 }
 
 .window.active {
   z-index: var(--z-index-window-active);
 }
 
+.window.dragging {
+  transition: none !important;
+  will-change: left, top;
+}
 .window.minimized {
   display: none;
 }
@@ -114,9 +123,18 @@
 }
 
 .window.maximizing {
-  animation: maximize 0.2s ease-out;
+  transition: width var(--animation-normal) var(--ease-out),
+              height var(--animation-normal) var(--ease-out),
+              top var(--animation-normal) var(--ease-out),
+              left var(--animation-normal)var(--ease-out);
 }
 
+.window.minimizing {
+  transform: scale(0,8);
+  opacity: 0;
+transition: transform var(--animation-normal) var(--ease-in),
+opacity var(--animation-normal) var(--ease-in);
+}
 /* Restore animation */
 @keyframes restore {
   from {
@@ -157,4 +175,58 @@
 .windowContainer>* {
   pointer-events: auto;
   /* Re-enable pointer events for children */
+}
+
+
+
+.taskbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 30px;
+  background-color: #c0c0c0;
+  border-top: 1px solid #dfdfdf;
+  display: flex;
+  align-items: center;
+  z-index: var(--z-index-taskbar);
+  transform: translateZ(0);
+  /* Force GPU acceleration */
+}
+
+.taskbar .windowButton {
+  transition: background-color var(--animation-fast) var(--ease-out);
+  will-change: background-color;
+  transform: translateZ(0);
+}
+
+/* 6. Use opacity for fade transitions instead of visibility for smoother animations */
+.fadeIn {
+  opacity: 0;
+  animation: fadeIn var(--animation-normal) var(--ease-out) forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.fadeOut {
+  opacity: 1;
+  animation: fadeOut var(--animation-normal) var(--ease-in) forwards;
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
 }

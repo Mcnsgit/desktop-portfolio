@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import Head from "next/head";
 
 /**
@@ -9,22 +9,6 @@ const FontPreloader: React.FC = () => {
   return (
     <Head>
       {/* Add proper font preloading with correct 'as' attribute */}
-      <link
-        rel="preload"
-        href="/_next/static/media/93f479601ee12b01-s.p.woff2"
-        as="font"
-        type="font/woff2"
-        crossOrigin="anonymous"
-      />
-      <link
-        rel="preload"
-        href="/_next/static/media/569ce4b8f30dc480-s.p.woff2"
-        as="font"
-        type="font/woff2"
-        crossOrigin="anonymous"
-      />
-
-      {/* Add custom MS Sans Serif font for retro look */}
       <link
         rel="preload"
         href="/fonts/ms-sans-serif.woff2"
@@ -41,6 +25,15 @@ const FontPreloader: React.FC = () => {
           font-weight: normal;
           font-style: normal;
           font-display: swap;
+        }
+        
+        /* Add a direct usage of the font to ensure it's used immediately */
+        body::before {
+          font-family: "MS Sans Serif";
+          content: "";
+          visibility: hidden;
+          position: absolute;
+          height: 0;
         }
       `}</style>
     </Head>
