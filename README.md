@@ -37,7 +37,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 <!-- PORTFOLIO_SCREENSHOT_START -->
 ## Portfolio Screenshot
-*Last updated: 2025-04-16*
+*Last updated: 2025-04-22*
 
 ![Portfolio Screenshot](./screenshots/screenshot.png)
 <!-- PORTFOLIO_SCREENSHOT_END -->
