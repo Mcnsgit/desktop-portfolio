@@ -60,28 +60,21 @@
           --transition-normal: var(--animation-normal) var(--ease-out);
           --transition-slow: var(--animation-slow) var(--ease-out);
         
-          /* Z-index Layers (Use values from windowConstants) */
-          --z-index-desktop: 1;
-          --z-index-window-minimized: 10;
-          /* Below Taskbar */
-          --z-index-window-normal: 100;
-          /* Base for inactive windows */
-          --z-index-window-active: 200;
-          /* Active window */
-          --z-index-taskbar: 500;
-          /* Taskbar Layer */
-          --z-index-start-menu: 600;
-          /* Start Menu above Taskbar */
-          --z-index-dialog: 2500;
-          /* Dialogs above windows */
-          --z-index-context-menu: 3000;
-          /* Context Menus highest */
-          --z-index-tooltip: 4000;
-          /* Tooltips */
-          --z-index-drag: 9000;
-          /* Element being dragged */
-          --z-index-overlay: 9900;
-          /* Loading screens, modals */
+           /* Z-index Layers (REFINED - Use these values consistently) */
+  --z-index-background: -10; /* Stars canvas */
+  --z-index-content-back: 1;  /* Content behind fixed elements */
+  --z-index-3d-overlay: 5;   /* Fixed 3D computer model */
+  --z-index-content-front: 8; /* Scrollable CV content */
+  --z-index-fixed-ui: 10;   /* Fixed prompts, maybe navbar if fixed */
+  --z-index-desktop: 20;  /* RetroOS desktop base */
+  --z-index-window-normal: 100;
+  --z-index-window-active: 200;
+  --z-index-taskbar: 500;
+  --z-index-start-menu: 600;
+  --z-index-dialog: 2500;
+  --z-index-context-menu: 3000;
+  --z-index-tooltip: 4000;
+  --z-index-loading: 9999; /* Loading screens */
         
           /* Constraint Variables */
           --window-min-width: 250px;

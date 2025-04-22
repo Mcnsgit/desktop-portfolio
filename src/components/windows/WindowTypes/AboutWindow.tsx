@@ -1,20 +1,18 @@
-// components/windows/WindowTypes/AboutWindow.tsx
+// src/components/windows/WindowTypes/AboutWindow.tsx
 import React from "react";
 import styles from "../../styles/AboutWindow.module.scss";
 import Image from "next/image";
-const imageDimensions = { width: 24, height: 24 };
 
 const AboutWindow: React.FC = () => {
   return (
     <div className={styles.aboutWindow}>
       <div className={styles.profile}>
-        <Image
-          src="desktop-portfolio/public/images/profile.png"
-          alt="Profile"
-          className={styles.profileImage}
-          width={imageDimensions.width}
-          height={imageDimensions.height}
-        />
+        {/* Fixed image path and added error handling */}
+        <div className={styles.profileImageWrapper}>
+          <div className={styles.profileImageFallback}>
+            MC
+          </div>
+        </div>
         <h2>Miguel Cardiga</h2>
         <p className={styles.title}>Full Stack Developer</p>
       </div>

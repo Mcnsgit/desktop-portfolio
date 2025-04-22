@@ -3,8 +3,10 @@ import React, { createContext, useReducer, useContext, useRef, Dispatch, useCall
 import { Project, Window, Folder, DesktopItem } from "../types";
 import { Z_INDEX } from "../utils/constants/windowConstants";
 import { portfolioProjects } from '../data/portfolioData'
+import { Icon } from "@phosphor-icons/react";
 
 type DesktopState = {
+  [x: string]: any;
   windows: Window[];
   activeWindowId: string | null;
   projects: Project[];
@@ -32,8 +34,14 @@ export type DesktopAction =
   | { type: "MOVE_ITEM"; payload: { itemId: string; newParentId: string | null; position?: { x: number; y: number }; } }
   | { type: "UPDATE_ITEM_POSITION"; payload: { itemId: string; position: { x: number; y: number } }}
   | { type: "UPDATE_WINDOW_POSITION"; payload: { id: string; position: { x: number; y: number } } }
-  | { type: "UPDATE_WINDOW_SIZE"; payload: { id: string; size: { width: number; height: number } };
-  };
+  | { type: "UPDATE_WINDOW_SIZE"; payload: { id: string; size: { width: number; height: number } } }
+  | { type: "CYCLE_BACKGROUND"; payload?: any }
+  | { type: "CREATE_ITEM"; payload: { id: string, title?: string, type: string, icon: string, parentId: string } }
+  | { type: "DELETE_ITEM"; payload: { id: string } }
+  | { type: "RENAME_ITEM"; payload: { id: string, title: string} }
+  | { type: "ADD_TO_FAVORITES"; payload: {id: string}}
+  | { type: "UPDATE_CLIPBOARD"; payload: { action: string; files: (DesktopItem | { id: string })[] } }
+  | { type: "PASTE_ITEMS"; payload: { destinationId: string | null; position?: { x: number; y: number }; items: DesktopItem[] } }
 
 
 const desktopReducer = (state: DesktopState, action: DesktopAction): DesktopState => {
@@ -177,7 +185,6 @@ const desktopReducer = (state: DesktopState, action: DesktopAction): DesktopStat
       return state;
 
     default:
-      const _: never = action; // This line will error if any action type isn't handled
       // const exhaustiveCheck: never = action;
       return state;
   }

@@ -1,5 +1,5 @@
-import React, { Suspense, useState } from 'react';
-import { Canvas } from '@react-three/fiber';
+import React, { Suspense, useEffect, useRef, useState } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
 import {
   Decal,
   Float,
@@ -9,125 +9,111 @@ import {
 } from "@react-three/drei";
 import { StaticImageData } from 'next/image';
 import CanvasLoader from '../Loader';
+import * as THREE from 'three'
 
 // Define props interface for Ball component
 interface BallProps {
   imgUrl: string;
+  isInView: boolean;
 }
 
-const Ball = ({ imgUrl }: BallProps) => {
-  // Fix for TypeScript error - using proper error handling with useTexture
-  const [decal] = useTexture([imgUrl], 
-    // We're using an onError callback below, so we don't need a separate success callback
-    undefined
-  );
-  
-  // Use React state to track errors in the component
-  const [hasError, setHasError] = useState(false);
-  
-  // Catch texture loading errors
-  React.useEffect(() => {
-    const handleError = () => setHasError(true);
-    
-    // Create an image element to test if the texture can be loaded
-    const img = new Image();
-    img.onerror = handleError;
-    img.src = imgUrl;
-    
-    return () => {
-      img.onerror = null;
-    };
-  }, [imgUrl]);
+const Ball: React.FC<BallProps> = ({ imgUrl, isInView }) => {
+  const [decal, loadError] = useTexture([imgUrl]); // useTexture returns error in tuple
+  const meshRef = useRef<THREE.Mesh>(null);
 
-  // If there was an error loading the texture, render a fallback sphere
-  if (hasError) {
+  // Animate only when in view
+  useFrame((state, delta) => {
+    if (meshRef.current && isInView) {
+      // Simple rotation example, can be linked to scrollProgress if that logic is restored
+      meshRef.current.rotation.y += delta * 0.5; // Slow continuous rotation
+    }
+  });
+
+  // Handle texture loading error
+  if (loadError) {
+    console.error(`Failed to load texture: ${imgUrl}`, loadError);
+    // Render a fallback or null
     return (
-      <Float speed={1.75} rotationIntensity={1} floatIntensity={2}>
-        <ambientLight intensity={0.25} />
-        <directionalLight position={[0, 0, 0.05]} />
-        <mesh castShadow receiveShadow scale={2.75}>
-          <icosahedronGeometry args={[1, 1]} />
-          <meshStandardMaterial
-            color='#ff4444'  // Red color to indicate error
-            polygonOffset
-            polygonOffsetFactor={-5}
-            flatShading={true}
-          />
-        </mesh>
-      </Float>
+      <mesh scale={2.75}>
+        <icosahedronGeometry args={[1, 1]} />
+        <meshStandardMaterial color="#555555" flatShading />
+      </mesh>
     );
   }
 
   return (
-    <Float speed={1.75} rotationIntensity={1} floatIntensity={2}>
-      <ambientLight intensity={0.25} />
-      <directionalLight position={[0, 0, 0.05]} />
-      <mesh castShadow receiveShadow scale={2.75}>
+    // Conditionally apply Float animation only when in view? Optional.
+    <Float speed={isInView ? 1.75 : 0} rotationIntensity={isInView ? 1 : 0} floatIntensity={isInView ? 2 : 0}>
+      <ambientLight intensity={0.35} />
+      <directionalLight position={[0, 0, 0.05]} intensity={0.6} />
+      <mesh castShadow receiveShadow scale={2.75} ref={meshRef}>
         <icosahedronGeometry args={[1, 1]} />
         <meshStandardMaterial
-          color='#fff8eb'
+          color="#fff8eb"
           polygonOffset
           polygonOffsetFactor={-5}
-          flatShading={true}
+          flatShading // flatShading is boolean, not string
         />
-        <Decal
-          position={[0, 0, 1]}
-          rotation={[2 * Math.PI, 0, 6.25]}
-          scale={1}
-          map={decal}
-        />
+        {decal && ( // Only render Decal if texture loaded successfully
+          <Decal
+            position={[0, 0, 1]}
+            rotation={[2 * Math.PI, 0, 6.25]} // Adjust rotation if needed
+            scale={1}
+            map={decal}
+          // flatShading prop removed from Decal
+          />
+        )}
       </mesh>
     </Float>
   );
 };
 
-// Define props interface for BallCanvas component
 interface BallCanvasProps {
   icon: string | StaticImageData;
-  size?: number; // Optional size parameter for the ball
+  isInView: boolean; // Receive isInView prop
+  // Removed scrollProgress as we switched to simpler inView logic
 }
 
-const BallCanvas = ({ icon, size = 28 }: BallCanvasProps) => {
-  const [hasError, setHasError] = useState(false);
-  
-  // Convert icon to string URL if it's a StaticImageData object
-  const getIconUrl = () => {
+const BallCanvas: React.FC<BallCanvasProps> = ({ icon, isInView }) => {
+  const [iconUrl, setIconUrl] = useState<string | null>(null);
+  const [error, setError] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Resolve StaticImageData to string URL on the client side
     if (typeof icon === 'string') {
-      return icon;
+      setIconUrl(icon);
     } else if (icon && typeof icon === 'object' && 'src' in icon) {
-      return (icon as StaticImageData).src;
+      setIconUrl(icon.src);
     } else {
-      console.error('Invalid icon format:', icon);
-      setHasError(true);
-      return '';
+      console.error('Invalid icon format passed to BallCanvas:', icon);
+      setError(true);
     }
-  };
-  
-  // If there's an error with the icon format, render a placeholder
-  if (hasError) {
-    return (
-      <div 
-        className="w-full h-full flex items-center justify-center bg-gray-800 rounded-full"
-        style={{ width: size, height: size }}
-      >
-        <div className="text-white text-xs">Invalid Image</div>
-      </div>
-    );
+  }, [icon]);
+
+  if (error || !iconUrl) {
+    // Render a placeholder if icon format is invalid or URL is not set
+    return <div className="w-full h-full flex items-center justify-center bg-gray-700 rounded-full"><span className="text-red-500 text-xs">!</span></div>;
   }
 
   return (
-    <Canvas
-      frameloop='demand'
-      dpr={[1, 2]}
-      gl={{ preserveDrawingBuffer: true }}
-    >
-      <Suspense fallback={<CanvasLoader />}>
-        <OrbitControls enableZoom={false} />
-        <Ball imgUrl={getIconUrl()} />
-      </Suspense>
-      <Preload all />
-    </Canvas>
+    // Only render Canvas when in view to save resources
+    <>
+      {isInView && (
+        <Canvas frameloop="demand" dpr={[1, 1.5]} gl={{ preserveDrawingBuffer: true }}>
+          <Suspense fallback={<CanvasLoader />}>
+            <OrbitControls enableZoom={false} enablePan={false} />
+            <Ball imgUrl={iconUrl} isInView={isInView} />
+          </Suspense>
+          <Preload all />
+        </Canvas>
+      )}
+      {!isInView && ( // Optional: Show a static placeholder if not in view
+        <div className="w-full h-full flex items-center justify-center bg-tertiary/10 rounded-full">
+          {/* You could put a static image here */}
+        </div>
+      )}
+    </>
   );
 };
 
-export default BallCanvas;
+export default BallCanvas; // Ensure default export

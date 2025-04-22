@@ -19,7 +19,7 @@ import {
  
   threejs,
 } from "../../public/assets";
-
+import { StaticImageData } from "next/image";
 // Navigation links
 export const navLinks = [
   {
@@ -46,86 +46,52 @@ export const navLinks = [
 
 
 // Services offered
-const services = [
+export const services: Array<{
+  title: string;
+  icon: StaticImageData | string;
+  description?: string;
+}> = [
+  // Added explicit type
   {
     title: "Web Developer",
     icon: web,
-    description: "Building responsive, high-performance web applications with modern frameworks. Creating interactive and user-friendly interfaces that deliver exceptional user experiences."
+    description: "Building responsive, high-performance web applications...",
   },
   {
     title: "React Developer",
     icon: mobile,
-    description: "Crafting dynamic user interfaces with React and related technologies. Specializing in component-based architecture, state management, and optimized rendering."
+    description: "Crafting dynamic user interfaces with React...",
   },
   {
     title: "Backend Developer",
     icon: backend,
-    description: "Designing robust server-side applications and APIs with Node.js, Express, and MongoDB. Implementing secure, scalable, and efficient backend solutions."
+    description: "Designing robust server-side applications and APIs...",
   },
   {
     title: "Digital Marketer",
     icon: creator,
-    description: "Developing strategic marketing campaigns to increase brand visibility and engagement. Skilled in SEO, content marketing, and analytics-driven optimization."
+    description: "Developing strategic marketing campaigns...",
   },
 ];
 // Technologies skillset
-const technologies = [
-  {
-    name: "HTML 5",
-    icon: html,
-  },
-  {
-    name: "CSS 3",
-    icon: css,
-  },
-  {
-    name: "JavaScript",
-    icon: javascript,
-  },
-  {
-    name: "Python",
-    icon: python,
-  },
-  {
-    name: "React JS",
-    icon: reactjs,
-  },
-  {
-    name: "Redux Toolkit",
-    icon: redux,
-  },
-  {
-    name: "Tailwind CSS",
-    icon: tailwind,
-  },
-  {
-    name: "Node JS",
-    icon: nodejs,
-  },
-  {
-    name: "MongoDB",
-    icon: mongodb,
-  },
-  {
-    name: "Three JS",
-    icon: threejs,
-  },
-  {
-    name: "Git",
-    icon: git,
-  },
-  {
-    name: "Figma",
-    icon: figma,
-  },
-  {
-    name: "Docker",
-    icon: docker,
-  },
+export const technologies: Array<{ name: string; icon: StaticImageData | string }> = [ // Added explicit type
+    { name: "HTML 5", icon: html }, { name: "CSS 3", icon: css },
+    { name: "JavaScript", icon: javascript }, { name: "Python", icon: python },
+    { name: "React JS", icon: reactjs }, { name: "Redux Toolkit", icon: redux },
+    { name: "Tailwind CSS", icon: tailwind }, { name: "Node JS", icon: nodejs },
+    { name: "MongoDB", icon: mongodb }, { name: "Three JS", icon: threejs },
+    { name: "Git", icon: git }, { name: "Figma", icon: figma },
+    { name: "Docker", icon: docker },
 ];
-
 // Work experience
-const experiences = [
+export const experiences: Array<{
+  title: string;
+  company_name: string;
+  icon: StaticImageData | string;
+  iconBg: string;
+  date: string;
+  points: string[];
+}> = [
   {
     title: "Digital Marketer and Web Developer Freelancer",
     company_name: "Various Clients",
@@ -207,7 +173,13 @@ const experiences = [
 ];
 
 // Education history (extracted from CV)
-const education = [
+export const education: Array<{
+  degree: string;
+  institution: string;
+  date: string;
+  description: string;
+  icon: StaticImageData | string;
+}> = [
   {
     degree: "Software Development Bootcamp",
     institution: "The Growth Company",
@@ -267,7 +239,14 @@ const education = [
 ];
 
 // Currently learning (from CSV)
-const currentLearning = [
+export const currentLearning: Array<{
+  course: string;
+  platform: string;
+  startDate: string;
+  status: string;
+  description: string;
+  resource?: string;
+}> = [
   {
     course: "Advanced Software Development and Engineering (Level 5 Diploma)",
     platform: "",
@@ -288,7 +267,7 @@ const currentLearning = [
 ];
 
 // Resource categories (from CSV)
-const resourceCategories = [
+export const resourceCategories = [
   "Code Snippets",
   "Documentation",
   "Tutorials",
@@ -297,8 +276,8 @@ const resourceCategories = [
   "Learning Resources",
 ];
 
-// Selected key resources (from Resource Library CSV)
-const keyResources = [
+// Key resources
+export const keyResources: Array<{ name: string; category: string; tags: string[]; url: string }> = [
   {
     name: "Prisma Database Commands",
     category: "COMMANDS",
@@ -326,7 +305,13 @@ const keyResources = [
 ];
 
 // Testimonials
-const testimonials = [
+export const testimonials: Array<{
+  testimonial: string;
+  name: string;
+  designation: string;
+  company: string;
+  image: string;
+}> = [
   {
     testimonial:
       "Miguel's digital marketing campaigns significantly increased our brand visibility and engagement with customers.",
@@ -353,100 +338,100 @@ const testimonials = [
   },
 ];
 
-// Projects
-const projects = [
-  {
-    name: "E-commerce Platform",
-    description:
-      "Developed and managed a complete e-commerce platform for McNasty Studios, handling everything from design to implementation, using agile methodologies for efficient project management.",
-    tags: [
-      {
-        name: "react",
-        color: "blue-text-gradient",
-      },
-      {
-        name: "mongodb",
-        color: "green-text-gradient",
-      },
-      {
-        name: "tailwind",
-        color: "pink-text-gradient",
-      },
-    ],
-    image: "project1",
-    source_code_link: "https://github.com/",
-  },
-  {
-    name: "Digital Marketing Campaigns",
-    description:
-      "Created and executed digital marketing strategies for various clients across different industries, enhancing brand presence and significantly improving engagement metrics and conversion rates.",
-    tags: [
-      {
-        name: "analytics",
-        color: "blue-text-gradient",
-      },
-      {
-        name: "seo",
-        color: "green-text-gradient",
-      },
-      {
-        name: "socialmedia",
-        color: "pink-text-gradient",
-      },
-    ],
-    image: "project2",
-    source_code_link: "https://github.com/",
-    live_link:"https://vercel.com/",
-  },
-  {
-    name: "Non-Profit Website Overhaul",
-    description:
-      "Led a comprehensive redesign and optimization of a mental health organization's website, focusing on user experience and donation pathways, resulting in increased traffic and donor engagement.",
-    tags: [
-      {
-        name: "react",
-        color: "blue-text-gradient",
-      },
-      {
-        name: "ux/ui",
-        color: "green-text-gradient",
-      },
-      {
-        name: "css",
-        color: "pink-text-gradient",
-      },
-    ],
-    image: "project3",
-    source_code_link: "https://github.com/",
-    live_link:"https://vercel.com/",
-  },
-  {
-    name: "Python Text-Based Game",
-    description:
-      "Developed an interactive text-based adventure game using Python, implementing user input validation, game state management, and narrative branching logic.",
-    tags: [
-      {
-        name: "python",
-        color: "blue-text-gradient",
+// // Projects
+// const projects = [
+//   {
+//     name: "E-commerce Platform",
+//     description:
+//       "Developed and managed a complete e-commerce platform for McNasty Studios, handling everything from design to implementation, using agile methodologies for efficient project management.",
+//     tags: [
+//       {
+//         name: "react",
+//         color: "blue-text-gradient",
+//       },
+//       {
+//         name: "mongodb",
+//         color: "green-text-gradient",
+//       },
+//       {
+//         name: "tailwind",
+//         color: "pink-text-gradient",
+//       },
+//     ],
+//     image: "project1",
+//     source_code_link: "https://github.com/",
+//   },
+//   {
+//     name: "Digital Marketing Campaigns",
+//     description:
+//       "Created and executed digital marketing strategies for various clients across different industries, enhancing brand presence and significantly improving engagement metrics and conversion rates.",
+//     tags: [
+//       {
+//         name: "analytics",
+//         color: "blue-text-gradient",
+//       },
+//       {
+//         name: "seo",
+//         color: "green-text-gradient",
+//       },
+//       {
+//         name: "socialmedia",
+//         color: "pink-text-gradient",
+//       },
+//     ],
+//     image: "project2",
+//     source_code_link: "https://github.com/",
+//     live_link:"https://vercel.com/",
+//   },
+//   {
+//     name: "Non-Profit Website Overhaul",
+//     description:
+//       "Led a comprehensive redesign and optimization of a mental health organization's website, focusing on user experience and donation pathways, resulting in increased traffic and donor engagement.",
+//     tags: [
+//       {
+//         name: "react",
+//         color: "blue-text-gradient",
+//       },
+//       {
+//         name: "ux/ui",
+//         color: "green-text-gradient",
+//       },
+//       {
+//         name: "css",
+//         color: "pink-text-gradient",
+//       },
+//     ],
+//     image: "project3",
+//     source_code_link: "https://github.com/",
+//     live_link:"https://vercel.com/",
+//   },
+//   {
+//     name: "Python Text-Based Game",
+//     description:
+//       "Developed an interactive text-based adventure game using Python, implementing user input validation, game state management, and narrative branching logic.",
+//     tags: [
+//       {
+//         name: "python",
+//         color: "blue-text-gradient",
         
-      },
-      {
-        name: "game-dev",
-        color: "green-text-gradient",
-      },
-      {
-        name: "cli",
-        color: "pink-text-gradient",
-      },
-    ],
-    image: "project4",
-    source_code_link: "https://github.com/",
-    live_link:"https://vercel.com/",
-  },
-];
+//       },
+//       {
+//         name: "game-dev",
+//         color: "green-text-gradient",
+//       },
+//       {
+//         name: "cli",
+//         color: "pink-text-gradient",
+//       },
+//     ],
+//     image: "project4",
+//     source_code_link: "https://github.com/",
+//     live_link:"https://vercel.com/",
+//   },
+// ];
 
 // Contact information
-const contact = {
+export const contact = {
   email: "cardigamiguel221@gmail.com",
   phone: "07593733782",
   location: "Greater Manchester",
@@ -455,7 +440,7 @@ const contact = {
 };
 
 // Technical skills (categorized)
-const technicalSkills = {
+export const technicalSkills = {
   programming: [
     "JavaScript",
     "Python",
@@ -493,19 +478,4 @@ const technicalSkills = {
     "User Experience Analysis",
   ],
 };
-export interface Project{
 
-}
-export {
-  services,
-  technologies,
-  experiences,
-  testimonials,
-  projects,
-  education,
-  currentLearning,
-  resourceCategories,
-  keyResources,
-  contact,
-  technicalSkills,
-};

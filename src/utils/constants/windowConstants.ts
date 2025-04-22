@@ -8,7 +8,8 @@ export const Z_INDEX = {
   DESKTOP: 1,
   WINDOW_MINIMIZED: 100,
   START_MENU: 150,
-  WINDOW_NORMAL: 1000,
+ WINDOW_NORMAL: 1000,
+  WINDOW_FOCUSED: 1100,
   WINDOW_ACTIVE: 2000,
   CONTEXT_MENU: 3000,
   TASKBAR: 2500,
@@ -19,9 +20,9 @@ export const Z_INDEX = {
 
 // Window sizing constraints
 export const WINDOW_SIZE_CONSTRAINTS = {
-  MIN_WIDTH: 250,
-  MIN_HEIGHT: 150,
-  DEFAULT_WIDTH: 500,
+    MIN_WIDTH: 300,
+  MIN_HEIGHT: 200,
+  DEFAULT_WIDTH: 600,
   DEFAULT_HEIGHT: 400,
   EDITOR_WIDTH: 550,
   EDITOR_HEIGHT: 400,
@@ -40,7 +41,7 @@ export const WINDOW_SIZE_CONSTRAINTS = {
 // Window position constants
 export const WINDOW_POSITIONS = {
   TASKBAR_HEIGHT: 30,
-  BASE_OFFSET_X: 100,
+  BASE_OFFSET_X: 50,
   BASE_OFFSET_Y: 50,
   CASCADE_OFFSET_X: 20,
   CASCADE_OFFSET_Y: 20,
@@ -67,11 +68,11 @@ export const WINDOW_DEFAULT_SIZES = {
  * Animation timings for window transitions
  */
 export const WINDOW_ANIMATIONS = {
+   CLOSE_DURATION: 300,
   MINIMIZE_DURATION: 300,
-  MAXIMIZE_DURATION: 250,
+  MAXIMIZE_DURATION: 300,
   RESTORE_DURATION: 250,
   OPEN_DURATION: 200,
-  CLOSE_DURATION: 200,
   FOCUS_TRANSITION: 100,
 };
 
@@ -120,7 +121,7 @@ export const WINDOW_SOUNDS = {
 export const TIMING = {
   POSITION_UPDATE_DEBOUNCE: 50,
   RESIZE_THROTTLE: 50,
-  SAVE_DELAY: 500, // Delay before saving state after changes
+  SAVE_DELAY: 200,
   ANIMATION_BUFFER: 50, // Extra buffer time after animations
   WINDOW_TRANSITION: 200, // Duration for window transitions
   MENU_TRANSITION: 150,

@@ -19,7 +19,7 @@ interface ServiceCardProps {
 
 interface Service {
   title: string;
-  icon: StaticImageData;
+  icon: StaticImageData | string;
   description?: string;
 }
 

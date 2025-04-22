@@ -109,7 +109,7 @@ function createProjectFiles() {
         `# ${project.title}\n\n` +
           `${project.description}\n\n` +
           `## Technologies\n\n` +
-          project.technologies.map((tech) => `- ${tech}`).join("\n")
+          (project.technologies ?? []).map((tech) => `- ${tech}`).join("\n")
       );
 
       // Create sample files based on project type
@@ -231,40 +231,23 @@ export function listFiles(path: string) {
   }
 }
 
-// Read file content
-export function readFileContent(path: string) {
-  try {
-    // Check if it's a .lnk file (shortcut)
-    if (path.endsWith(".lnk")) {
-      // Fix: Convert Buffer to string using toString()
-      const content = fs.readFileSync(path);
-      return content.toString("utf8");
-    }
 
-    // Fix: Convert Buffer to string using toString()
-    const content = fs.readFileSync(path);
-    return content.toString("utf8");
-  } catch (error) {
-    console.error(`Error reading file ${path}:`, error);
-    return null;
-  }
-}
 
-// Write file content
-export function writeFileContent(path: string, content: string) {
-  try {
-    // Ensure parent directory exists
-    const parentDir = path.substring(0, path.lastIndexOf("/"));
-    if (parentDir && !fs.existsSync(parentDir)) {
-      fs.mkdirSync(parentDir, { recursive: true });
-    }
-    fs.writeFileSync(path, content);
-    return true;
-  } catch (error) {
-    console.error(`Error writing file ${path}:`, error);
-    return false;
-  }
-}
+// // Write file content
+// export function writeFileContent(path: string, content: string) {
+//   try {
+//     // Ensure parent directory exists
+//     const parentDir = path.substring(0, path.lastIndexOf("/"));
+//     if (parentDir && !fs.existsSync(parentDir)) {
+//       fs.mkdirSync(parentDir, { recursive: true });
+//     }
+//     fs.writeFileSync(path, content);
+//     return true;
+//   } catch (error) {
+//     console.error(`Error writing file ${path}:`, error);
+//     return false;
+//   }
+// }
 
 // Delete file or directory
 export function deleteFileOrDir(path: string) {
@@ -304,15 +287,7 @@ export function renameFileOrDir(oldPath: string, newPath: string) {
   }
 }
 
-// Get file stats
-export function getFileStats(path: string) {
-  try {
-    return fs.statSync(path);
-  } catch (error) {
-    console.error(`Error getting stats for ${path}:`, error);
-    return null;
-  }
-}
+
 
 // Create a shortcut (simple .lnk file with the target path)
 export function createShortcut(path: string, target: string) {
@@ -323,7 +298,170 @@ export function createShortcut(path: string, target: string) {
     console.error(`Error creating shortcut ${path} to ${target}:`, error);
     return false;
   }
-}
+}// In-memory file system for demo purposes
+const fileSystem = new Map<string, string>();
 
+/**
+ * Read file content from in-memory file system
+ * @param path The file path to read
+ * @returns File content or null if file doesn't exist
+ */
+export const readFileContent = (path: string): string | null => {
+  try {
+    if (fileSystem.has(path)) {
+      return fileSystem.get(path) || null;
+    }
+    
+    // For demo purposes, return some default content for new files
+    const extension = path.split('.').pop()?.toLowerCase();
+    let defaultContent = '';
+    
+    switch (extension) {
+      case 'txt':
+        defaultContent = 'This is a text file.';
+        break;
+      case 'md':
+        defaultContent = '# Markdown File\n\nThis is a markdown file.';
+        break;
+      case 'html':
+        defaultContent = '<!DOCTYPE html>\n<html>\n<head>\n  <title>HTML File</title>\n</head>\n<body>\n  <h1>Hello World</h1>\n</body>\n</html>';
+        break;
+      case 'js':
+      case 'ts':
+        defaultContent = '// JavaScript/TypeScript File\n\nfunction greet(name) {\n  return `Hello, ${name}!`;\n}\n\nconsole.log(greet("World"));';
+        break;
+      case 'css':
+        defaultContent = '/* CSS File */\n\nbody {\n  font-family: sans-serif;\n  margin: 0;\n  padding: 20px;\n}';
+        break;
+      default:
+        defaultContent = '';
+    }
+    
+    // Store default content in file system
+    fileSystem.set(path, defaultContent);
+    return defaultContent;
+  } catch (error) {
+    console.error('Error reading file:', error);
+    return null;
+  }
+};
+
+/**
+ * Write content to in-memory file system
+ * @param path The file path to write to
+ * @param content The content to write
+ * @returns True if successful, false otherwise
+ */
+export const writeFileContent = (path: string, content: string): boolean => {
+  try {
+    fileSystem.set(path, content);
+    return true;
+  } catch (error) {
+    console.error('Error writing file:', error);
+    return false;
+  }
+};
+
+/**
+ * Delete file from in-memory file system
+ * @param path The file path to delete
+ * @returns True if successful, false otherwise
+ */
+export const deleteFile = (path: string): boolean => {
+  try {
+    if (fileSystem.has(path)) {
+      fileSystem.delete(path);
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('Error deleting file:', error);
+    return false;
+  }
+};
+
+
+
+/**
+ * List files in a directory (dummy implementation)
+ * @param path The directory path to list
+ * @returns Array of file paths in the directory
+ */
+export const listDirectory = (path: string): string[] => {
+  // This is a dummy implementation that returns hardcoded paths
+  // based on the directory requested
+  
+  if (path === '/') {
+    return ['/home', '/projects', '/documents'];
+  } else if (path === '/home') {
+    return ['/home/user', '/home/documents', '/home/pictures'];
+  } else if (path === '/projects') {
+    return ['/projects/project1', '/projects/project2', '/projects/project3'];
+  } else if (path === '/documents') {
+    return ['/documents/document1.txt', '/documents/document2.md', '/documents/document3.html'];
+  }
+  
+  return [];
+};
+
+/**
+ * Copy a file
+ * @param sourcePath Source file path
+ * @param destinationPath Destination file path
+ * @returns True if successful, false otherwise
+ */
+export const copyFile = (sourcePath: string, destinationPath: string): boolean => {
+  try {
+    const content = readFileContent(sourcePath);
+    if (content !== null) {
+      return writeFileContent(destinationPath, content);
+    }
+    return false;
+  } catch (error) {
+    console.error('Error copying file:', error);
+    return false;
+  }
+};
+
+/**
+ * Move a file (copy and delete)
+ * @param sourcePath Source file path
+ * @param destinationPath Destination file path
+ * @returns True if successful, false otherwise
+ */
+export const moveFile = (sourcePath: string, destinationPath: string): boolean => {
+  try {
+    const copySuccessful = copyFile(sourcePath, destinationPath);
+    if (copySuccessful) {
+      return deleteFile(sourcePath);
+    }
+    return false;
+  } catch (error) {
+    console.error('Error moving file:', error);
+    return false;
+  }
+};
+
+/**
+ * Get file stats
+ * @param path The file path
+ * @returns Object with file stats
+ */
+export const getFileStats = (path: string): { exists: boolean, size: number, modified: Date } => {
+  const content = fileSystem.get(path);
+  if (content) {
+    return {
+      exists: true,
+      size: content.length,
+      modified: new Date(),
+    };
+  }
+  
+  return {
+    exists: false,
+    size: 0,
+    modified: new Date(),
+  };
+};
 // Export the initialized filesystem
 export { fs };

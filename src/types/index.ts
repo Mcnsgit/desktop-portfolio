@@ -119,6 +119,14 @@ export interface Folder {
   parentId?: string | null;
 }
 
+export interface FileItemData {
+  id: string;
+  name: string;
+  type:'file'|'folder'|'shortcut';
+  fileType?: string;
+  size?: string;
+  modified?: string
+}
 // --- DESKTOP TYPES ---
 export interface DesktopItem {
   id: string;
