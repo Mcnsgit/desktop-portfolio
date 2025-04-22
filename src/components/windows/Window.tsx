@@ -1,8 +1,6 @@
 // src/components/windows/Window.tsx
 import React, { useRef, useState, useEffect, useCallback, useMemo } from "react";
-import Draggable, { DraggableEvent, DraggableData } from 'react-draggable'; // Import Draggable
-import throttle from 'lodash.throttle';
-import debounce from 'lodash.debounce';
+import Draggable from 'react-draggable';
 import {
   ArrowsInLineVertical,
   FrameCorners,
@@ -10,19 +8,39 @@ import {
 } from "@phosphor-icons/react";
 import { useDesktop } from "../../context/DesktopContext";
 import { useSounds } from "@/hooks/useSounds";
-import {
-  Z_INDEX,
-  WINDOW_SIZE_CONSTRAINTS,
-  WINDOW_POSITIONS,
-  // WINDOW_CLASSES, // Can potentially remove if not used elsewhere
-  // WINDOW_SOUNDS, // Sounds handled by useSounds
-  WINDOW_ANIMATIONS,
-  TIMING,
-} from "@/utils/constants/windowConstants";
-import { ensureWindowVisibility, getRestorePosition } from "@/utils/windowServices/WindowPositionService";
-// import fixStyles from "../styles/WindowFix.module.scss"; // Review if this is still needed
 import styles from "../styles/Window.module.scss";
-import { useTouchSupport } from "@/hooks/useTouchSupport"; // Keep for non-drag gestures
+
+// Constants from your windowConstants
+const Z_INDEX = {
+  WINDOW_NORMAL: 1000,
+  WINDOW_FOCUSED: 1100
+};
+
+const WINDOW_POSITIONS = {
+  BASE_OFFSET_X: 50,
+  BASE_OFFSET_Y: 50,
+  TASKBAR_HEIGHT: 30
+};
+
+const WINDOW_SIZE_CONSTRAINTS = {
+  MIN_WIDTH: 300,
+  MIN_HEIGHT: 200,
+  DEFAULT_WIDTH: 600,
+  DEFAULT_HEIGHT: 400
+};
+
+const WINDOW_ANIMATIONS = {
+  CLOSE_DURATION: 300,
+  MINIMIZE_DURATION: 300,
+  MAXIMIZE_DURATION: 300
+};
+
+const TIMING = {
+  POSITION_UPDATE_DEBOUNCE: 100,
+  ANIMATION_BUFFER: 50,
+  SAVE_DELAY: 200
+};
+
 // Types
 interface WindowProps {
   id: string;
@@ -41,207 +59,266 @@ interface WindowState {
   } | null;
   animationClass: string;
 }
-interface Window {
-  id: string;
-  title: string;
-  position: { x: number; y: number };
-  size: { width: number; height: number };
-  minimized: boolean;
-  type: string;
-  content: React.ReactNode;
-  zIndex: number; // Ensure zIndex is defined for all windows
-}
-// Component
+
 const Window: React.FC<WindowProps> = ({
   id,
   title,
   children,
   initialPosition = { x: WINDOW_POSITIONS.BASE_OFFSET_X, y: WINDOW_POSITIONS.BASE_OFFSET_Y },
   initialSize = { width: WINDOW_SIZE_CONSTRAINTS.DEFAULT_WIDTH, height: WINDOW_SIZE_CONSTRAINTS.DEFAULT_HEIGHT },
-  resizable = true, // Added resizable prop
+  resizable = true,
   className = '',
 }) => {
   const { state, dispatch } = useDesktop();
   const { playSound } = useSounds();
-  const windowRef = useRef<HTMLDivElement>(null); // Ref for Draggable node
+  const windowRef = useRef<HTMLDivElement>(null);
   const isMounted = useRef(true);
-  const isUpdatingState = useRef(false); // Guard against rapid dispatches
+  const isUpdatingState = useRef(false);
 
-  // Simplified state - Draggable handles drag position
+  // State for window maximization and animations
   const [windowState, setWindowState] = useState<WindowState>({
     preMaximizedState: null,
     animationClass: ''
   });
-  const windowData = useMemo(() => state.windows.find(w => w.id === id), [state.windows, id]);
-  const isActive = state.activeWindowId === id;
-  const isMinimized = windowData?.minimized || false;
-  // Correct isMaximized check based on preMaximizedState
-  const isMaximized = useMemo(() => !!windowState.preMaximizedState, [windowState.preMaximizedState]);
 
-  // --- Draggable Handlers ---
-  const debouncedStop = useMemo(
-    () => debounce((_, data: DraggableData) => {
-      console.log(`Drag stop for ${id} at`, data.x, data.y);
-      const finalPosition = ensureWindowVisibility(
-        { x: data.x, y: data.y },
-        windowData?.size || initialSize
-      );
-      // Only dispatch if the position actually changed significantly after ensuring visibility
-      if (Math.abs(finalPosition.x - data.x) > 1 || Math.abs(finalPosition.y - data.y) > 1) {
-        dispatch({ type: 'UPDATE_WINDOW_POSITION', payload: { id, position: finalPosition } });
-      } else if (windowData?.position && (Math.abs(windowData.position.x - data.x) > 1 || Math.abs(windowData.position.y - data.y) > 1)) {
-        // Dispatch even if ensureWindowVisibility didn't change it, but it differs from state
-        dispatch({ type: 'UPDATE_WINDOW_POSITION', payload: { id, position: { x: data.x, y: data.y } } });
-      }
-
-    }, TIMING.POSITION_UPDATE_DEBOUNCE),
-    [dispatch, id, windowData?.size, initialSize, windowData?.position] // Added windowData.position dependency
+  // Get window data from the global state
+  const windowData = useMemo(() =>
+    state.windows.find(w => w.id === id),
+    [state.windows, id]
   );
 
+  // Derived states
+  const isActive = state.activeWindowId === id;
+  const isMinimized = windowData?.minimized || false;
+  const isMaximized = !!windowState.preMaximizedState;
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  // Handle drag stop with debounce
+  const handleDragStop = (e: any, data: any) => {
+    if (isUpdatingState.current) return;
+
+    const finalPosition = {
+      x: Math.max(0, data.x),
+      y: Math.max(0, data.y)
+    };
+
+    // Only update if position actually changed
+    if (windowData?.position &&
+      (Math.abs(windowData.position.x - finalPosition.x) > 1 ||
+        Math.abs(windowData.position.y - finalPosition.y) > 1)) {
+      dispatch({
+        type: 'UPDATE_WINDOW_POSITION',
+        payload: { id, position: finalPosition }
+      });
+    }
+  };
+
+  // Window focus handling
   const handleDragStart = useCallback(() => {
     if (!isActive && !isUpdatingState.current) {
       isUpdatingState.current = true;
       dispatch({ type: 'FOCUS_WINDOW', payload: { id } });
-      playSound("windowFocus"); // Play focus sound on drag start if not active
-      // Release guard quickly
-      requestAnimationFrame(() => { isUpdatingState.current = false; });
+      playSound("click"); // Adjust sound name as needed
+      setTimeout(() => {
+        isUpdatingState.current = false;
+      }, 50);
     }
   }, [isActive, dispatch, id, playSound]);
+
+  // Close window with animation
   const handleClose = useCallback(() => {
     if (isUpdatingState.current) return;
     isUpdatingState.current = true;
+
     playSound("windowClose");
-    // Add exit animation class if using CSS animations
-    setWindowState(prev => ({ ...prev, animationClass: 'closing' })); // Example class
+    setWindowState(prev => ({ ...prev, animationClass: 'closing' }));
+
     setTimeout(() => {
       if (isMounted.current) {
         dispatch({ type: "CLOSE_WINDOW", payload: { id } });
       }
-      // No need to clear guard here, component unmounts
-    }, WINDOW_ANIMATIONS.CLOSE_DURATION); // Match animation time
+    }, WINDOW_ANIMATIONS.CLOSE_DURATION);
   }, [dispatch, id, playSound]);
 
-
+  // Minimize window with animation
   const handleMinimize = useCallback(() => {
     if (isUpdatingState.current) return;
     isUpdatingState.current = true;
+
     setWindowState(prev => ({ ...prev, animationClass: 'minimizing' }));
-    playSound("windowMinimize");
+    playSound("click");
+
     setTimeout(() => {
       if (isMounted.current) {
         dispatch({ type: "MINIMIZE_WINDOW", payload: { id } });
-        // Reset animation class if needed, though minimize hides it
-        // setWindowState(prev => ({ ...prev, animationClass: '' }));
-        isUpdatingState.current = false; // Release guard after dispatch
+        isUpdatingState.current = false;
       }
-    }, WINDOW_ANIMATIONS.MINIMIZE_DURATION + TIMING.ANIMATION_BUFFER);
+    }, WINDOW_ANIMATIONS.MINIMIZE_DURATION);
   }, [dispatch, id, playSound]);
 
-
+  // Toggle maximize/restore
   const handleMaximize = useCallback(() => {
-    if (!resizable || isUpdatingState.current) return; // Check resizable flag
+    if (!resizable || isUpdatingState.current) return;
     isUpdatingState.current = true;
 
-    if (isMaximized) { // Restore
+    console.log('Maximize/Restore toggled, current state:', {
+      isMaximized,
+      preMaximizedState: windowState.preMaximizedState
+    });
+
+    if (isMaximized) {
+      // Restore window
       setWindowState(prev => ({ ...prev, animationClass: 'restoring' }));
-      playSound("windowOpen"); // Restore sound
+      playSound("click");
+
       if (windowState.preMaximizedState) {
         const { position, size } = windowState.preMaximizedState;
-        const validPosition = getRestorePosition(position, size);
-        dispatch({ type: "UPDATE_WINDOW", payload: { id, position: validPosition, size } });
-        // Clear preMaximizedState immediately after dispatching restore
+        console.log('Restoring window to:', { position, size });
+
+        // Use separate dispatches to ensure both updates are processed
+        dispatch({
+          type: "UPDATE_WINDOW_SIZE",
+          payload: { id, size }
+        });
+
+        dispatch({
+          type: "UPDATE_WINDOW_POSITION",
+          payload: { id, position }
+        });
+
+        // Clear maximized state
         setWindowState(prev => ({ ...prev, preMaximizedState: null }));
       } else {
-        // Fallback if preMaximizedState is somehow null
-        dispatch({ type: "UPDATE_WINDOW", payload: { id, position: initialPosition, size: initialSize } });
-        setWindowState(prev => ({ ...prev, preMaximizedState: null }));
+        // Fallback if preMaximizedState is missing
+        console.warn('No preMaximizedState found, using defaults');
+        dispatch({
+          type: "UPDATE_WINDOW_SIZE",
+          payload: { id, size: initialSize }
+        });
+
+        dispatch({
+          type: "UPDATE_WINDOW_POSITION",
+          payload: { id, position: initialPosition }
+        });
       }
-    } else { // Maximize
+    } else {
+      // Maximize window - Save current state first
+      const currentPosition = windowData?.position || initialPosition;
+      const currentSize = windowData?.size || initialSize;
+
+      console.log('Saving window state before maximizing:', {
+        position: currentPosition,
+        size: currentSize
+      });
+
       setWindowState(prev => ({
         ...prev,
         animationClass: 'maximizing',
         preMaximizedState: {
-          position: windowData?.position || initialPosition,
-          size: windowData?.size || initialSize,
+          position: currentPosition,
+          size: currentSize,
         }
       }));
-      playSound("windowOpen"); // Maximize sound
+
+      playSound("click");
+
       const maximizedSize = {
-        width: window.innerWidth - 4, // Adjust for borders
-        height: window.innerHeight - WINDOW_POSITIONS.TASKBAR_HEIGHT - 4, // Adjust for borders/taskbar
+        width: window.innerWidth - 4,
+        height: window.innerHeight - WINDOW_POSITIONS.TASKBAR_HEIGHT - 4,
       };
-      dispatch({ type: "UPDATE_WINDOW", payload: { id, position: { x: 0, y: 0 }, size: maximizedSize } });
+
+      // Use separate dispatches for more reliable updates
+      dispatch({
+        type: "UPDATE_WINDOW_SIZE",
+        payload: { id, size: maximizedSize }
+      });
+
+      dispatch({
+        type: "UPDATE_WINDOW_POSITION",
+        payload: { id, position: { x: 0, y: 0 } }
+      });
     }
 
-    // Clear animation class after animation
+    // Reset animation class after animation completes
     setTimeout(() => {
       if (isMounted.current) {
         setWindowState(prev => ({ ...prev, animationClass: '' }));
-        isUpdatingState.current = false; // Release guard
+        isUpdatingState.current = false;
       }
-    }, WINDOW_ANIMATIONS.MAXIMIZE_DURATION + TIMING.ANIMATION_BUFFER); // Use appropriate duration
-
+    }, WINDOW_ANIMATIONS.MAXIMIZE_DURATION + TIMING.ANIMATION_BUFFER);
   }, [
     resizable, isMaximized, windowState.preMaximizedState, windowData, id,
     initialPosition, initialSize, dispatch, playSound
   ]);
 
-  // Double-click on title bar toggles maximize
+  // Double-click on title bar to toggle maximize
   const handleTitleDoubleClick = useCallback((e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest("[data-window-control]") || !resizable) { // Check resizable
+    if ((e.target as HTMLElement).closest("[data-window-control]") || !resizable) {
       return;
     }
     handleMaximize();
-  }, [handleMaximize, resizable]); // Add resizable dependency
-  // --- End Window Event Handlers ---
+  }, [handleMaximize, resizable]);
 
-
-  // --- Styles and Classes ---
+  // Window CSS classes
   const windowClasses = useMemo(() => {
     return [
       styles.window,
       isActive ? styles.active : "",
       isMaximized ? styles.maximized : "",
       windowState.animationClass ? styles[windowState.animationClass] : "",
-      // Removed dragging/resizing classes - Draggable might add its own
-      className, // Allow external classes
+      className,
     ].filter(Boolean).join(" ");
   }, [isActive, isMaximized, windowState.animationClass, className]);
 
+  // Handle window styles dynamically
   const windowStyle = useMemo(() => {
     const size = windowData?.size || initialSize;
- // Use existing zIndex logic
 
-    // Base styles - Position is handled by Draggable transform
+    // Create a base style object
     const style: React.CSSProperties = {
-      width: isMaximized ? "calc(100vw - 4px)" : `${size.width}px`,
-      height: isMaximized ? `calc(100vh - ${WINDOW_POSITIONS.TASKBAR_HEIGHT + 4}px)` : `${size.height}px`,
-      zIndex: windowData?.zIndex || Z_INDEX.WINDOW_NORMAL,
       position: 'absolute',
-      visibility: isMinimized ? 'hidden' : 'visible', // Still needed for minimize
-      display: isMinimized ? 'none' : 'block', // Still needed for minimize
+      visibility: isMinimized ? 'hidden' : 'visible',
+      display: isMinimized ? 'none' : 'block',
       pointerEvents: isMinimized ? 'none' : 'auto',
-      overflow: 'hidden', // Prevent content overflow during resize/drag issues
-      backfaceVisibility: 'hidden',
-      // willChange: 'transform', // Let Draggable manage this if needed
+      overflow: 'hidden',
+      zIndex: windowData?.zIndex || Z_INDEX.WINDOW_NORMAL,
     };
-    // Apply minimum constraints directly
-    if (!isMaximized) {
+
+    // Handle maximized state differently
+    if (isMaximized) {
+      // Use explicit values for maximized state
+      style.width = "calc(100vw - 4px)";
+      style.height = `calc(100vh - ${WINDOW_POSITIONS.TASKBAR_HEIGHT + 4}px)`;
+      style.top = 0;
+      style.left = 0;
+      style.right = 0;
+      style.bottom = WINDOW_POSITIONS.TASKBAR_HEIGHT + 'px';
+    } else {
+      // Use specific dimensions for non-maximized state
+      style.width = `${size.width}px`;
+      style.height = `${size.height}px`;
+      // Position is handled by Draggable, so we don't set top/left here
+
+      // Add minimum constraints
       style.minWidth = `${WINDOW_SIZE_CONSTRAINTS.MIN_WIDTH}px`;
       style.minHeight = `${WINDOW_SIZE_CONSTRAINTS.MIN_HEIGHT}px`;
     }
 
     return style;
-  }, [isMinimized, isMaximized, windowData, initialSize,]);
-  // --- End Styles and Classes ---
+  }, [isMinimized, isMaximized, windowData, initialSize]);
 
-  // --- Resize Handle ---
-  // Basic resize logic (can be replaced with react-resizable)
+  // Resize handler
   const handleResizeMouseDown = useCallback((e: React.MouseEvent) => {
     if (!resizable || isMaximized || isUpdatingState.current) return;
     e.preventDefault();
     e.stopPropagation();
-    isUpdatingState.current = true; // Use guard
+    isUpdatingState.current = true;
 
     const startX = e.clientX;
     const startY = e.clientY;
@@ -250,6 +327,7 @@ const Window: React.FC<WindowProps> = ({
 
     const onMouseMove = (moveEvent: MouseEvent) => {
       if (!windowRef.current) return;
+
       let newWidth = startWidth + (moveEvent.clientX - startX);
       let newHeight = startHeight + (moveEvent.clientY - startY);
 
@@ -266,20 +344,19 @@ const Window: React.FC<WindowProps> = ({
       if (windowRef.current) {
         const finalWidth = windowRef.current.offsetWidth;
         const finalHeight = windowRef.current.offsetHeight;
-        // Debounced update to state
-        // Use a separate debounce instance for resize
-        const debouncedResizeStop = debounce(() => {
+
+        // Update state after resize completes
+        setTimeout(() => {
           if (isMounted.current) {
             dispatch({
               type: "UPDATE_WINDOW_SIZE",
               payload: { id, size: { width: finalWidth, height: finalHeight } }
             });
-            isUpdatingState.current = false; // Release guard
+            isUpdatingState.current = false;
           }
-        }, TIMING.SAVE_DELAY); // Use a slightly longer delay after resize
-        debouncedResizeStop();
+        }, TIMING.SAVE_DELAY);
       } else {
-        isUpdatingState.current = false; // Release guard if ref is lost
+        isUpdatingState.current = false;
       }
 
       document.removeEventListener("mousemove", onMouseMove);
@@ -289,39 +366,31 @@ const Window: React.FC<WindowProps> = ({
     document.addEventListener("mousemove", onMouseMove);
     document.addEventListener("mouseup", onMouseUp);
   }, [resizable, isMaximized, dispatch, id, initialSize.width, initialSize.height]);
-  // --- End Resize Handle ---
 
-
-  // --- Render ---
-  const handleWindowClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
-    // Prevent default behavior
-    event.stopPropagation();
-    // Dispatch action to focus the window
+  // Handle window click to focus
+  const handleWindowClick = useCallback(() => {
     dispatch({ type: "FOCUS_WINDOW", payload: { id } });
   }, [dispatch, id]);
 
-  // Early return if minimized or window doesn't exist in state yet
+  // Early return if window is minimized or doesn't exist
   if (isMinimized || !windowData) {
     return null;
   }
 
   const currentPosition = windowData.position || initialPosition;
 
-
   return (
     <Draggable
-      handle=".window-title-bar" // Class for drag handle
-      bounds="parent" // Constrain to parent div (WindowManager)
+      handle=".window-title-bar"
+      bounds="parent"
       position={isMaximized ? { x: 0, y: 0 } : currentPosition}
       onStart={handleDragStart}
-      // onDrag={throttledDrag} // Throttling might be needed if complex children cause lag
-      onStop={debouncedStop} // Use debounced stop handler
-      nodeRef={windowRef as React.RefObject<HTMLElement>} // Crucial for Draggable
-      disabled={isMaximized} // Disable when maximized
-    // grid={[1, 1]} // Optional: Snap to pixels
+      onStop={handleDragStop}
+      nodeRef={windowRef as React.RefObject<HTMLElement>}
+      disabled={isMaximized}
     >
       <div
-        ref={windowRef} // Ref for Draggable and touch support
+        ref={windowRef}
         className={windowClasses}
         style={windowStyle}
         onClick={handleWindowClick}
@@ -331,37 +400,52 @@ const Window: React.FC<WindowProps> = ({
       >
         <div className={styles.windowContent}>
           <div
-            className={`${styles.titleBar} window-title-bar`} // Ensure class matches handle
+            className={`${styles.titleBar} window-title-bar`}
             onDoubleClick={handleTitleDoubleClick}
             data-testid="window-titlebar"
-          // Removed onMouseDown - Draggable handles drag initiation
           >
             <div className={styles.title}>{title}</div>
             <div className={styles.controls}>
               <button
                 onClick={(e) => { e.stopPropagation(); handleMinimize(); }}
                 className={styles.control}
-                type="button" data-window-control="minimize" aria-label="Minimize"
-              ><ArrowsInLineVertical size={16} /></button>
-              {resizable && // Only show maximize if resizable
+                type="button"
+                data-window-control="minimize"
+                aria-label="Minimize"
+              >
+                <ArrowsInLineVertical size={16} />
+              </button>
+
+              {resizable && (
                 <button
                   onClick={(e) => { e.stopPropagation(); handleMaximize(); }}
                   className={styles.control}
-                  type="button" data-window-control="maximize" aria-label={isMaximized ? "Restore" : "Maximize"}
-                ><FrameCorners size={16} /></button>
-              }
+                  type="button"
+                  data-window-control="maximize"
+                  aria-label={isMaximized ? "Restore" : "Maximize"}
+                >
+                  <FrameCorners size={16} />
+                </button>
+              )}
+
               <button
                 onClick={(e) => { e.stopPropagation(); handleClose(); }}
                 className={styles.control}
-                type="button" data-window-control="close" aria-label="Close"
-              ><XSquare size={16} /></button>
+                type="button"
+                data-window-control="close"
+                aria-label="Close"
+              >
+                <XSquare size={16} />
+              </button>
             </div>
           </div>
+
           <div className={styles.content}>{children}</div>
+
           {resizable && !isMaximized && (
             <div
               className={styles.resizeHandle}
-              onMouseDown={handleResizeMouseDown} // Attach resize handler
+              onMouseDown={handleResizeMouseDown}
               data-testid="window-resize-handle"
             />
           )}
@@ -371,6 +455,4 @@ const Window: React.FC<WindowProps> = ({
   );
 };
 
-// Removed React.memo custom comparison for now, let Draggable manage updates
 export default Window;
-

@@ -1,172 +1,95 @@
-import React, { useCallback, Suspense, useEffect, useState, useRef } from "react";
-import { Canvas, useFrame , useThree } from "@react-three/fiber";
-import { Group } from "three"
+"use client"; // Add directive
 
+import React, { useCallback, Suspense, useEffect, useRef } from "react";
+import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Preload, useGLTF } from "@react-three/drei";
-import CanvasLoader from "./Loader";
-import LoadingScreen from "./LoadingScreen";
 import * as THREE from "three";
-import OptimizedOrbitControls from "./OptimizedOrbitControls"; 
-import PerformanceOptimizer from "./PerformanceOptimizer"; 
-import { useRouter } from "next/navigation"; 
-import { useDesktop } from "@/context/DesktopContext";
+import CanvasLoader from "./Loader";
+import OptimizedOrbitControls from "./OptimizedOrbitControls";
+import PerformanceOptimizer from "./PerformanceOptimizer";
+import { useRouter } from "next/navigation";
 import { useSounds } from "@/hooks/useSounds";
 
-interface ComputerModelProps {
-  onLoaded?: () => void;
-  onClick?: (e: React.MouseEvent) => void;
-  onZoomIn: () => void;
-  isMobile?: boolean;
-}
-
-const ComputerModel: React.FC<ComputerModelProps> = ({ onZoomIn,
-  onLoaded,
-  onClick,
-  isMobile = false,
- }) => {
-  const computer = useGLTF("./desktop_pc/scene.gltf");
-  const modelRef = useRef<THREE.Group>(null);
-
-  const { camera } = useThree();
-  const [isLoaded, setIsLoaded] = useState(false);
-  const groupRef = useRef<Group>(null);
-
-  //load model with proper error handling
-  const {scene, nodes, materials } = useGLTF("./desktop_pc/scene.gltf", true,
-    undefined,
-    (error) => console.error("error loading 3d model:", error)
-  );
-
-  //progressive model optimisation
-  useEffect(() => {
-    if (scene) {
-      //apply optimisations to the scene
-      scene.traverse((child: any) => {
-        //diable frustun culling for important objects 
-        if (child.isMesh) {
-          //enable frustum culling for better performance
-          child.frustumCulled =true;
-
-          //lower res for materials if on mobile
-          if (isMobile && child.material) {
-            if (child.material.map) {
-              child.material.map.anisotropy = 1;
-              child.material.map.minFIilter = THREE.LinearFilter;
-            }
-            child.material.percision = isMobile ? 'lowp' : 'highp';
-            child.geometry.attributes.uv2 && child.geometry.deleteAttributes('uv2');
-          }
-        }
-      });
-
-      //signal that model is laoded and optimised 
-      setTimeout(() =>{ 
-        setIsLoaded(true);
-        onLoaded?.();
-      },100);
-    }
-  }, [scene, isMobile, onLoaded]);
-
-  //optimisse animations based on visibilty and performance 
-  useFrame(({clock, camera}) => {
-    if (!groupRef.current) return;
-
-    const mesh = groupRef.current;
-
-    //skip animation updated if model is far from camera or out of view 
-    const distance  = camera.position.distanceTo(mesh.position);
-    if (distance > 50 ) return;
-
-    //simple bvreathing animation
-    const t = clock.getElapsedTime();
-    mesh.rotation.y = Math.sin(t / 4) *0.05;
-  });
-
+// --- ComputerModel Component ---
+// This renders the actual GLTF model and handles clicks
+const ComputerModel = () => {
+  const router = useRouter();
   const { playSound } = useSounds();
+  // Load the GLTF model - ensure the path is correct relative to the public folder
+  const computer = useGLTF("./desktop_pc/scene.gltf"); // Path relative to /public
 
-  const handleModelClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  // Click handler for navigation
+  const handleClick = useCallback((event: React.MouseEvent) => { // Use React MouseEvent type
+    event.stopPropagation(); // Stop propagation in the 3D scene
     playSound("click");
-    onZoomIn();
-  };
+    console.log("Computer model clicked, navigating...");
+    setTimeout(() => router.push("/desktop"), 100);
+  }, [router, playSound]);
+
+  // Optional: Effect to traverse and update materials if needed
+  useEffect(() => {
+    computer.scene?.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        child.material.needsUpdate = true;
+        // Add other material adjustments if necessary
+      }
+    });
+  }, [computer.scene]);
 
   return (
-    // Pass onClick handler to the group
-    <group ref={groupRef} onClick={onClick} dispose={null} visible={isLoaded}>
-      <hemisphereLight intensity={isMobile ? 2 : 3.5} groundColor="black" /> {/* Adjusted intensity */}
+    // Add the onClick handler to the group containing the primitive
+    <group onClick={handleClick} dispose={null}>
+      <mesh>
+      <hemisphereLight intensity={0.18} groundColor="black" /> {/* Adjusted intensity */}
       <spotLight
-        position={[-20, 50, 10]} angle={0.12} penumbra={1}
-        intensity={1} castShadow shadow-mapSize={1024}
-      />
-      <pointLight intensity={1.2} /> {/* Slightly brighter point light */}
+       position={[-20, 50, 10]}
+       angle={0.12}
+       penumbra={1.3}
+       intensity={3}
+       castShadow
+       shadow-mapSize={1024}
+       />
+      <pointLight intensity={1} />
       <primitive
-        object={scene}
-        // *** ADJUST SCALE/POSITION if model appears too large/small/offset ***
-        scale={isMobile ? 0.6 : 0.7} // Slightly smaller scale
-        position={isMobile ? [0, -3, -1.8] : [0, -3.1, -1.5]} // Adjusted position
+        object={computer.scene}
+        scale={1.50} // Slightly smaller scale might fit better
+        position={[0, -3.5, -1.5]} // Adjust Y position if needed
         rotation={[-0.01, -0.2, -0.1]}
-      />
+        />
+        </mesh>
     </group>
   );
 };
+// --- End ComputerModel Component ---
 
 
-// PortfolioComputer Wrapper Component
-const PortfolioComputer: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
-  const [isMobile, setIsMobile] = useState(false);
-  const { playSound } = useSounds();
-  const router = useRouter();
-
-  // Simplified mobile check
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const checkMobile = () => setIsMobile(window.innerWidth < 768);
-      checkMobile();
-      window.addEventListener('resize', checkMobile); // Use resize instead of change
-      return () => window.removeEventListener('resize', checkMobile);
-    }
-  }, []);
-
-  // Click handler to navigate
-  const handleComputerClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    playSound("click");
-    router.push('/desktop');
-  }, [playSound, router]);
-
-  // Don't render anything on mobile here
-  if (isMobile) return null;
-
+// --- PortfolioComputer Component ---
+// This sets up the Canvas environment for the model
+const PortfolioComputer: React.FC = () => {
+  
   return (
-    // Ensure this div allows the Canvas to size correctly
-    <div className="portfolio-computer w-full h-full relative pointer-events-auto"> {/* Enable pointer events on container */}
+    <div className="w-full h-full pointer-events-auto"> {/* Allow pointer events on canvas container */}
       <Canvas
-        frameloop="demand" shadows dpr={[0.8, 1.5]}
-        // *** ADJUST CAMERA POSITION/FOV for desired view ***
-        camera={{ position: [22, 4, 8], fov: 22 }} // Moved camera slightly further back, wider FOV
-        gl={{ preserveDrawingBuffer: false, powerPreference: "high-performance", antialias: false }} // preserveDrawingBuffer often not needed
-        style={{ background: 'transparent' }}
-      // No internal loading screen needed if HomePage handles it
+        frameloop="demand"
+        shadows
+        dpr={[1, 1.5]}
+        camera={{ position: [20, 3, 5], fov: 25 }} // Keep camera settings
+        gl={{ preserveDrawingBuffer: false, antialias: true }}
       >
         <PerformanceOptimizer>
           <Suspense fallback={<CanvasLoader />}>
-            {/* Allow zooming, constrain angles */}
             <OptimizedOrbitControls
-              enableZoom={true} // Adjust zoom speed
-              maxPolarAngle={Math.PI / 2} minPolarAngle={Math.PI / 2.5} // Adjust angles
-              enablePan={true} autoRotate={true} autoRotateSpeed={0.3} // Slower auto-rotate
+              enableZoom={false}
+              maxPolarAngle={Math.PI / 2} minPolarAngle={Math.PI / 2} // Lock vertical
+              enablePan={false}
+              autoRotate={true} autoRotateSpeed={0.4} // Subtle rotation
+              // enableDamping={true} dampingFactor={0.1}
             />
-            <ComputerModel
-              onClick={handleComputerClick} // Pass navigation click handler
-              isMobile={isMobile} onZoomIn={function (): void {
-                throw new Error("Function not implemented.");
-              } }            // onLoaded not strictly needed if HomePage manages loading screen
-            />
+            <ComputerModel />
           </Suspense>
           <Preload all />
         </PerformanceOptimizer>
       </Canvas>
-      {/* Interaction logic is now on the ComputerModel group */}
     </div>
   );
 };

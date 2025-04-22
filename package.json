@@ -25,6 +25,7 @@
     "framer-motion": "^12.5.0",
     "lodash.debounce": "^4.0.8",
     "lodash.throttle": "^4.1.1",
+    "lucide-react": "^0.503.0",
     "maath": "^0.10.8",
     "next": "^15.2.4",
     "postcss": "^8.5.3",

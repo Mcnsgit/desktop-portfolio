@@ -1,9 +1,17 @@
-// components/desktop/Taskbar.tsx
+// src/components/desktop/Taskbar.tsx
 import React, { useState, useEffect, useCallback } from "react";
-import { Resize } from "@phosphor-icons/react";
 import { useDesktop } from "../../context/DesktopContext";
 import { useSounds } from "../../hooks/useSounds";
 import styles from "../styles/Taskbar.module.scss";
+import Image from "next/image";
+import {
+  ChevronRight,
+  Clock,
+  Volume2,
+  Wifi,
+  Battery,
+  User
+} from "lucide-react";
 
 interface TaskbarProps {
   onStartClick: () => void;
@@ -12,20 +20,31 @@ interface TaskbarProps {
 const Taskbar: React.FC<TaskbarProps> = ({ onStartClick }) => {
   const { state, dispatch } = useDesktop();
   const { playSound } = useSounds();
-  const [currentTime, setCurrentTime] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState<string>("");
+  const [currentDate, setCurrentDate] = useState<string>("");
+  const [showTooltip, setShowTooltip] = useState<{
+    windowId: string;
+    position: { x: number; y: number };
+  } | null>(null);
 
-  // Update clock - client-side only
+  // Update clock
   useEffect(() => {
-    // Update immediately and then set interval
     const updateTime = () => {
       const now = new Date();
-      // Use 24-hour format to ensure consistency
       const timeString = now.toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
-        hour12: false, // Force 24-hour format
+        hour12: false, // Use 24-hour format
       });
+
+      const dateString = now.toLocaleDateString([], {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+
       setCurrentTime(timeString);
+      setCurrentDate(dateString);
     };
 
     updateTime(); // Update immediately
@@ -34,93 +53,198 @@ const Taskbar: React.FC<TaskbarProps> = ({ onStartClick }) => {
     return () => clearInterval(timer);
   }, []);
 
-  // Handle taskbar window button click
-  const handleWindowClick = (windowId: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // Stop event propagation
-    playSound("click");
-    dispatch({ type: "FOCUS_WINDOW", payload: { id: windowId } });
-  };
-
-  // Handle Start button click with explicit propagation prevention
-  const handleStartClick = (e: React.MouseEvent) => {
+  // Handle Start button click
+  const handleStartClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent click from bubbling to desktop
     e.preventDefault(); // Prevent default behavior
-    console.log("Start button clicked"); // Debug log
 
-    // Just to be sure the start menu toggle works
     playSound("click");
     onStartClick();
-  };
+  }, [onStartClick, playSound]);
 
-  // Taskbar item click handler to properly restore windows
-  const handleTaskbarItemClick = (windowId: string) => {
+  // Handle taskbar item click
+  const handleTaskbarItemClick = useCallback((windowId: string) => {
     const windowData = state.windows.find(w => w.id === windowId);
-
     if (!windowData) return;
 
-    // Log for debugging
-    console.log(`Taskbar item clicked for window ${windowId}`, {
-      isMinimized: windowData.minimized,
-      isActive: state.activeWindowId === windowId
-    });
-
+    // If window is minimized, restore it
     if (windowData.minimized) {
-      // If window is minimized, restore it (un-minimize it)
-      dispatch({
-        type: "FOCUS_WINDOW",
-        payload: { id: windowId }
-      });
-
-      // Additional dispatch to explicitly un-minimize
       dispatch({
         type: "RESTORE_WINDOW",
         payload: { id: windowId }
       });
 
-      console.log(`Dispatched restore for window ${windowId}`);
-    } else if (state.activeWindowId === windowId) {
-      // If window is already active, minimize it
-      dispatch({
-        type: "MINIMIZE_WINDOW",
-        payload: { id: windowId }
-      });
-
-      console.log(`Dispatched minimize for active window ${windowId}`);
-    } else {
-      // If window is not minimized but not active, focus it
+      // Focus the window
       dispatch({
         type: "FOCUS_WINDOW",
         payload: { id: windowId }
       });
 
-      console.log(`Dispatched focus for window ${windowId}`);
+      playSound("click");
     }
-  };
+    // If window is already active, minimize it
+    else if (state.activeWindowId === windowId) {
+      dispatch({
+        type: "MINIMIZE_WINDOW",
+        payload: { id: windowId }
+      });
+
+      playSound("click");
+    }
+    // Otherwise, focus the window
+    else {
+      dispatch({
+        type: "FOCUS_WINDOW",
+        payload: { id: windowId }
+      });
+
+      playSound("click");
+    }
+  }, [dispatch, playSound, state.activeWindowId, state.windows]);
+
+  // Show tooltip on hover
+  const handleTaskbarItemMouseEnter = useCallback((e: React.MouseEvent, windowId: string) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setShowTooltip({
+      windowId,
+      position: {
+        x: rect.left + rect.width / 2,
+        y: rect.top - 5,
+      },
+    });
+  }, []);
+
+  // Hide tooltip on mouse leave
+  const handleTaskbarItemMouseLeave = useCallback(() => {
+    setShowTooltip(null);
+  }, []);
+
+  // Get icon for window type
+  const getWindowIcon = useCallback((windowType: string) => {
+    switch (windowType) {
+      case 'folder':
+        return '/assets/win98-icons/png/directory_open-0.png';
+      case 'texteditor':
+        return '/assets/win98-icons/png/notepad_file-0.png';
+      case 'imageviewer':
+        return '/assets/win98-icons/png/image_file-0.png';
+      case 'project':
+        return '/assets/win98-icons/png/application-0.png';
+      case 'weatherapp':
+        return '/assets/win98-icons/png/sun-0.png';
+      case 'about':
+        return '/assets/win98-icons/png/address_book_user.png';
+      case 'contact':
+        return '/assets/win98-icons/png/msn3-4.png';
+      default:
+        return '/assets/win98-icons/png/application-0.png';
+    }
+  }, []);
 
   return (
-    <div className={styles.taskbar} onClick={(e) => e.stopPropagation()}>
-      <div className={styles.startButton} onClick={handleStartClick}>
-        Start
+    <div
+      className={styles.taskbar}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {/* Start button */}
+      <div
+        className={styles.startButton}
+        onClick={handleStartClick}
+      >
+        <Image
+          src="/assets/win98-icons/png/computer_explorer_small-0.png"
+          alt="Start"
+          width={16}
+          height={16}
+        />
+        <span>Start</span>
       </div>
 
+      {/* Quick launch icons */}
+      <div className={styles.quickLaunch}>
+        <button className={styles.quickLaunchButton} title="File Explorer">
+          <Image
+            src="/assets/win98-icons/png/directory_explorer-0.png"
+            alt="Explorer"
+            width={16}
+            height={16}
+          />
+        </button>
+        <button className={styles.quickLaunchButton} title="Text Editor">
+          <Image
+            src="/assets/win98-icons/png/notepad_file-0.png"
+            alt="Notepad"
+            width={16}
+            height={16}
+          />
+        </button>
+        <button className={styles.quickLaunchButton} title="Web Browser">
+          <Image
+            src="/assets/win98-icons/png/html-0.png"
+            alt="Browser"
+            width={16}
+            height={16}
+          />
+        </button>
+
+        <div className={styles.separator}></div>
+      </div>
+
+      {/* Window buttons */}
       <div className={styles.windowButtons}>
         {state.windows.map((window) => (
-          <div
+          <button
             key={window.id}
-            className={`${styles.windowButton} ${state.activeWindowId === window.id ? styles.active : ""
-              }`}
+            className={`${styles.windowButton} ${state.activeWindowId === window.id ? styles.active : ""} ${window.minimized ? styles.minimized : ""}`}
             onClick={() => handleTaskbarItemClick(window.id)}
+            onMouseEnter={(e) => handleTaskbarItemMouseEnter(e, window.id)}
+            onMouseLeave={handleTaskbarItemMouseLeave}
+            title={window.title}
           >
-            <Resize size={16} />
-            <span>{window.title}</span>
-          </div>
+            <div className={styles.windowButtonIcon}>
+              <Image
+                src={getWindowIcon(window.type)}
+                alt={window.type}
+                width={16}
+                height={16}
+              />
+            </div>
+            <span className={styles.windowButtonText}>{window.title}</span>
+          </button>
         ))}
       </div>
 
+      {/* System tray */}
       <div className={styles.systemTray}>
-        {/* Only render the time if it's available (client-side) */}
-        <div className={styles.clock}>{currentTime}</div>
+        <button className={styles.trayIcon} title="Volume">
+          <Volume2 size={16} />
+        </button>
+        <button className={styles.trayIcon} title="Network">
+          <Wifi size={16} />
+        </button>
+        <button className={styles.trayIcon} title="Battery">
+          <Battery size={16} />
+        </button>
+
+        {/* Clock and date */}
+        <div className={styles.clock} title={currentDate}>
+          <Clock size={14} className={styles.clockIcon} />
+          <span>{currentTime}</span>
+        </div>
       </div>
+
+      {/* Window tooltips */}
+      {showTooltip && (
+        <div
+          className={styles.windowTooltip}
+          style={{
+            left: `${showTooltip.position.x}px`,
+            top: `${showTooltip.position.y}px`,
+          }}
+        >
+          {state.windows.find(w => w.id === showTooltip.windowId)?.title}
+        </div>
+      )}
     </div>
   );
 };

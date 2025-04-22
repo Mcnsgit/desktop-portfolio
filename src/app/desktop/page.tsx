@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useDesktop } from "@/context/DesktopContext"; // Importing context at the top
 import LoadingScreen from "@/components/3d/LoadingScreen";
 import { FileSystemProvider } from "@/context/FileSystemContext";
+import { ProjectTag } from "@/types";
 
 export default function DesktopPage() {
   const [isMobile, setIsMobile] = useState(false);
@@ -87,9 +88,11 @@ const DesktopInitializer = () => {
               title: "About Me",
               icon: "/assets/icons/win98/w98_directory_program_group.ico",
               description: "About the developer",
-              tags:["html"],
+              tags: ["html" as unknown as ProjectTag],
               technologies: ["html", "css", "javascript"],
               content: "About Me content goes here",
+              name: "",
+              image: ""
             },
           ],
         },

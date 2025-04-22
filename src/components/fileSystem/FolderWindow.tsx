@@ -1,121 +1,123 @@
-// Enhanced FolderWindow.tsx with improved folder system implementation
-import React, { useState, useEffect, useCallback } from 'react';
-import { useFileSystem } from '../../context/FileSystemContext';
-import { useDesktop } from '../../context/DesktopContext';
-import Icon from '../desktop/Icon';
-import styles from '../styles/FolderWindow.module.scss';
+// src/components/fileSystem/FolderWindow.tsx
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useDesktop } from '@/context/DesktopContext';
+import { useFileOperations } from '@/context/FileOperationsContext';
 import { useSounds } from '@/hooks/useSounds';
-import ImageWithFallback from '@/utils/ImageWithFallback';
-import { launchApp } from '@/utils/appLauncher';
+import Image from 'next/image';
+import styles from '../styles/FolderWindow.module.scss';
+import {
+  GridIcon,
+  ListIcon,
+  SearchIcon,
+  PlusIcon,
+  FolderPlusIcon,
+  FilePlusIcon,
+  UploadIcon,
+  ArrowUpIcon,
+  ClipboardIcon,
+  ScissorsIcon,
+  Trash2Icon,
+  RefreshCwIcon,
+  SortAscIcon
+} from 'lucide-react';
+
+// Custom components that would need to be created
+import Breadcrumb from './Breadcrumb';
+import ContextMenu from '../desktop/ContextMenu';
+
 
 interface FolderWindowProps {
   folderId: string;
 }
 
 interface FileItem {
+  id: string;
   name: string;
-  isDirectory: boolean;
-  isLink: boolean;
-  linkTarget?: string;
-  path: string;
+  type: 'file' | 'folder';
+  icon?: string;
+  fileType?: string;
+  size?: string;
+  modified?: string;
+  parentId: string | null;
 }
 
 const FolderWindow: React.FC<FolderWindowProps> = ({ folderId }) => {
   const { state, dispatch } = useDesktop();
-  const { listDirectory, resolveShortcut } = useFileSystem();
-  const { playSound } = useSounds();
-  const [folderPath, setFolderPath] = useState<string>('');
-  const [items, setItems] = useState<FileItem[]>([]);
-  const [selectedItem, setSelectedItem] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'icons' | 'list' | 'details'>('icons');
   const [sortBy, setSortBy] = useState<'name' | 'type' | 'size' | 'date'>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [error, setError] = useState<string | null>(null);
-  const [breadcrumbs, setBreadcrumbs] = useState<{ path: string, name: string }[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
 
-  // Find folder path from folder ID
-  useEffect(() => {
-    const folder = state.folders.find(f => f.id === folderId);
-    if (folder) {
-      setFolderPath(`/home/guest/Desktop/${folder.title}`);
-    } else {
-      // Default to Desktop if folder not found
-      setFolderPath('/home/guest/Desktop');
-    }
+  // Get current folder data
+  const currentFolder = useMemo(() => {
+    return state.folders.find(f => f.id === folderId);
   }, [folderId, state.folders]);
 
-  // Load folder contents
-  const loadFolderContents = useCallback(async (path: string) => {
-    if (!path) return;
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const contents = await listDirectory(path);
-
-      // Map directory contents to file items
-      const fileItems: FileItem[] = contents.map(item => ({
-        name: item.name,
-        isDirectory: item.isDirectory,
-        isLink: item.isLink,
-        linkTarget: item.linkTarget,
-        path: `${path}/${item.name}`
+  // Get folder items
+  const folderItems = useMemo(() => {
+    // Get items that have this folder as parent
+    const items: FileItem[] = state.desktopItems
+      .filter(item => item.parentId === folderId)
+      .map(item => ({
+        id: item.id,
+        name: item.title,
+        type: item.type === 'folder' ? 'folder' : 'file',
+        icon: item.icon,
+        fileType: getFileType(item.title),
+        size: '0 KB', // Placeholder
+        modified: new Date().toLocaleDateString(),
+        parentId: item.parentId
       }));
 
-      // Sort items
-      const sortedItems = sortItems(fileItems, sortBy, sortDirection);
-      setItems(sortedItems);
+    // Sort items
+    return sortItems(items, sortBy, sortDirection);
+  }, [folderId, sortBy, sortDirection, state.desktopItems]);
 
-      // Update breadcrumbs
-      updateBreadcrumbs(path);
-    } catch (error) {
-      console.error(`Error loading folder contents for ${path}:`, error);
-      setError(`Failed to load folder contents: ${error}`);
-      setItems([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [listDirectory, sortBy, sortDirection]);
+  // Filter by search query
+  const filteredItems = useMemo(() => {
+    if (!searchQuery) return folderItems;
+    return folderItems.filter(item =>
+      item.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [folderItems, searchQuery]);
 
-  // Update breadcrumbs based on current path
-  const updateBreadcrumbs = (path: string) => {
-    const parts = path.split('/').filter(Boolean);
-    const crumbs = [];
-
-    let currentPath = '';
-    for (const part of parts) {
-      currentPath += `/${part}`;
-      crumbs.push({
-        name: part,
-        path: currentPath
-      });
-    }
-
-    setBreadcrumbs(crumbs);
+  // Helper to get file type from name
+  const getFileType = (name: string): string => {
+    if (!name.includes('.')) return '';
+    return name.split('.').pop()?.toLowerCase() || '';
   };
 
-  // Sort items based on sort criteria
-  const sortItems = (items: FileItem[], sortBy: string, direction: 'asc' | 'desc') => {
+  // Helper to sort items
+  const sortItems = (items: FileItem[], sortKey: string, direction: 'asc' | 'desc') => {
     return [...items].sort((a, b) => {
-      // Directories always come first
-      if (a.isDirectory && !b.isDirectory) return -1;
-      if (!a.isDirectory && b.isDirectory) return 1;
+      // Always put folders first
+      if (a.type === 'folder' && b.type !== 'folder') return -1;
+      if (a.type !== 'folder' && b.type === 'folder') return 1;
 
       let comparison = 0;
 
-      switch (sortBy) {
+      switch (sortKey) {
         case 'name':
           comparison = a.name.localeCompare(b.name);
           break;
         case 'type':
-          // Get file extensions
-          const extA = a.name.includes('.') ? a.name.split('.').pop() || '' : '';
-          const extB = b.name.includes('.') ? b.name.split('.').pop() || '' : '';
-          comparison = extA.localeCompare(extB);
+          if (a.type === 'folder' && b.type === 'folder') {
+            comparison = a.name.localeCompare(b.name);
+          } else {
+            const typeA = a.fileType || '';
+            const typeB = b.fileType || '';
+            comparison = typeA.localeCompare(typeB);
+          }
           break;
-        // Add other sort methods as needed
+        case 'size':
+          // Placeholder
+          comparison = (a.size || '').localeCompare(b.size || '');
+          break;
+        case 'date':
+          // Placeholder
+          comparison = (a.modified || '').localeCompare(b.modified || '');
+          break;
         default:
           comparison = a.name.localeCompare(b.name);
       }
@@ -124,145 +126,91 @@ const FolderWindow: React.FC<FolderWindowProps> = ({ folderId }) => {
     });
   };
 
-  // Load folder contents when path changes
-  useEffect(() => {
-    if (folderPath) {
-      loadFolderContents(folderPath);
-    }
-  }, [folderPath, loadFolderContents]);
-
-  // Handle item double click
-  const handleItemDoubleClick = async (item: FileItem) => {
-    playSound('click');
-
-    if (item.isDirectory) {
-      // Navigate to directory
-      setFolderPath(item.path);
-    } else if (item.isLink) {
-      // Handle shortcut
-      if (item.linkTarget) {
-        if (item.linkTarget.startsWith('app:')) {
-          // Launch application
-          const appName = item.linkTarget.replace('app:', '');
-          launchApp(appName, dispatch);
-        } else {
-          // Navigate to target path
-          const targetPath = await resolveShortcut(item.path);
-          if (targetPath) {
-            setFolderPath(targetPath);
-          }
-        }
+  // Toggle file selection
+  const toggleFileSelection = (fileId: string, multiSelect = false) => {
+    setSelectedFiles(prev => {
+      const newSelection = new Set(multiSelect ? prev : []);
+      if (prev.has(fileId)) {
+        newSelection.delete(fileId);
+      } else {
+        newSelection.add(fileId);
       }
+      return newSelection;
+    });
+  };
+
+  // Handle item click for selection
+  const handleItemClick = (e: React.MouseEvent, item: FileItem) => {
+    e.stopPropagation();
+
+    // Handle multi-selection with Ctrl/Shift
+    const multiSelect = e.ctrlKey || e.shiftKey;
+    toggleFileSelection(item.id, multiSelect);
+  };
+
+  // Handle double-click to open item
+  const handleItemDoubleClick = (item: FileItem) => {
+    if (item.type === 'folder') {
+      // Open folder in a new window
+      dispatch({
+        type: "OPEN_WINDOW",
+        payload: {
+          id: `folder-${item.id}`,
+          title: item.name,
+          type: "folder",
+          content: { type: "folder", folderId: item.id },
+          minimized: false,
+          position: { x: 120, y: 120 },
+          size: { width: 550, height: 400 },
+          zIndex: 1,
+        },
+      });
     } else {
-      // Open file based on extension
-      const extension = item.name.includes('.') ? item.name.split('.').pop()?.toLowerCase() : '';
-
-      switch (extension) {
-        case 'txt':
-        case 'md':
-        case 'js':
-        case 'ts':
-        case 'jsx':
-        case 'tsx':
-        case 'css':
-        case 'html':
-          // Open in text editor
-          dispatch({
-            type: 'OPEN_WINDOW',
-            payload: {
-              id: `texteditor-${Date.now()}`,
-              title: `Text Editor - ${item.name}`,
-              content: { filePath: item.path },
-              minimized: false,
-              position: { x: 120, y: 120 },
-              type: 'texteditor',
-            }
-          });
-          break;
-        case 'jpg':
-        case 'jpeg':
-        case 'png':
-        case 'gif':
-        case 'svg':
-          // Open in image viewer
-          dispatch({
-            type: 'OPEN_WINDOW',
-            payload: {
-              id: `imageviewer-${Date.now()}`,
-              title: `Image Viewer - ${item.name}`,
-              content: { filePath: item.path },
-              minimized: false,
-              position: { x: 150, y: 150 },
-              type: 'imageviewer',
-            }
-          });
-          break;
-        default:
-          // Default to text editor for unknown types
-          dispatch({
-            type: 'OPEN_WINDOW',
-            payload: {
-              id: `texteditor-${Date.now()}`,
-              title: `Text Editor - ${item.name}`,
-              content: { filePath: item.path },
-              minimized: false,
-              position: { x: 120, y: 120 },
-              type: 'texteditor',
-            }
-          });
-      }
+      // Open file based on type
+      dispatch({
+        type: "OPEN_WINDOW",
+        payload: {
+          id: `texteditor-${Date.now()}`,
+          title: `Text Editor - ${item.name}`,
+          type: "texteditor",
+          content: { type: "texteditor", filePath: item.id },
+          minimized: false,
+          position: { x: 120, y: 120 },
+          size: { width: 600, height: 400 },
+          zIndex: 1,
+        },
+      });
     }
-  };
-
-  // Handle item selection
-  const handleItemClick = (item: FileItem) => {
-    setSelectedItem(item.path);
-  };
-
-  // Handle navigation to parent directory
-  const handleNavigateUp = () => {
-    if (folderPath === '/') return;
-
-    const parentPath = folderPath.substring(0, folderPath.lastIndexOf('/'));
-    setFolderPath(parentPath || '/');
-    playSound('click');
-  };
-
-  // Handle breadcrumb navigation
-  const handleBreadcrumbClick = (path: string) => {
-    setFolderPath(path);
-    playSound('click');
   };
 
   // Handle view mode change
   const handleViewModeChange = (mode: 'icons' | 'list' | 'details') => {
     setViewMode(mode);
-    playSound('click');
   };
 
   // Handle sort change
   const handleSortChange = (sortKey: 'name' | 'type' | 'size' | 'date') => {
     if (sortBy === sortKey) {
-      // Toggle direction if same sort key
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+      // Toggle direction if already sorting by this key
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
     } else {
       setSortBy(sortKey);
       setSortDirection('asc');
     }
-    playSound('click');
+  };
+
+  // Handle empty area click to clear selection
+  const handleEmptyAreaClick = () => {
+    setSelectedFiles(new Set());
   };
 
   // Get appropriate icon for file type
-  const getFileIcon = (item: FileItem) => {
-    if (item.isDirectory) {
+  const getFileIcon = (item: FileItem): string => {
+    if (item.type === 'folder') {
       return '/assets/win98-icons/png/directory_open-0.png';
     }
 
-    if (item.isLink) {
-      return '/assets/win98-icons/png/shortcut-0.png';
-    }
-
-    const extension = item.name.includes('.') ? item.name.split('.').pop()?.toLowerCase() : '';
+    const extension = getFileType(item.name);
 
     switch (extension) {
       case 'txt':
@@ -289,145 +237,189 @@ const FolderWindow: React.FC<FolderWindowProps> = ({ folderId }) => {
     }
   };
 
-  return (
-    <div className={styles.folderWindow}>
-      <div className={styles.toolbar}>
-        <button onClick={handleNavigateUp} className={styles.toolbarButton}>
-          Up
-        </button>
-        <div className={styles.breadcrumbs}>
-          <button onClick={() => handleBreadcrumbClick('/')} className={styles.breadcrumbItem}>
-            Root
-          </button>
-          {breadcrumbs.map((crumb, index) => (
-            <React.Fragment key={crumb.path}>
-              <span className={styles.breadcrumbSeparator}>/</span>
-              <button
-                onClick={() => handleBreadcrumbClick(crumb.path)}
-                className={styles.breadcrumbItem}
-              >
-                {crumb.name}
-              </button>
-            </React.Fragment>
-          ))}
+  // Fallback for missing icons
+  const [iconErrors, setIconErrors] = useState<Record<string, boolean>>({});
+
+  const handleIconError = (itemId: string) => {
+    setIconErrors(prev => ({ ...prev, [itemId]: true }));
+  };
+
+  // Create colored icon based on file type
+  const getColoredIcon = (item: FileItem) => {
+    if (item.type === 'folder') {
+      return (
+        <div
+          style={{
+            width: "32px",
+            height: "32px",
+            backgroundColor: "#FFC83D",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: "4px",
+            color: "#855B00",
+            fontSize: "16px",
+            fontWeight: "bold",
+          }}
+        >
+          F
         </div>
-        <div className={styles.viewControls}>
+      );
+    }
+
+    const extension = getFileType(item.name);
+    let color = "#4a86cf";
+    let letter = "F";
+
+    switch (extension) {
+      case 'txt':
+      case 'md':
+        color = "#66bb6a";
+        letter = "T";
+        break;
+      case 'js':
+      case 'ts':
+      case 'jsx':
+      case 'tsx':
+        color = "#ffd54f";
+        letter = "J";
+        break;
+      case 'html':
+        color = "#ff7043";
+        letter = "H";
+        break;
+      case 'css':
+        color = "#42a5f5";
+        letter = "C";
+        break;
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+      case 'gif':
+      case 'svg':
+        color = "#ec407a";
+        letter = "I";
+        break;
+    }
+
+    return (
+      <div
+        style={{
+          width: "32px",
+          height: "32px",
+          backgroundColor: color,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          borderRadius: "4px",
+          color: "white",
+          fontSize: "16px",
+          fontWeight: "bold",
+        }}
+      >
+        {letter}
+      </div>
+    );
+  };
+
+  return (
+    <div className={styles.folderWindow || "folderWindow"} onClick={handleEmptyAreaClick}>
+      {/* Toolbar */}
+      <div className={styles.toolbar || "toolbar"}>
+        <div className={styles.viewControls || "viewControls"}>
           <button
             onClick={() => handleViewModeChange('icons')}
-            className={`${styles.viewButton} ${viewMode === 'icons' ? styles.active : ''}`}
+            className={`${styles.viewButton || "viewButton"} ${viewMode === 'icons' ? styles.active || "active" : ''}`}
           >
             Icons
           </button>
           <button
             onClick={() => handleViewModeChange('list')}
-            className={`${styles.viewButton} ${viewMode === 'list' ? styles.active : ''}`}
+            className={`${styles.viewButton || "viewButton"} ${viewMode === 'list' ? styles.active || "active" : ''}`}
           >
             List
           </button>
           <button
             onClick={() => handleViewModeChange('details')}
-            className={`${styles.viewButton} ${viewMode === 'details' ? styles.active : ''}`}
+            className={`${styles.viewButton || "viewButton"} ${viewMode === 'details' ? styles.active || "active" : ''}`}
           >
             Details
           </button>
         </div>
+
+        <div className={styles.searchContainer || "searchContainer"}>
+          <input
+            type="text"
+            placeholder="Search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className={styles.searchInput || "searchInput"}
+          />
+        </div>
       </div>
 
-      {loading ? (
-        <div className={styles.loadingContainer}>
-          <div className={styles.loadingSpinner}></div>
-          <p>Loading folder contents...</p>
-        </div>
-      ) : error ? (
-        <div className={styles.errorContainer}>
-          <p className={styles.errorMessage}>{error}</p>
-          <button onClick={() => loadFolderContents(folderPath)} className={styles.retryButton}>
-            Retry
-          </button>
-        </div>
-      ) : items.length === 0 ? (
-        <div className={styles.emptyFolder}>
-          <p>This folder is empty.</p>
-        </div>
-      ) : (
-        <div className={`${styles.folderContents} ${styles[viewMode]}`}>
-          {viewMode === 'details' && (
-            <div className={styles.headerRow}>
+      {/* Content area */}
+      <div className={`${styles.folderContents || "folderContents"} ${styles[viewMode] || viewMode}`}>
+        {filteredItems.length === 0 ? (
+          <div className={styles.emptyMessage || "emptyMessage"}>
+            {searchQuery ? 'No items match your search.' : 'This folder is empty.'}
+          </div>
+        ) : (
+          <div className={styles.itemsContainer || "itemsContainer"}>
+            {filteredItems.map((item) => (
               <div
-                className={`${styles.headerCell} ${sortBy === 'name' ? styles.sorted : ''}`}
-                onClick={() => handleSortChange('name')}
-              >
-                Name {sortBy === 'name' && (sortDirection === 'asc' ? '▲' : '▼')}
-              </div>
-              <div
-                className={`${styles.headerCell} ${sortBy === 'type' ? styles.sorted : ''}`}
-                onClick={() => handleSortChange('type')}
-              >
-                Type {sortBy === 'type' && (sortDirection === 'asc' ? '▲' : '▼')}
-              </div>
-              <div
-                className={`${styles.headerCell} ${sortBy === 'size' ? styles.sorted : ''}`}
-                onClick={() => handleSortChange('size')}
-              >
-                Size {sortBy === 'size' && (sortDirection === 'asc' ? '▲' : '▼')}
-              </div>
-              <div
-                className={`${styles.headerCell} ${sortBy === 'date' ? styles.sorted : ''}`}
-                onClick={() => handleSortChange('date')}
-              >
-                Date Modified {sortBy === 'date' && (sortDirection === 'asc' ? '▲' : '▼')}
-              </div>
-            </div>
-          )}
-
-          <div className={styles.itemsContainer}>
-            {items.map((item) => (
-              <div
-                key={item.path}
-                className={`${styles.fileItem} ${selectedItem === item.path ? styles.selected : ''}`}
-                onClick={() => handleItemClick(item)}
+                key={item.id}
+                className={`${styles.fileItem || "fileItem"} ${selectedFiles.has(item.id) ? styles.selected || "selected" : ''}`}
+                onClick={(e) => handleItemClick(e, item)}
                 onDoubleClick={() => handleItemDoubleClick(item)}
               >
-                <div className={styles.fileIcon}>
-                  <ImageWithFallback
-                    src={getFileIcon(item)}
-                    alt={item.name}
-                    width={viewMode === 'icons' ? 32 : 16}
-                    height={viewMode === 'icons' ? 32 : 16}
-                  />
+                <div className={styles.fileIcon || "fileIcon"}>
+                  {iconErrors[item.id] ? (
+                    getColoredIcon(item)
+                  ) : (
+                    <Image
+                      src={getFileIcon(item)}
+                      alt={item.name}
+                      width={viewMode === 'icons' ? 32 : 16}
+                      height={viewMode === 'icons' ? 32 : 16}
+                      onError={() => handleIconError(item.id)}
+                      unoptimized
+                    />
+                  )}
                 </div>
-                <div className={styles.fileName}>
+
+                <div className={styles.fileName || "fileName"}>
                   {item.name}
-                  {item.isLink && <span className={styles.shortcutIndicator}>↗</span>}
                 </div>
 
                 {viewMode === 'details' && (
                   <>
-                    <div className={styles.fileType}>
-                      {item.isDirectory ? 'Folder' :
-                        item.isLink ? 'Shortcut' :
-                          item.name.includes('.') ? item.name.split('.').pop()?.toUpperCase() : 'File'}
+                    <div className={styles.fileType || "fileType"}>
+                      {item.type === 'folder'
+                        ? 'Folder'
+                        : item.fileType?.toUpperCase() || 'File'}
                     </div>
-                    <div className={styles.fileSize}>
-                      {item.isDirectory ? '--' : '1 KB'}
+
+                    <div className={styles.fileSize || "fileSize"}>
+                      {item.size}
                     </div>
-                    <div className={styles.fileDate}>
-                      {new Date().toLocaleDateString()}
+
+                    <div className={styles.fileDate || "fileDate"}>
+                      {item.modified}
                     </div>
                   </>
                 )}
               </div>
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      <div className={styles.statusBar}>
-        <div className={styles.statusText}>
-          {items.length} items
-        </div>
-        <div className={styles.diskSpace}>
-          Free Space: 640 MB
+      {/* Status bar */}
+      <div className={styles.statusBar || "statusBar"}>
+        <div className={styles.statusInfo || "statusInfo"}>
+          {filteredItems.length} item{filteredItems.length !== 1 ? 's' : ''}
+          {selectedFiles.size > 0 && ` (${selectedFiles.size} selected)`}
         </div>
       </div>
     </div>

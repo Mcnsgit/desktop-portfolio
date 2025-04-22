@@ -16,7 +16,7 @@ const ProjectWindow: React.FC<ProjectWindowProps> = ({ project }) => {
           <div className={styles.codeProject}>
             <div className={styles.description}>{project.description}</div>
             <div className={styles.technologies}>
-              {project.technologies.map(tech => (
+              {(project.technologies ?? []).map(tech => (
                 <span key={tech} className={styles.tag}>{tech}</span>
               ))}
             </div>

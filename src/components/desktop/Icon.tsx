@@ -1,155 +1,195 @@
-// components/desktop/Icon.tsx
-import React, { useState, useRef } from "react";
+// src/components/desktop/Icon.tsx
+import React, { useState, useRef, useEffect } from "react";
+import { useSounds } from "@/hooks/useSounds";
+import { useDesktop } from "@/context/DesktopContext";
+import Image, { StaticImageData } from "next/image";
 import styles from "../styles/Icon.module.scss";
-import { useSounds } from "../../hooks/useSounds";
-import Image, { StaticImageData } from "next/image"; // Added StaticImageData
-
 
 interface IconProps {
   icon: string | StaticImageData;
   label: string;
-  onDoubleClick: (e?: React.MouseEvent) => void;
-  draggable?: boolean;
-  onDragStart?: (e: React.DragEvent, id?: string) => void;
-  itemId?: string; // ID of the item this icon represents
+  itemId: string;
+  onDoubleClick: () => void;
 }
-
-// Simple colored icon component as a fallback
-const ColoredIcon = ({ letter }: { letter: string }) => {
-  return (
-    <div
-      style={{
-        width: "32px",
-        height: "32px",
-        backgroundColor: "#1e90ff",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: "4px",
-        color: "white",
-        fontSize: "16px",
-        fontWeight: "bold",
-      }}
-    >
-      {letter}
-    </div>
-  );
-};
 
 const Icon: React.FC<IconProps> = ({
   icon,
   label,
-  onDoubleClick,
-  draggable = true,
-  onDragStart,
   itemId,
+  onDoubleClick,
 }) => {
   const { playSound } = useSounds();
-  const [iconError, setIconError] = useState(false);
+  const { state, dispatch } = useDesktop();
   const [isDragging, setIsDragging] = useState(false);
+  const [isSelected, setIsSelected] = useState(false);
   const iconRef = useRef<HTMLDivElement>(null);
 
-  // Handle double click with stopPropagation
-  const handleDoubleClickInternal = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent event bubbling
-    console.log(`Double-clicked on ${label} icon`);
+  // Check if this item is in the selection
+  useEffect(() => {
+    // This would come from a selection context or manager
+    // For now, just check if active item matches this one
+    setIsSelected(state.activeWindowId === itemId);
+  }, [state.activeWindowId, itemId]);
+
+  // Handle double click
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     playSound("click");
-    onDoubleClick(e);
+    onDoubleClick();
   };
 
-  // Fix the icon path by ensuring it has the correct format
+  // Handle single click for selection
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    // Handle multi-selection with Ctrl/Shift keys
+    const multiSelect = e.ctrlKey || e.shiftKey;
+
+    // This would dispatch to a selection manager
+    // For now, just simulate selection
+    setIsSelected(true);
+
+    // Dispatch to global state if needed
+    // dispatch({ type: 'SELECT_ITEM', payload: { id: itemId, multiSelect } });
+  };
+
+  // Drag and drop handling
+  const handleDragStart = (e: React.DragEvent) => {
+    e.stopPropagation();
+    setIsDragging(true);
+
+    // Set drag data
+    e.dataTransfer.setData("application/retroos-icon-id", itemId);
+    e.dataTransfer.setData("text/plain", label);
+    e.dataTransfer.effectAllowed = "move";
+
+    // Set drag image
+    if (iconRef.current) {
+      try {
+        const rect = iconRef.current.getBoundingClientRect();
+        const offsetX = e.clientX - rect.left;
+        const offsetY = e.clientY - rect.top;
+        e.dataTransfer.setDragImage(iconRef.current, offsetX, offsetY);
+      } catch (err) {
+        console.warn("Failed to set drag image:", err);
+      }
+    }
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+  };
+
+  // Fix icon path for display
   const fixIconPath = (pathInput: string | StaticImageData): string | StaticImageData => {
     if (typeof pathInput !== 'string') {
-        return pathInput; // Return if already StaticImageData
+      return pathInput;
     }
+
     let path = pathInput;
-    if (!path) return '/assets/win98-icons/png/application-0.png'; // Default icon path
 
-    if (!path.startsWith('/') && !path.startsWith('http')) { path = `/${path}`; } // Add leading slash if missing and not URL
+    // Default icon if not provided
+    if (!path) return '/assets/win98-icons/png/application-0.png';
 
-    // Basic extension check (can be expanded)
-    const hasExtension = /\.(png|ico|jpg|jpeg|svg|webp)$/i.test(path);
-    if (!hasExtension && !path.includes('data:image')) { // Don't add png to data URIs
-        path = `${path}.png`; // Default to png if no extension
+    // Add leading slash if missing and not a URL
+    if (!path.startsWith('/') && !path.startsWith('http')) {
+      path = `/${path}`;
     }
-    // Path cleaning (adjust based on actual project structure)
-    path = path.replace('/icons/png/', '/png/'); // Example cleaning
+
+    // Fix incorrect path structure (remove extra "icons" directory)
+    path = path.replace('/assets/win98-icons/icons/', '/assets/win98-icons/');
+
+    // Add extension if missing
+    const hasExtension = /\.(png|ico|jpg|jpeg|svg|webp)$/i.test(path);
+    if (!hasExtension && !path.includes('data:image')) {
+      path = `${path}.png`;
+    }
 
     return path;
   };
 
-
-  const handleDragStartInternal = (e: React.DragEvent) => { // Use DragEvent type
-    if (onDragStart) {
-      onDragStart(e, itemId);
-    } else if (itemId) {
-      e.dataTransfer.setData("application/retroos-icon-id", itemId);
-      e.dataTransfer.effectAllowed = "move";
-      if (iconRef.current) {
-        const rect = iconRef.current.getBoundingClientRect();
-        const offsetX = Math.max(0, e.clientX - rect.left); // Ensure non-negative offset
-        const offsetY = Math.max(0, e.clientY - rect.top);
-        try { // Add try-catch for setDragImage which can fail in some contexts
-            e.dataTransfer.setDragImage(iconRef.current, offsetX, offsetY);
-        } catch (err) {
-            console.warn("setDragImage failed:", err);
-        }
-      }
-    } else {
-        // Prevent dragging if no itemId and no custom handler
-        // e.preventDefault(); // Optionally prevent drag start
-        console.warn("Icon drag started without itemId and onDragStart handler.");
-    }
-    setIsDragging(true);
-  };
-
-  const handleDragEndInternal = () => { setIsDragging(false); };
-
-  // *** FIX: Use the result of fixIconPath ***
   const finalIconSrc = fixIconPath(icon);
+
+  // Fallback icon if image fails to load
+  const [iconError, setIconError] = useState(false);
+
+  // ColoredIcon as fallback
+  const ColoredIcon = () => (
+    <div style={{
+      width: "32px",
+      height: "32px",
+      backgroundColor: "#1e90ff",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: "4px",
+      color: "white",
+      fontSize: "16px",
+      fontWeight: "bold",
+    }}>
+      {label.charAt(0).toUpperCase()}
+    </div>
+  );
 
   return (
     <div
       ref={iconRef}
-      className={`${styles.icon} ${isDragging ? styles.dragging : ""}`}
-      style={{ /* ... styles remain same (no position) ... */
-         width: "80px", height: "90px", display: "flex", flexDirection: "column",
-         alignItems: "center", justifyContent: "flex-start", textAlign: "center",
-         cursor: isDragging ? "grabbing" : "pointer",
+      className={`${styles.icon} ${isDragging ? styles.dragging : ""} ${isSelected ? styles.selected : ""}`}
+      style={{
+        width: "80px",
+        height: "90px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "flex-start",
+        textAlign: "center",
+        cursor: isDragging ? "grabbing" : "pointer",
       }}
-      onDoubleClick={handleDoubleClickInternal}
-      draggable={draggable && !!itemId} // Only draggable if intended AND has an ID
-      onDragStart={handleDragStartInternal}
-      onDragEnd={handleDragEndInternal}
+      onClick={handleClick}
+      onDoubleClick={handleDoubleClick}
+      draggable
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
       data-item-id={itemId}
     >
-      <div style={{ /* ... icon image wrapper styles ... */
-          marginBottom: "8px", display: "flex", justifyContent: "center",
-          alignItems: "center", width: "40px", height: "40px",
+      <div style={{
+        marginBottom: "8px",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        width: "40px",
+        height: "40px",
       }}>
-        {/* *** FIX: Check iconError state, pass finalIconSrc, fix alt *** */}
         {!iconError && finalIconSrc ? (
           <Image
             src={finalIconSrc}
-            alt={label} // Use label for alt text
+            alt={label}
             width={32}
             height={32}
             onError={() => {
-              console.error(`Failed to load icon: `, finalIconSrc);
+              console.warn(`Using fallback for icon: ${finalIconSrc}`);
               setIconError(true);
             }}
             style={{ objectFit: "contain" }}
-            unoptimized // Good practice for potentially dynamic/external paths
+            unoptimized
+            loading="eager"
           />
         ) : (
-          <ColoredIcon letter={label.charAt(0).toUpperCase()} />
+          <ColoredIcon />
         )}
       </div>
-      <div style={{ /* ... label styles ... */
-         width: "80px", maxHeight: "40px", overflow: "hidden", wordWrap: "break-word",
-         textAlign: "center", color: "white", textShadow: "1px 1px 1px black, -1px -1px 1px black, 1px -1px 1px black, -1px 1px 1px black",
-         fontSize: "12px", fontFamily: "Arial, sans-serif", fontWeight: "bold", lineHeight: "1.2",
-       }}>
+      <div style={{
+        width: "80px",
+        maxHeight: "40px",
+        overflow: "hidden",
+        wordWrap: "break-word",
+        textAlign: "center",
+        color: "white",
+        textShadow: "1px 1px 1px black, -1px -1px 1px black, 1px -1px 1px black, -1px 1px 1px black",
+        fontSize: "12px",
+        fontWeight: "bold",
+        lineHeight: "1.2",
+      }}>
         {label}
       </div>
     </div>
