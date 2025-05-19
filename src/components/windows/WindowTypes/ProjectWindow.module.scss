@@ -1,0 +1,94 @@
+@use '../../../styles/_variables.scss' as *;
+@use 'sass:color';
+
+// ... Styles copied and refactored from ../styles/ProjectWindow.module.scss ...
+// Replace CSS vars with SCSS vars, use mixins etc.
+
+.projectWindow {
+  padding: $spacing-md;
+  background-color: $win98-content-bg;
+  height: 100%;
+  overflow-y: auto;
+  @include win98-scrollbar;
+  font-family: $win98-font-primary;
+}
+
+.title {
+  font-size: $win98-font-size-large + 4px;
+  font-weight: bold;
+  margin-bottom: $spacing-md;
+  color: $win98-title-active-bg;
+}
+
+.imageContainer {
+  margin-bottom: $spacing-md;
+  img {
+    width: 100%;
+    height: auto;
+    max-height: 250px;
+    object-fit: cover;
+    border: 1px solid $win98-border-dark;
+  }
+}
+
+.description {
+  margin-bottom: $spacing-md;
+  font-size: $win98-font-size-normal;
+  line-height: 1.6;
+}
+
+.sectionTitle {
+  font-size: $win98-font-size-large;
+  font-weight: bold;
+  margin-top: $spacing-lg;
+  margin-bottom: $spacing-sm;
+  color: color.adjust($win98-title-active-bg, $lightness: -10%);
+  border-bottom: 1px solid $win98-bg;
+  padding-bottom: $spacing-xs;
+}
+
+.tagsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+}
+
+.tag {
+  background-color: color.scale($win98-bg, $lightness: 5%);
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $border-radius-md;
+  font-size: $win98-font-size-small;
+  @include win98-border($win98-border-light, $win98-border-dark, 1px);
+}
+
+.linksContainer {
+  display: flex;
+  gap: $spacing-md;
+  margin-top: $spacing-md;
+}
+
+.linkButton {
+  // @extend %buttonbase; // Use placeholder if defined, or redefine
+  // Redefine basic button style if needed
+  background-color: $win98-button-face;
+  @include win98-border($win98-border-light, $win98-border-dark, 2px);
+  padding: $spacing-sm $spacing-md;
+  font-family: $win98-font-primary;
+  font-size: $win98-font-size-normal;
+  color: $win98-text-dark;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+
+  &:hover {
+    text-decoration: none;
+    background-color: color.scale($win98-button-face, $lightness: 5%);
+  }
+
+  &:active {
+    @include win98-border($win98-border-dark, $win98-border-light, 2px);
+  }
+} 

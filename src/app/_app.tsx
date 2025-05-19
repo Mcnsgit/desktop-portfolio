@@ -1,9 +1,9 @@
 // pages/_app.tsx
 import { AppProps } from 'next/app';
-// import { DesktopProvider } from '../context/DesktopContext';
-import '../styles/globals.scss';
-// import { FileSystemProvider } from '../context/FileSystemContext';
-// 
+
+import "./global.css";
+
+
 function MyApp({ Component, pageProps }: AppProps) {
   return (
 

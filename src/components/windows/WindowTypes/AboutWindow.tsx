@@ -1,7 +1,7 @@
 // src/components/windows/WindowTypes/AboutWindow.tsx
 import React from "react";
-import styles from "../../styles/AboutWindow.module.scss";
-import Image from "next/image";
+import styles from "./AboutWindow.module.scss";
+// import Image from "next/image";
 
 const AboutWindow: React.FC = () => {
   return (

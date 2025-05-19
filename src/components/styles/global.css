@@ -1,11 +1,19 @@
-/* styles/globals.scss - Updated Z-index Values */
+/* styles/globals.scss - Cleaned Up Z-index Values and Layout */
 :root {
-    --z-index-desktop: 10;
-        --z-index-window-base: 1000;
-        --z-index-window-active: 2000;
-        --z-index-taskbar: 900;
-        --z-index-start-menu: 950;
-        --z-index-context-menu: 3000;
+    /* Consistent Taskbar Height */
+    --taskbar-height: 30px;
+
+    /* Z-index layers (harmonized with scss variables where sensible, prioritize CSS vars here) */
+    /* These should be the single source of truth if used by JS or inline styles */
+    --z-index-desktop-env: 20;
+    --z-index-window-normal: 100;
+    --z-index-window-active: 200;
+    --z-index-taskbar: 500;
+    --z-index-start-menu: 600;
+    --z-index-dialog: 2500;
+    --z-index-context-menu: 3000;
+    --z-index-tooltip: 4000;
+    --z-index-loading-screen: 9999;
         
     /* Base colors */
     --primary-bg: #050816;
@@ -55,21 +63,6 @@
         --animation-fast: 150ms;
         --animation-normal: 250ms;
         --animation-slow: 350ms;
-
-    /* Z-index layers - UPDATED VALUES */
-    --z-index-desktop: 1;
-    --z-index-window: 100;
-    /* Increased to ensure above taskbar */
-    --z-index-window-active: 200;
-    /* Increased for active windows */
-    --z-index-taskbar: 1000;
-    /* Taskbar at 1000 */
-    --z-index-start-menu: 2000;
-    --z-index-menu:2000;
-    --z-index-dialog: 3000; 
-    /* Above taskbar but below windows */
-    --z-index-context-menu: 4000;
-    /* Highest for context menus */
 }
 
 /* Global styles */
@@ -79,167 +72,37 @@ body {
     padding: 0;
     font-family: 'MS Sans Serif', Arial, sans-serif;
     font-size: 14px;
-    background-color: var(--win98-bg);
-    color: var(--text-primary);
+    background-color: var(--win98-bg); /* Use CSS var */
+    color: var(--text-primary); /* Default text color, might need adjustment for light bg */
+    height: 100vh; /* Ensure html and body take full viewport height */
+    width: 100vw;
+    overflow: hidden; /* Prevent scrollbars on the body */
 }
 
-/* Make sure the window container is above everything except context menus */
-.window-container {
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 40px !important;
-    /* Leave space for taskbar */
-    z-index: var(--z-index-window-base) !important;
-    pointer-events: none;
-    /* Allow clicks to pass through to desktop */
-}
-
-/* Re-enable pointer events for individual windows */
-.window-container>div {
-    pointer-events: auto;
-}
-
-/* Ensure windows are visible above taskbar */
-.window {
-    position: absolute !important;
-    z-index: var(--z-index-window-base) !important;
-    transform: translateZ(0);
-    /* Force GPU acceleration */
-    will-change: transform, opacity;
-    /* Performance optimization */
-    visibility: visible !important;
-    display: block !important;
-}
-
-/* Fix desktop height to account for taskbar */
-.desktop {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 40px;
-    /* Account for taskbar */
-    z-index: var(--z-index-desktop);
-}
-
-/* Clear any previous position issues */
 #__next {
     position: relative;
     width: 100%;
-    height: 100vh;
+    height: 100%; /* Changed from 100vh to 100% to fill body */
     overflow: hidden;
 }
 
-/* Ensure taskbar is always visible */
-.taskbar {
-    position: fixed !important;
-    bottom: 0 !important;
-    z-index: var(--z-index-taskbar) !important;
-}
+/* Define the main desktop area, this class is used by Desktop.tsx's main div */
+/* This rule should ideally be in Desktop.module.scss to avoid !important */
+/* For now, let's define it here to ensure it's applied correctly */
 
-/* Support for MS Sans Serif font */
-@font-face {
-    font-family: 'MS Sans Serif';
-    src: url('/fonts/ms-sans-serif.woff2') format('woff2');
-    font-weight: normal;
-    font-style: normal;
-}
-.desktop-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 40px;
-    overflow: hidden;
-}
-/* Add this to your globals.css or a separate CSS file that's imported everywhere */
+
+
+/* Remove problematic .window overrides, let JS and react-draggable handle position/z-index */
+/*
 .window {
-    /* Force windows to appear at the top of the screen, above taskbar */
     top: 50px !important;
     z-index: 9999 !important;
     transform: translateZ(0) !important;
-    /* Force GPU acceleration */
     position: absolute !important;
     display: block !important;
     visibility: visible !important;
 }
 
-/* Override any conflicting styles for minimized windows */
-.window.minimized {
-    display: none !important;
-    visibility: hidden !important;
-}
-
-/* Set the window container above everything else */
-.window-container {
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 40px !important;
-    /* Account for taskbar */
-    z-index: 2000 !important;
-}
-
-/* Set taskbar to a specific z-index */
-.taskbar {
-    position: fixed !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    z-index: 1000 !important;
-    height: 40px !important;
-}
-
-/* Make desktop below windows but above other content */
-.desktop {
-    z-index: 10 !important;
-}
-
-/* Ensure the window content is visible */
-.windowContent {
-    display: flex !important;
-    flex-direction: column !important;
-    height: 100% !important;
-    width: 100% !important;
-    overflow: hidden !important;
-}
-
-/* Force the start menu to appear above taskbar */
-.startMenu {
-    z-index: 1500 !important;
-}
-
-/* Context menu should be on top of everything */
-.contextMenu,
-.rightClickMenu {
-    z-index: var(--z-index-context-menu) !important;
-}
-
-/* Ensure desktop is below windows */
-.desktop {
-    z-index: var(--z-index-desktop) !important;
-    height: calc(100vh - 40px) !important;
-    /* Account for taskbar */
-}
-
-/* Fix window animations */
-.window.maximizing,
-.window.restoring {
-    z-index: var(--z-index-window-active) !important;
-}
-
-/* Ensure content areas are properly positioned */
-.windowContent {
-    position: relative;
-    height: calc(100% - 24px);
-    /* Account for title bar */
-    overflow: hidden;
-}
-
-/* Add important flag to window positioning */
 .window[style] {
     top: 60px !important;
     z-index: var(--z-index-window-base) !important;
@@ -248,44 +111,140 @@ body {
 .window.active[style] {
     z-index: var(--z-index-window-active) !important;
 }
+*/
 
-/* 3. Optimize 3D animations with keyframes */
+/* Taskbar styling should come from Taskbar.module.scss primarily */
+/* This ensures taskbar is fixed at the bottom with correct height and z-index */
+/* .taskbar selector here is generic, ensure it matches the one from Taskbar.module.scss if overriding */
+/* For now, we assume Taskbar.module.scss handles its own styling correctly based on variables */
+/* If Taskbar.module.scss uses SCSS vars, ensure they align with these CSS vars or update it */
+
+/*
+.taskbar {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: var(--taskbar-height) !important; 
+    z-index: var(--z-index-taskbar) !important;
+}
+*/
+
+/* Remove .window-container styles if not actively used or clarify its purpose */
+/*
+.window-container {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: var(--taskbar-height) !important; 
+    z-index: var(--z-index-window-base) !important;
+    pointer-events: none;
+}
+.window-container>div {
+    pointer-events: auto;
+}
+*/
+
+
+/* Support for MS Sans Serif font */
+@font-face {
+    font-family: 'MS Sans Serif';
+    src: url('/fonts/ms-sans-serif.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* .desktop-container was a duplicate of .desktop or an alternative, remove for clarity */
+/*
+.desktop-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: var(--taskbar-height); 
+    overflow: hidden;
+}
+*/
+
+/* Ensure the window content is visible - this should be handled by Window.module.scss */
+/*
+.windowContent {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    width: 100% !important;
+    overflow: hidden !important;
+}
+*/
+
+/* Z-index for StartMenu should be handled in its own module or _variables.scss */
+/*
+.startMenu {
+    z-index: var(--z-index-start-menu) !important;
+}
+*/
+
+/* Context menu should be on top of everything - Handled by ContextMenu.module.scss */
+/*
+.contextMenu,
+.rightClickMenu {
+    z-index: var(--z-index-context-menu) !important;
+}
+*/
+
+/* Fix window animations - should be handled by Window.module.scss */
+/*
+.window.maximizing,
+.window.restoring {
+    z-index: var(--z-index-window-active) !important;
+}
+*/
+
+/* Ensure content areas are properly positioned - handled by Window.module.scss */
+/*
+.windowContent {
+    position: relative;
+    height: calc(100% - 24px);
+    overflow: hidden;
+}
+*/
+
+/* Other global styles from previous version if necessary */
+/* Keep these minimal and prefer component-specific styles */
+/*
 @keyframes float {
-    0% {
-        transform: translateY(0px);
-    }
-
-    50% {
-        transform: translateY(-10px);
-    }
-
-    100% {
-        transform: translateY(0px);
-    }
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
 }
 
-/* Apply float animation with hardware acceleration */
 .floating {
-    animation: float 3s ease-in-out infinite;
-    transform: translateZ(0);
-    will-change: transform;
+  animation: float 3s ease-in-out infinite;
 }
 
-/* 4. Add reduced-motion support for accessibility */
 @media (prefers-reduced-motion: reduce) {
-    * {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-        scroll-behavior: auto !important;
-    }
-
-    .floating {
-        animation: none !important;
-    }
-
-    .window.minimizing,
-    .window.maximizing {
-        transition: none !important;
-    }
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .floating {
+    animation: none;
+  }
 }
+
+.window.minimizing,
+.window.maximizing,
+.window.restoring {
+  transition: transform 0.3s var(--ease-in-out), opacity 0.3s var(--ease-in-out),
+    width 0.3s var(--ease-in-out), height 0.3s var(--ease-in-out);
+}
+*/

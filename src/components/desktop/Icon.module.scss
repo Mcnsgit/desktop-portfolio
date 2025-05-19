@@ -1,0 +1,109 @@
+@use '../../styles/_variables.scss' as *;
+
+.icon {
+  position: absolute;
+  width: 80px;
+  height: 90px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.05s $ease-out, filter 0.1s $ease-out, background-color 0.1s ease, box-shadow 0.1s ease;
+  padding: $spacing-xs;
+  @include no-select;
+  outline: 1px solid transparent;
+
+  &:hover {
+    // For a more Win98 feel, selection might be better than brightness
+    filter: brightness(1.1);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  &.dragging {
+    opacity: 0.7;
+    transform: scale(0.95);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  &.selected {
+    background-color: rgba(0, 0, 128, 0.3);
+    outline: 1px dotted $win98-text-dark;
+
+    .iconLabel {
+      background-color: $win98-title-active-bg;
+      color: $win98-title-text-color;
+    }
+  }
+
+  &.dropTarget {
+    background-color: rgba(0, 128, 0, 0.2);
+    box-shadow: inset 0 0 0 2px rgba(0, 255, 0, 0.5);
+  }
+}
+
+.iconImageContainer {
+  margin-bottom: $spacing-xs;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  transition: transform 0.1s $ease-out;
+
+  img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+}
+
+.iconLabel {
+  width: 100%;
+  max-height: 3.6em;
+  overflow: hidden;
+  word-wrap: break-word;
+  text-overflow: ellipsis;
+  text-align: center;
+  color: $win98-title-text-color;
+  text-shadow: 1px 1px 0px $win98-text-dark, -1px 1px 0px $win98-text-dark, 1px -1px 0px $win98-text-dark, -1px -1px 0px $win98-text-dark;
+  font-size: $win98-font-size-small;
+  font-family: $win98-font-primary;
+  font-weight: normal;
+  line-height: 1.2;
+  padding: 0 2px;
+}
+
+.fallbackIcon {
+  width: 32px;
+  height: 32px;
+  background-color: $accent-color-main;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $border-radius-sm;
+  color: $win98-title-text-color;
+  font-size: $win98-font-size-large;
+  font-family: $win98-font-primary;
+  font-weight: bold;
+}
+
+.selectionRect {
+  position: absolute;
+  background: rgba($win98-title-active-bg, 0.2);
+  border: 1px dotted $win98-title-text-color;
+  z-index: $z-index-desktop-env + 1;
+  pointer-events: none;
+}
+
+.dropTarget {
+  box-shadow: 0 0 0 2px $win98-title-active-bg, 0 0 8px 2px rgba($win98-title-active-bg, 0.2);
+  background-color: rgba($win98-title-active-bg, 0.12);
+  border-radius: 4px;
+  outline: 2px solid $win98-title-active-bg;
+  z-index: $z-index-context-menu + 20;
+} 

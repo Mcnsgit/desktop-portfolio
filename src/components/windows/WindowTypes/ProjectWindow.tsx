@@ -1,7 +1,7 @@
 // components/windows/WindowTypes/ProjectWindow.tsx
 import React from 'react';
 import { Project } from '../../../types';
-import styles from '../../styles/ProjectWindow.module.scss';
+import styles from './ProjectWindow.module.scss';
 
 interface ProjectWindowProps {
   project: Project;

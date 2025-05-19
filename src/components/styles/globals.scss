@@ -1,22 +1,24 @@
+@use '@/styles/variables' as v;
+
 /* styles/globals.scss */
 /* Window Styles */
 .window {
-  background-color: var(--win98-bg);
+  background-color: v.$win98-bg;
   border: 2px solid;
-  border-color: var(--win98-border-light) var(--win98-border-dark) var(--win98-border-dark) var(--win98-border-light);
-  box-shadow: 2px 2px 5px var(--shadow-dark);
+  @include v.win98-border();
+  box-shadow: 2px 2px 5px v.$win98-button-shadow;
   position: absolute;
   overflow: hidden;
   will-change: transform, opacity;
   transform: translateZ(0);  /* Force GPU acceleration */
   backface-visibility: hidden;
-  transition: transform var(--animation-normal) var(--ease-out),
-  opacity var(--animation-normal) var(--ease-out);
+  transition: transform v.$animation-duration-normal v.$ease-out,
+  opacity v.$animation-duration-normal v.$ease-out;
   
 }
 
 .window.active {
-  z-index: var(--z-index-window-active);
+  z-index: v.$z-index-window-active;
 }
 
 .window.dragging {
@@ -35,18 +37,18 @@
 }
 
 .title-bar {
-  background-color: var(--win98-title-inactive);
-  color: var(--win98-title-text);
+  background-color: v.$win98-title-inactive;
+  color: v.$win98-title-text;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-xs) var(--spacing-sm);
+  padding: v.$spacing-xs v.$spacing-sm;
   user-select: none;
   cursor: move;
 }
 
 .window.active .title-bar {
-  background-color: var(--win98-title-active);
+  background-color: v.$win98-title-active;
 }
 
 .title {
@@ -59,14 +61,14 @@
 
 .controls {
   display: flex;
-  gap: var(--spacing-xs);
+  gap: v.$spacing-xs;
 }
 
 .control {
-  background-color: var(--win98-button-face);
+  background-color: v.$win98-button-face;
   border: 1px solid;
-  border-color: var(--win98-border-light) var(--win98-border-dark) var(--win98-border-dark) var(--win98-border-light);
-  color: var(--text-primary);
+  @include v.win98-button-border();
+  color: v.$win98-text-dark;
   width: 20px;
   height: 20px;
   display: flex;
@@ -77,13 +79,13 @@
 }
 
 .control:active {
-  border-color: var(--win98-border-dark) var(--win98-border-light) var(--win98-border-light) var(--win98-border-dark);
+  @include v.win98-button-border($active: true);
 }
 
 .content {
   flex: 1;
   overflow: auto;
-  padding: var(--spacing-sm);
+  padding: v.$spacing-sm;
   background-color: white;
 }
 
@@ -97,16 +99,16 @@
   background-image: linear-gradient(135deg,
       transparent 0%,
       transparent 50%,
-      var(--win98-border-dark) 50%,
-      var(--win98-border-dark) 60%,
+      v.$win98-border-dark 50%,
+      v.$win98-border-dark 60%,
       transparent 60%,
       transparent 70%,
-      var(--win98-border-dark) 70%,
-      var(--win98-border-dark) 80%,
+      v.$win98-border-dark 70%,
+      v.$win98-border-dark 80%,
       transparent 80%,
       transparent 90%,
-      var(--win98-border-dark) 90%,
-      var(--win98-border-dark) 100%);
+      v.$win98-border-dark 90%,
+      v.$win98-border-dark 100%);
 }
 
 /* Maximize animation */
@@ -123,17 +125,17 @@
 }
 
 .window.maximizing {
-  transition: width var(--animation-normal) var(--ease-out),
-              height var(--animation-normal) var(--ease-out),
-              top var(--animation-normal) var(--ease-out),
-              left var(--animation-normal)var(--ease-out);
+  transition: width v.$animation-duration-normal v.$ease-out,
+              height v.$animation-duration-normal v.$ease-out,
+              top v.$animation-duration-normal v.$ease-out,
+              left v.$animation-duration-normal v.$ease-out;
 }
 
 .window.minimizing {
   transform: scale(0,8);
   opacity: 0;
-transition: transform var(--animation-normal) var(--ease-in),
-opacity var(--animation-normal) var(--ease-in);
+transition: transform v.$animation-duration-normal v.$ease-in,
+opacity v.$animation-duration-normal v.$ease-in;
 }
 /* Restore animation */
 @keyframes restore {
@@ -157,7 +159,7 @@ opacity var(--animation-normal) var(--ease-in);
   right: 0;
   bottom: 40px;
   /* Account for taskbar */
-  z-index: var(--z-index-desktop);
+  z-index: v.$z-index-desktop-env;
 }
 
 .windowContainer {
@@ -167,7 +169,7 @@ opacity var(--animation-normal) var(--ease-in);
   right: 0;
   bottom: 40px;
   /* Account for taskbar */
-  z-index: var(--z-index-window);
+  z-index: v.$z-index-window-normal;
   pointer-events: none;
   /* Allow clicking through the container */
 }
@@ -184,18 +186,18 @@ opacity var(--animation-normal) var(--ease-in);
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 30px;
-  background-color: #c0c0c0;
-  border-top: 1px solid #dfdfdf;
+  height: v.$win98-taskbar-height;
+  background-color: v.$win98-bg;
+  border-top: 1px solid v.$win98-border-light;
   display: flex;
   align-items: center;
-  z-index: var(--z-index-taskbar);
+  z-index: v.$z-index-taskbar;
   transform: translateZ(0);
   /* Force GPU acceleration */
 }
 
 .taskbar .windowButton {
-  transition: background-color var(--animation-fast) var(--ease-out);
+  transition: background-color v.$animation-duration-fast v.$ease-out;
   will-change: background-color;
   transform: translateZ(0);
 }
@@ -203,7 +205,7 @@ opacity var(--animation-normal) var(--ease-in);
 /* 6. Use opacity for fade transitions instead of visibility for smoother animations */
 .fadeIn {
   opacity: 0;
-  animation: fadeIn var(--animation-normal) var(--ease-out) forwards;
+  animation: fadeIn v.$animation-duration-normal v.$ease-out forwards;
 }
 
 @keyframes fadeIn {
@@ -218,7 +220,7 @@ opacity var(--animation-normal) var(--ease-in);
 
 .fadeOut {
   opacity: 1;
-  animation: fadeOut var(--animation-normal) var(--ease-in) forwards;
+  animation: fadeOut v.$animation-duration-normal v.$ease-in forwards;
 }
 
 @keyframes fadeOut {

@@ -6,7 +6,7 @@ import { Project, Window } from "@/types/index";
 import MobileAboutComponent from "./MobileAboutComponent";
 import MobileSkillsComponent from "./MobileSkillsComponent";
 import MobileContactComponent from "./MobileContactComponent";
-import ImageWithFallback from "../../utils/ImageWithFallback";
+
 import ProjectWindow from "../windows/WindowTypes/ProjectWindow";
 
 interface MobileWindowProps {

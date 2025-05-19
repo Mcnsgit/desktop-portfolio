@@ -1,9 +1,11 @@
 // src/components/desktop/Folder.tsx
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { useSounds } from "@/hooks/useSounds";
 import { useDesktop } from "@/context/DesktopContext";
 import Image from "next/image";
-import styles from "../styles/Icon.module.scss";
+import styles from "./Icon.module.scss"
+import { useDraggable, useDroppable } from "@dnd-kit/core";
+import { CSS } from "@dnd-kit/utilities";
 
 interface FolderProps {
   id: string;
@@ -11,6 +13,12 @@ interface FolderProps {
   position: { x: number; y: number };
   icon?: string;
   onDoubleClick: (e?: React.MouseEvent) => void;
+  isSelected: boolean;
+  onItemClick: (e: React.MouseEvent, itemId: string) => void;
+  isCut?: boolean;
+  type: "folder";
+  parentId?: string | null;
+  path?: string;
 }
 
 const DEFAULT_FOLDER_ICON = '/assets/win98-icons/png/directory_closed-1.png';
@@ -42,16 +50,49 @@ const Folder: React.FC<FolderProps> = ({
   title,
   position,
   icon = DEFAULT_FOLDER_ICON,
-  onDoubleClick,
+  // onDoubleClick,
+  isSelected,
+  onItemClick,
+  isCut,
+  parentId,
+  path,
 }) => {
   const { playSound } = useSounds();
   const { dispatch } = useDesktop();
-  const [isDragging, setIsDragging] = useState(false);
-  const [isSelected, setIsSelected] = useState(false);
-  const [isDropTarget, setIsDropTarget] = useState(false);
   const [iconError, setIconError] = useState(false);
-  const [dragCounter, setDragCounter] = useState(0); // Counter for drag enter/leave events
-  const folderRef = useRef<HTMLDivElement>(null);
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    isDragging,
+  } = useDraggable({
+    id: id,
+    data: {
+      id,
+      title,
+      type: "folder",
+      originalPosition: position,
+      parentId,
+      isCut,
+      path,
+    },
+  });
+
+  const { setNodeRef: droppableSetNodeRef, isOver, active } = useDroppable({
+    id: id,
+    data: {
+      type: "folder",
+      folderId: id,
+      path: path,
+    },
+  });
+
+  const combinedRef = (node: HTMLDivElement | null) => {
+    setNodeRef(node);
+    droppableSetNodeRef(node);
+  };
 
   // Fix icon path
   const fixIconPath = (path: string): string => {
@@ -71,11 +112,13 @@ const Folder: React.FC<FolderProps> = ({
   const finalIconSrc = fixIconPath(icon);
 
   // Handle folder double click - open folder window
-  const handleDoubleClick = (e: React.MouseEvent) => {
+  const handleDoubleClickLocal = (e: React.MouseEvent) => {
+    if (isDragging) {
+      e.stopPropagation();
+      return;
+    }
     e.stopPropagation();
-    console.log(`Double-clicked on ${title} folder`);
-    playSound("click");
-
+    playSound("windowOpen");
     // Open folder window
     dispatch({
       type: "OPEN_WINDOW",
@@ -95,149 +138,46 @@ const Folder: React.FC<FolderProps> = ({
     });
   };
 
-  // Handle single click for selection
   const handleClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-
-    // Toggle selection with Ctrl key, otherwise select only this item
-    const multiSelect = e.ctrlKey || e.shiftKey;
-
-    setIsSelected(true);
-
-    // In a real implementation, dispatch to selection manager
-    // dispatch({ type: 'SELECT_ITEM', payload: { id, multiSelect } });
-  };
-
-  // Drag and drop handling
-  const handleDragStart = (e: React.DragEvent) => {
-    e.stopPropagation();
-    setIsDragging(true);
-
-    // Set folder as drag data
-    e.dataTransfer.setData("application/retroos-icon-id", id);
-    e.dataTransfer.setData("application/retroos-folder", JSON.stringify({ id, title }));
-    e.dataTransfer.setData("text/plain", title);
-    e.dataTransfer.effectAllowed = "move";
-
-    // Set drag image
-    if (folderRef.current) {
-      try {
-        const rect = folderRef.current.getBoundingClientRect();
-        e.dataTransfer.setDragImage(
-          folderRef.current,
-          e.clientX - rect.left,
-          e.clientY - rect.top
-        );
-      } catch (err) {
-        console.warn("Failed to set drag image:", err);
-      }
+    if (isDragging) {
+      e.stopPropagation();
+      return;
     }
+    onItemClick(e, id);
   };
 
-  const handleDragEnd = () => {
-    setIsDragging(false);
+  const style: React.CSSProperties = {
+    position: "absolute",
+    left: position.x,
+    top: position.y,
+    width: "80px",
+    height: "90px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    textAlign: "center",
+    cursor: isDragging ? "grabbing" : "pointer",
+    borderRadius: "4px",
+    opacity: isDragging ? 0.8 : isCut ? 0.6 : 1,
+    zIndex: isDragging ? 1000 : 'auto',
   };
 
-  // Handle drag enter and leave for visual feedback
-  const handleDragEnter = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  if (transform) {
+    style.transform = CSS.Translate.toString(transform);
+  }
 
-    // Increment counter to handle nested elements
-    setDragCounter(prev => prev + 1);
-
-    // Check if dragged item is not this folder
-    const draggedId = e.dataTransfer.getData("application/retroos-icon-id");
-    if (draggedId && draggedId !== id) {
-      setIsDropTarget(true);
-      e.dataTransfer.dropEffect = "move";
-    }
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    // Decrement counter, only remove highlight when all leaves are handled
-    setDragCounter(prev => {
-      const newCount = prev - 1;
-      if (newCount <= 0) {
-        setIsDropTarget(false);
-        return 0;
-      }
-      return newCount;
-    });
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    // Only allow dropping if the dragged item is not this folder
-    const draggedId = e.dataTransfer.getData("application/retroos-icon-id");
-    if (draggedId && draggedId !== id) {
-      e.dataTransfer.dropEffect = "move";
-    } else {
-      e.dataTransfer.dropEffect = "none";
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDropTarget(false);
-    setDragCounter(0);
-
-    // Get dragged item data
-    const draggedId = e.dataTransfer.getData("application/retroos-icon-id");
-
-    if (!draggedId || draggedId === id) return;
-
-    console.log(`Moving item ${draggedId} to folder ${id}`);
-
-    // Dispatch move action
-    dispatch({
-      type: "MOVE_ITEM",
-      payload: {
-        itemId: draggedId,
-        newParentId: id,
-      },
-    });
-
-    // Play sound for successful drop
-    playSound("click");
-  };
+  const isDropTarget = isOver && active && active.id !== id;
 
   return (
     <div
-      ref={folderRef}
-      className={`${styles.icon} ${isDragging ? styles.dragging : ""} ${isSelected ? styles.selected : ""} ${isDropTarget ? styles.dropTarget : ""}`}
-      style={{
-        position: "absolute",
-        left: position.x,
-        top: position.y,
-        width: "80px",
-        height: "90px",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "flex-start",
-        textAlign: "center",
-        cursor: isDragging ? "grabbing" : "pointer",
-        // Add drop target style
-        boxShadow: isDropTarget ? "0 0 0 2px #4a9eff" : "none",
-        background: isDropTarget ? "rgba(74, 158, 255, 0.2)" : "transparent",
-        borderRadius: "4px",
-      }}
+      ref={combinedRef}
+      {...attributes}
+      {...listeners}
+      className={`${styles.icon} ${isDragging ? styles.dragging : ""} ${isSelected ? styles.selected : ""} ${isCut ? styles.cut : ""} ${isDropTarget ? styles.dropTarget : ""}`}
+      style={style}
       onClick={handleClick}
-      onDoubleClick={handleDoubleClick}
-      draggable
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      onDragEnter={handleDragEnter}
-      onDragLeave={handleDragLeave}
-      onDragOver={handleDragOver}
-      onDrop={handleDrop}
+      onDoubleClick={handleDoubleClickLocal}
       data-item-id={id}
       data-item-type="folder"
     >

@@ -1,0 +1,227 @@
+@use '../../styles/_variables.scss' as *;
+@use 'sass:color'; // Import the sass:color module
+
+.fileExplorer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: $win98-content-bg; // Use content bg for main area
+  color: $win98-text-dark;
+  font-family: $win98-font-primary;
+  font-size: $win98-font-size-normal;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  padding: $spacing-xs $spacing-sm;
+  border-bottom: 1px solid $win98-border-dark; // Single line border
+  background-color: $win98-bg; // Toolbar bg same as window bg
+  height: $win98-title-bar-height + $spacing-sm; // A bit taller than title bar
+}
+
+.toolbarButton {
+  padding: 2px $spacing-sm;
+  background-color: $win98-button-face;
+  @include win98-button-border(false);
+  margin-right: $spacing-xs;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: $win98-font-size-small; // Slightly smaller for toolbar buttons
+  color: $win98-text-dark;
+
+  &:active {
+    @include win98-button-border(true);
+  }
+
+  &:disabled {
+    color: $win98-border-dark; // Use theme color for disabled text
+    cursor: default;
+    @include win98-button-border(false); // Ensure border doesn't look active
+    // filter: grayscale(50%); // Optional visual cue
+  }
+}
+
+.addressBar {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  margin: 0 $spacing-sm;
+  background-color: $win98-button-face; // Match button face
+  padding: 2px; // Small padding around the input
+  @include win98-border-inset($win98-border-light, $win98-border-dark, 1px); // Inset border for the bar itself
+
+  span {
+    margin-right: $spacing-xs;
+    white-space: nowrap;
+    color: $win98-text-dark;
+    font-size: $win98-font-size-small;
+  }
+}
+
+.addressInput {
+  flex: 1;
+  padding: 2px $spacing-xs;
+  border: none; // Remove default browser border
+  // border: 1px solid $win98-border-dark; // Simple border if needed
+  background-color: $win98-content-bg; // White background for input field
+  font-family: inherit;
+  font-size: $win98-font-size-small;
+  color: $win98-text-dark;
+  outline: none; // Remove focus outline
+  height: calc(#{$win98-control-size} + 2px); // Match typical control height
+}
+
+.contentArea {
+  flex: 1;
+  overflow: auto;
+  padding: $spacing-sm;
+  background-color: $win98-content-bg; // Ensure content area is white (or chosen content bg)
+  @include win98-scrollbar; // Apply custom scrollbar
+  // If using a border around content area:
+  // margin: $spacing-xs;
+  // border: 1px solid $win98-border-dark;
+}
+
+.fileListGrid {
+  // For icon view
+  display: grid; // Using grid for more control over icon layout
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); // Responsive columns
+  gap: $spacing-md $spacing-sm; // Row and column gap
+  padding: $spacing-xs;
+}
+
+.fileListItem {
+  // For list/details view
+  display: flex;
+  align-items: center;
+  padding: $spacing-xs;
+  cursor: pointer;
+  width: 100%;
+  border: 1px solid transparent; // For hover/selection border
+
+  &:hover {
+    background-color: color.scale($win98-bg, $lightness: 5%); // Use color.scale
+    border-color: color.scale($win98-bg, $lightness: -10%); // Use color.scale
+  }
+
+  &.selected {
+    background-color: $win98-title-active-bg;
+    color: $win98-title-text-color;
+    border-color: $win98-title-active-bg;
+
+    .fileName, .fileType, .fileSize, .fileDate { // Ensure text is readable when selected
+        color: $win98-title-text-color;
+    }
+  }
+}
+
+// Common style for items in either grid or list view (if not using .fileListItem for grid items)
+.fileItemGeneric {
+    display: flex;
+    flex-direction: column; // For icon view (icon above text)
+    align-items: center;
+    text-align: center;
+    padding: $spacing-xs;
+    cursor: pointer;
+    width: 80px; // Fixed width for icon view items
+    border: 1px solid transparent;
+    @include no-select;
+
+    &:hover {
+        background-color: color.scale($win98-bg, $lightness: 5%); // Use color.scale
+        border-color: color.scale($win98-bg, $lightness: -10%); // Use color.scale
+    }
+
+    &.selected {
+        background-color: $win98-title-active-bg;
+        color: $win98-title-text-color;
+        border-color: $win98-title-active-bg;
+        .fileName { color: $win98-title-text-color; }
+    }
+}
+
+.fileIcon {
+  margin-bottom: $spacing-xs; // Space between icon and name in grid view
+  // font-size: 24px; // If using font icons
+  width: 32px; // Standard icon size
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+}
+
+.fileName {
+  // flex: 1; // In list view
+  width: 100%; // For grid view, take full width of .fileItemGeneric
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap; // For single line name in list view, or if grid view name is short
+  font-size: $win98-font-size-small;
+  // For grid view where text might wrap:
+  // white-space: normal;
+  // word-wrap: break-word;
+  // max-height: 2.4em; // Limit to two lines
+  // line-height: 1.2;
+}
+
+.loading,
+.error,
+.empty {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  font-style: italic;
+  color: $win98-border-dark; // Use a theme color
+}
+
+.error {
+  color: #cc0000; // Keep specific error color
+}
+
+.statusBar {
+  padding: 2px $spacing-sm;
+  border-top: 1px solid $win98-border-dark;
+  background-color: $win98-bg;
+  font-size: $win98-font-size-small - 1px; // Even smaller for status bar
+  color: $win98-text-dark;
+  display: flex;
+  justify-content: space-between;
+  height: $win98-title-bar-height - 2px; // Slightly shorter than title bar
+  align-items: center;
+}
+
+// Column view for detailed file list
+.columnHeader {
+  display: flex;
+  padding: $spacing-xs;
+  font-weight: bold;
+  border-bottom: 1px solid $win98-border-dark;
+  background-color: color.scale($win98-bg, $lightness: 5%); // Slightly different bg for header
+  @include no-select;
+
+  .columnName {
+    flex: 1;
+    padding-left: $spacing-xs + 20px; // Align with file name in rows
+  }
+  .columnType { width: 100px; text-align: left; }
+  .columnSize { width: 80px; text-align: right; padding-right: $spacing-sm; }
+  .columnModified { width: 150px; text-align: left; padding-left: $spacing-sm; }
+}
+
+.fileDetailsRow {
+    @extend .fileListItem; // Inherit base styles
+    // display: flex; // Already flex from .fileListItem
+
+    .fileIcon { margin-right: $spacing-sm; margin-bottom: 0; } // Adjust icon margin for list view
+    .fileName { flex: 1; text-align: left; }
+    .fileType { width: 100px; text-align: left; @include ellipsis; }
+    .fileSize { width: 80px; text-align: right; padding-right: $spacing-sm; }
+    .fileDate { width: 150px; text-align: left; padding-left: $spacing-sm; @include ellipsis; }
+} 

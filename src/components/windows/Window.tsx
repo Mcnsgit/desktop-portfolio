@@ -8,7 +8,7 @@ import {
 } from "@phosphor-icons/react";
 import { useDesktop } from "../../context/DesktopContext";
 import { useSounds } from "@/hooks/useSounds";
-import styles from "../styles/Window.module.scss";
+import styles from "./Window.module.scss";
 
 // Constants from your windowConstants
 const Z_INDEX = {
@@ -99,14 +99,32 @@ const Window: React.FC<WindowProps> = ({
     };
   }, []);
 
+  // New effect to ensure animationClass is cleared when window is not minimized
+  useEffect(() => {
+    if (windowData && !windowData.minimized && (windowState.animationClass === 'minimizing' || windowState.animationClass === 'closing')) {
+      setWindowState(prev => ({ ...prev, animationClass: '' }));
+    }
+    // Ensure preMaximizedState is cleared if the window is no longer considered maximized by context/props
+    // This might be redundant if handleMaximize already covers it, but acts as a safeguard.
+    if (windowData && !windowData.isMaximized && windowState.preMaximizedState) {
+       // Assuming windowData can have an isMaximized property reflecting context truth
+       // If not, this part of the condition might need adjustment or removal.
+       // For now, let's focus on the animationClass.
+    }
+
+  }, [windowData, windowState.animationClass, windowState.preMaximizedState]); // Depend on windowData (for minimized status) and animationClass
+
   // Handle drag stop with debounce
   const handleDragStop = (e: any, data: any) => {
+    e.stopPropagation();
     if (isUpdatingState.current) return;
 
     const finalPosition = {
       x: Math.max(0, data.x),
       y: Math.max(0, data.y)
     };
+
+    console.log('Window Drag Stop - ID:', id, 'Raw Data:', data, 'Final Position:', finalPosition);
 
     // Only update if position actually changed
     if (windowData?.position &&
@@ -266,15 +284,15 @@ const Window: React.FC<WindowProps> = ({
   }, [handleMaximize, resizable]);
 
   // Window CSS classes
-  const windowClasses = useMemo(() => {
-    return [
-      styles.window,
-      isActive ? styles.active : "",
-      isMaximized ? styles.maximized : "",
-      windowState.animationClass ? styles[windowState.animationClass] : "",
-      className,
-    ].filter(Boolean).join(" ");
-  }, [isActive, isMaximized, windowState.animationClass, className]);
+  // const windowClasses = useMemo(() => {
+  //   return [
+  //     styles.window,
+  //     isActive ? styles.active : "",
+  //     isMaximized ? styles.maximized : "",
+  //     windowState.animationClass ? styles[windowState.animationClass] : "",
+  //     className,
+  //   ].filter(Boolean).join(" ");
+  // }, [isActive, isMaximized, windowState.animationClass, className]);
 
   // Handle window styles dynamically
   const windowStyle = useMemo(() => {
@@ -368,9 +386,9 @@ const Window: React.FC<WindowProps> = ({
   }, [resizable, isMaximized, dispatch, id, initialSize.width, initialSize.height]);
 
   // Handle window click to focus
-  const handleWindowClick = useCallback(() => {
-    dispatch({ type: "FOCUS_WINDOW", payload: { id } });
-  }, [dispatch, id]);
+  // const handleWindowClick = useCallback(() => {
+  //   dispatch({ type: "FOCUS_WINDOW", payload: { id } });
+  // }, [dispatch, id]);
 
   // Early return if window is minimized or doesn't exist
   if (isMinimized || !windowData) {
@@ -391,9 +409,17 @@ const Window: React.FC<WindowProps> = ({
     >
       <div
         ref={windowRef}
-        className={windowClasses}
-        style={windowStyle}
-        onClick={handleWindowClick}
+        className={`${styles.window} ${isActive ? styles.active : ''} ${windowState.animationClass} ${className}`}
+        style={{
+          ...windowStyle,
+        }}
+        onMouseDown={(e) => {
+          e.stopPropagation();
+          if (!isActive) {
+            dispatch({ type: 'FOCUS_WINDOW', payload: { id } });
+            playSound('click');
+          }
+        }}
         data-window-id={id}
         data-window-active={isActive ? "true" : "false"}
         data-testid={`window-${id}`}

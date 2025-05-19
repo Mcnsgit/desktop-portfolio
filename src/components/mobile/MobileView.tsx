@@ -11,7 +11,8 @@ import InteractiveIconImage from "../../../public/assets/win98-icons/png/joystic
 import AboutMeIconImage from "../../../public/assets/win98-icons/png/address_book_user.png";
 import SkillsIconImage from "../../../public/assets/win98-icons/png/computer_explorer-0.png";
 import ContactIconImage from "../../../public/assets/win98-icons/png/msn3-4.png";
-import ImageWithFallback from "@/utils/ImageWithFallback";
+
+import { StaticImageData } from "next/image";
 
 const MobileView: React.FC = () => {
   const { state, dispatch } = useDesktop();
@@ -38,17 +39,18 @@ const MobileView: React.FC = () => {
       console.log("Opening project in mobile view:", project.title);
 
       // Open the project in a "mobile window" - pass the ID, not the content
-      dispatch({
-        type: "OPEN_WINDOW",
-        payload: {
-          id: `project-${project.id}`,
-          title: project.title,
-          content: project.id, // Pass the ID as content
-          minimized: false,
-          position: { x: 0, y: 0 }, // Full screen on mobile
-          type: "project",
-        },
-      });
+           dispatch({
+            type: "OPEN_WINDOW",
+            payload: {
+              id: `project-${project.id}`,
+              title: project.title,
+              content: { type: "project", projectId: project.id },
+              minimized: false,
+              position: { x: 0, y: 0 },
+              size: { width: 0, height: 0 },
+              type: "project",
+            },
+          });
     }
   };
 
@@ -67,9 +69,10 @@ const MobileView: React.FC = () => {
       payload: {
         id: "about",
         title: "About Me",
-        content: "about",
+        content: { type: "about" },
         minimized: false,
         position: { x: 0, y: 0 },
+        size: { width: 0, height: 0 },
         type: "about",
       },
     });
@@ -82,9 +85,10 @@ const MobileView: React.FC = () => {
       payload: {
         id: "contact",
         title: "Contact",
-        content: "contact",
+        content: { type: "contact" },
         minimized: false,
         position: { x: 0, y: 0 },
+        size: { width: 0, height: 0 },
         type: "contact",
       },
     });
@@ -100,6 +104,7 @@ const MobileView: React.FC = () => {
         content: { type: "skills" },
         minimized: false,
         position: { x: 0, y: 0 },
+        size: { width: 0, height: 0 },
         type: "skills",
       },
     });
@@ -113,17 +118,24 @@ const MobileView: React.FC = () => {
   };
 
   // Get appropriate icon based on project type
-  const getProjectIcon = (type: string) => {
+  const getProjectIcon = (type: string): string => {
+    let icon: string | StaticImageData;
     switch (type) {
       case "code":
-        return CodeIconImage;
+        icon = CodeIconImage;
+        break;
       case "visual":
-        return VisualIconImage;
+        icon = VisualIconImage;
+        break;
       case "interactive":
-        return InteractiveIconImage;
+        icon = InteractiveIconImage;
+        break;
       default:
-        return DefaultIconImage;
+        icon = DefaultIconImage;
     }
+    if (typeof icon === 'string') return icon;
+    if (icon && typeof icon === 'object' && 'src' in icon) return icon.src;
+    return '';
   };
 
   const toggleCategory = (category: string) => {
@@ -167,7 +179,7 @@ const MobileView: React.FC = () => {
         <div className={styles.iconGrid}>
           <div className={styles.iconItem} onClick={openAboutMe}>
             <div className={styles.iconWrapper}>
-              <ImageWithFallback
+              <Image
                 src={AboutMeIconImage}
                 width={32}
                 height={32}
@@ -179,7 +191,7 @@ const MobileView: React.FC = () => {
 
           <div className={styles.iconItem} onClick={openSkills}>
             <div className={styles.iconWrapper}>
-              <ImageWithFallback
+              <Image
                 src={SkillsIconImage}
                 width={32}
                 height={32}
@@ -191,7 +203,7 @@ const MobileView: React.FC = () => {
 
           <div className={styles.iconItem} onClick={openContact}>
             <div className={styles.iconWrapper}>
-              <ImageWithFallback
+              <Image
                 src={ContactIconImage}
                 width={32}
                 height={32}
@@ -213,7 +225,7 @@ const MobileView: React.FC = () => {
               onClick={() => toggleCategory(type)}
             >
               <h3>
-                <ImageWithFallback
+                <Image
                   src={getProjectIcon(type)}
                   width={20}
                   height={20}
@@ -234,48 +246,56 @@ const MobileView: React.FC = () => {
 
             {activeCategory === type && (
               <div className={styles.projectGrid}>
-                {projects.map((project) => (
-                  <div
-                    key={project.id}
-                    className={styles.projectCard}
-                    onClick={() => handleProjectClick(project.id)}
-                  >
-                    <div className={styles.projectCardContent}>
-                      <div className={styles.projectIcon}>
-                        <ImageWithFallback
-                          src={
-                            project.icon
-                              ? project.icon
-                              : getProjectIcon(project.type)
-                          }
-                          alt={project.title}
-                          width={24}
-                          height={24}
-                        />
+                {projects.map((project) => {
+                  let iconSrc = '';
+                  if (typeof project.icon === 'string') {
+                    iconSrc = project.icon;
+                  } else if (project.icon && typeof project.icon === 'object' && 'src' in project.icon) {
+                    iconSrc = (project.icon as { src: string }).src || '';
+                  } else if (typeof getProjectIcon(project.type ?? '') === 'string') {
+                    iconSrc = getProjectIcon(project.type ?? '') || '';
+                  }
+                  if (!iconSrc) iconSrc = '';
+
+                  return (
+                    <div
+                      key={project.id}
+                      className={styles.projectCard}
+                      onClick={() => handleProjectClick(project.id)}
+                    >
+                      <div className={styles.projectCardContent}>
+                        <div className={styles.projectIcon}>
+                          <Image
+                            src={String(iconSrc || '')}
+                            alt={String(project.title ?? '')}
+                            width={24}
+                            height={24}
+                          />
+                        </div>
+                        <h3>{project.title}</h3>
                       </div>
-                      <h3>{project.title}</h3>
+                      <p>
+                        {project.description
+                          ? project.description.slice(0, 70) + "..."
+                          : "No description available"}
+                      </p>
+                      <div className={styles.projectTech}>
+                        {project.technologies &&
+                          project.technologies.slice(0, 3).map((tech, index) => (
+                            <span key={index} className={styles.techBadge}>
+                              {tech}
+                            </span>
+                          ))}
+                        {project.technologies &&
+                          project.technologies.length > 3 && (
+                            <span className={styles.techBadge}>
+                              +{project.technologies.length - 3}
+                            </span>
+                          )}
+                      </div>
                     </div>
-                    <p>
-                      {project.description
-                        ? project.description.slice(0, 70) + "..."
-                        : "No description available"}
-                    </p>
-                    <div className={styles.projectTech}>
-                      {project.technologies &&
-                        project.technologies.slice(0, 3).map((tech, index) => (
-                          <span key={index} className={styles.techBadge}>
-                            {tech}
-                          </span>
-                        ))}
-                      {project.technologies &&
-                        project.technologies.length > 3 && (
-                          <span className={styles.techBadge}>
-                            +{project.technologies.length - 3}
-                          </span>
-                        )}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

@@ -1,0 +1,11 @@
+// src/app/desktop/_desktop-page-variables.scss
+// Variables specific to src/app/desktop/page.tsx (the desktop page container)
+
+// Example: If the desktop page itself has a unique background or padding
+// that isn't part of the <Desktop /> component from win98 theme.
+$desktop-page-container-bg: #222222; 
+// $desktop-page-padding: $spacing-md;
+
+// Most visual styling for the desktop *experience* will come from
+// components using src/styles/_variables.scss (e.g., $win98-bg).
+// This file is for variables related to the *page structure* of desktop/page.tsx itself. 

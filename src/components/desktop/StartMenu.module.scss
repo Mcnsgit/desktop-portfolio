@@ -1,0 +1,147 @@
+@use '../../styles/_variables.scss' as *;
+
+.startMenu {
+  position: absolute;
+  left: 0;
+  bottom: $win98-taskbar-height; // Use variable
+  width: 220px; // Specific width for this start menu, can be a variable
+  background-color: $win98-bg;
+  @include win98-border($win98-border-light, $win98-border-dark, 2px);
+  box-shadow: $win98-shadow-normal; // Use variable
+  z-index: $z-index-start-menu; // Use variable
+  animation: slideUp 0.15s $ease-out; // Use variables
+  @include no-select;
+  margin-left: 4px;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px); // Slight slide up
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.menuHeader {
+  // background: linear-gradient(to right, $win98-title-active-bg, lighten($win98-title-active-bg, 15%)); // Example using variable
+  background: linear-gradient(to right, #000080, #1084d0); // Kept original for now, can be themed
+  color: $win98-title-text-color;
+  padding: 4px 8px;
+  font-weight: bold;
+  font-family: $win98-font-primary; // Use variable
+  font-size: $win98-font-size-normal; // Use variable
+  height: 22px; // Specific height
+  display: flex;
+  align-items: center;
+  @include ellipsis;
+}
+
+.menuTitle {
+ @include ellipsis; // Already on menuHeader, but if it were a separate element
+}
+
+.divider {
+  height: 1px;
+  background-color: $win98-border-dark;
+  margin: 2px 0;
+  border-bottom: 1px solid $win98-border-light; // 3D effect for divider
+}
+
+.menuItems {
+  padding: 2px 0;
+  max-height: 80vh; // Or a pixel value based on design
+  overflow-y: auto;
+  @include win98-scrollbar; // Apply custom scrollbar
+}
+
+.menuItem {
+  padding: 5px 10px; // Slightly more padding
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: $win98-font-primary;
+  font-size: $win98-font-size-small; // Use variable
+  color: $win98-text-dark;
+  cursor: pointer;
+  transition: background-color $animation-duration-fast $ease-out, color $animation-duration-fast $ease-out; // Use variables
+  white-space: nowrap;
+
+  &:hover,
+  &.active { // Added active state
+    background-color: $win98-title-active-bg; // Use variable
+    color: $win98-title-text-color; // Use variable
+  }
+
+  img, // Targeting img tags if used directly for icons
+  svg { // Targeting svg tags (lucide-react icons)
+    width: $win98-control-size; // Use variable
+    height: $win98-control-size; // Use variable
+    object-fit: contain;
+    // color will be inherited or can be set explicitly if hover changes icon color
+  }
+}
+
+.menuItemIcon {
+    // If you wrap icons in a div, style it here
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: $win98-control-size + 4px; // A bit more space for icon container
+    height: $win98-control-size + 4px;
+}
+
+
+// Programs section with submenu
+.programs {
+  position: relative; // For submenu positioning
+
+  &:hover > .submenu, // Select direct child submenu on hover
+  &.open > .submenu { // Or when .open class is added by JS
+    display: block;
+  }
+}
+
+.submenu {
+  display: none; // Hidden by default
+  position: absolute;
+  left: 100%;
+  top: -2px; // Align with parent item border
+  width: 180px; // Can be a variable $startmenu-submenu-width
+  background-color: $win98-bg;
+  @include win98-border($win98-border-light, $win98-border-dark, 2px);
+  z-index: $z-index-start-menu + 10; // Ensure submenu is above main menu
+  box-shadow: $win98-shadow-normal;
+  padding: 2px 0; // Consistent with .menuItems padding
+  animation: slideInRight 0.1s $ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.submenuItem {
+    @extend .menuItem; // Inherit styles from .menuItem
+    // any submenu specific overrides here
+}
+
+.specialItem {
+    // For items like "About Me", "My Projects" if they need distinct styling
+    font-weight: bold;
+}
+
+.separator {
+    height: 0;
+    margin: 2px 0;
+    border-top: 1px solid $win98-border-dark;
+    border-bottom: 1px solid $win98-border-light;
+} 

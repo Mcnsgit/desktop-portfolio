@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense, useState, useRef } from "react";
+import React, { Suspense, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SectionWrapper } from "../../hoc";
 import { technologies, technicalSkills } from "../../data/index";
@@ -13,48 +13,48 @@ import {
   Kanban,
   Diamond,
 } from "@phosphor-icons/react";
-import Image from "next/image";
-import { StaticImageData } from "next/image";
-import styles from "../styles/Skills.module.scss";
+// import Image from "next/image";
+// import { StaticImageData } from "next/image";
+import { styles } from "../cv/styles";
 import { useInView } from 'react-intersection-observer'; // Import useInView
 
 // Lazy load BallCanvas with Suspense fallback
 const BallCanvas = React.lazy(() => import("../3d/canvas/Ball"));
 
-interface BallCanvasProps {
-  icon: string | StaticImageData;
-  isInView?: boolean;
-}
+// interface BallCanvasProps {
+//   icon: string | StaticImageData;
+//   isInView?: boolean;
+// }
 // Fallback component for when 3D fails
-const FallbackTechIcon = ({
-  icon,
-  name,
-}: {
-  icon: string | StaticImageData;
-  name: string;
-}) => {
-  return (
-    <div className="w-full h-28 flex items-center justify-center bg-tertiary/30 rounded-full p-4">
-      {typeof icon === "string" ? (
-        <Image
-          src={icon}
-          alt={name}
-          className="w-16 h-16 object-contain"
-          width={64}
-          height={64}
-        />
-      ) : (
-        <Image
-          src={icon}
-          alt={name}
-          width={64}
-          height={64}
-          className="object-contain"
-        />
-      )}
-    </div>
-  );
-};
+// const FallbackTechIcon = ({
+//   icon,
+//   name,
+// }: {
+//   icon: string | StaticImageData;
+//   name: string;
+// }) => {
+//   return (
+//     <div className="w-full h-28 flex items-center justify-center bg-tertiary/30 rounded-full p-4">
+//       {typeof icon === "string" ? (
+//         <Image
+//           src={icon}
+//           alt={name}
+//           className="w-16 h-16 object-contain"
+//           width={64}
+//           height={64}
+//         />
+//       ) : (
+//         <Image
+//           src={icon}
+//           alt={name}
+//           width={64}
+//           height={64}
+//           className="object-contain"
+//         />
+//       )}
+//     </div>
+//   );
+// };
 
 // Memoizing BallCanvas to prevent unnecessary re-renders
 const MemoizedBallCanvas = React.memo(BallCanvas);
@@ -84,7 +84,7 @@ const SkillPill: React.FC<SkillPillProps> = ({ skill, index, category }) => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 20 }}
       transition={{ duration: 0.3, delay: index * 0.05 }}
-      className={`px-4 py-2 rounded-full ${color} text-white text-sm font-medium
+      className={`px-3 py-1.5 md:px-4 md:py-2 rounded-full ${color} text-white text-xs md:text-sm font-medium
         shadow-md cursor-default transition-colors duration-300 m-1 whitespace-nowrap`}
     >
       {skill}
@@ -92,13 +92,13 @@ const SkillPill: React.FC<SkillPillProps> = ({ skill, index, category }) => {
   );
 };
 
-interface SkillCategoryProps {
-  title: string;
-  skills: string[];
-  icon?: React.ReactNode;
-  isOpen: boolean;
-  onToggle: () => void;
-}
+// interface SkillCategoryProps {
+//   title: string;
+//   skills: string[];
+//   icon?: React.ReactNode;
+//   isOpen: boolean;
+//   onToggle: () => void;
+// }
 
 const SkillCategory: React.FC<{ title: string; skills: string[]; icon?: React.ReactNode; isOpen: boolean; onToggle: () => void; }> = ({ title, skills, icon, isOpen, onToggle }) => {
   const categoryIcons: { [key: string]: React.ReactNode } = {
@@ -203,8 +203,8 @@ const Tech = () => {
         <div className="flex flex-row flex-wrap justify-center gap-10 min-h-[11rem]">
           {/* Only render the Suspense boundary when the section is in view */}
           {techBallsInView && technologies.map((technology) => (
-            <motion.div key={technology.name} className="w-28 h-28 flex flex-col items-center" whileHover={{ y: -5, transition: { duration: 0.3 } }}>
-              <div className="w-full h-28">
+            <motion.div key={technology.name} className="w-24 h-28 md:w-28 md:h-28 flex flex-col items-center" whileHover={{ y: -5, transition: { duration: 0.3 } }}>
+              <div className="w-full h-24 md:h-28">
                 <Suspense fallback={
                   <div className="w-full h-full flex items-center justify-center">
                     <div className="loader"></div> {/* Simple CSS loader */}
@@ -235,7 +235,8 @@ const Tech = () => {
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
           {/* Render SkillCategory components using map for cleaner code */}
-          {(Object.keys(technicalSkills) as Array<CategoryKey>).map((key, index) => (
+          {(Object.keys(technicalSkills) as Array<CategoryKey>).map((key) => (
+
             <SkillCategory
               key={key}
               title={key.charAt(0).toUpperCase() + key.slice(1)} // Capitalize title

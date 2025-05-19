@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import Link from "next/link";
+// import Link from "next/link";
 import { SectionWrapper } from "../../hoc";
 import { styles } from "./styles";
 import { portfolioProjects as projects } from '../../data/portfolioData';
@@ -37,31 +37,26 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
   return (
     <motion.div
       variants={fadeIn("up", "spring", index * 0.5, 0.75)}
-      className="bg-tertiary p-5 rounded-2xl sm:w-[360px] w-full relative cursor-pointer"
+      className="bg-tertiary p-5 rounded-2xl sm:w-[360px] w-full relative cursor-pointer shadow-lg hover:shadow-xl transition-shadow duration-300 hover:scale-105 transform"
       onClick={onClick}
+      whileHover={{ y: -5 }}
     >
-      <div className="relative w-full h-[230px] overflow-hidden rounded-2xl">
+      <div className="relative w-full h-[230px] overflow-hidden rounded-2xl group">
         {typeof image === "string" ? (
           <Image
-            src="/placeholder.jpg"
+            src={image || "/placeholder.jpg"}
             alt={name}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-in-out"
             width={360}
             height={230}
-            style={{
-              transition: "transform 0.5s ease",
-            }}
           />
         ) : (
           <Image
-          width={800}
-          height={300}
-            src="/placeholder.jpg"
+          width={360}
+          height={230}
+            src={image}
             alt={name}
-            className="w-full h-full object-cover"
-            style={{
-              transition: "transform 0.5s ease",
-            }}
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-in-out"
           />
         )}
 

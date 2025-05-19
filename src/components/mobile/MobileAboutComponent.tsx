@@ -1,13 +1,13 @@
 import React from "react";
-import { motion } from "framer-motion";
+// import { motion } from "framer-motion";
 import Image from "next/image";
-import { styles } from "../cv/styles";
+// import { styles } from "../cv/styles";
 import { services } from "../../data/index";
-import { fadeIn } from "../../utils/motion";
+// import { fadeIn } from "../../utils/motion";
 import styles2 from "../styles/MobileAbout.module.scss";
 
 // Similar to the ServiceCard but optimized for mobile
-const MobileServiceCard = ({ index, title, icon, description }: any) => {
+const MobileServiceCard = ({  title, icon, description }: any) => {
   return (
     <div className={styles2.serviceCard}>
       <div className={styles2.serviceContent}>

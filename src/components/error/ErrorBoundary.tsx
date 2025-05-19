@@ -1,7 +1,7 @@
 // src/components/error/ErrorBoundary.tsx
 import React, { Component, ErrorInfo, ReactNode } from "react";
 import { useSounds } from "@/hooks/useSounds";
-import styles from "../styles/ErrorBoundary.module.scss";
+import styles from "./ErrorBoundary.module.scss";
 
 interface Props {
     children: ReactNode;

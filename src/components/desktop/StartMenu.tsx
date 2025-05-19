@@ -3,8 +3,9 @@ import React, { useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDesktop } from "../../context/DesktopContext";
 import { useSounds } from "@/hooks/useSounds";
-import Image from "next/image";
-import styles from "../styles/StartMenu.module.scss";
+
+import styles from "./StartMenu.module.scss";
+import { launchApplication } from "../../utils/appLauncher"; // Import launchApplication
 
 // Import icons
 import {
@@ -18,13 +19,12 @@ import {
   Settings,
   Power,
   ChevronRight,
-  Monitor,
   Headphones,
-  Camera,
-  Coffee,
   Layout,
   Terminal,
-  Paperclip
+  Calendar, // Assuming Calendar, Star, Clock are custom or from lucide-react elsewhere
+  Star,
+  Clock
 } from "lucide-react";
 
 // Define menu structure
@@ -70,115 +70,37 @@ const StartMenu: React.FC = () => {
 
   // Open window handlers
   const openAboutWindow = () => {
-    dispatch({
-      type: "OPEN_WINDOW",
-      payload: {
-        id: "about",
-        title: "About Me",
-        content: { type: "about" },
-        minimized: false,
-        position: { x: 150, y: 100 },
-        size: { width: 500, height: 400 },
-        type: "about",
-        zIndex: 10,
-      },
-    });
+    launchApplication("aboutme", dispatch, state.windows, { title: "About Me" });
   };
 
   const openProjectsFolder = () => {
-    dispatch({
-      type: "OPEN_WINDOW",
-      payload: {
-        id: "projects-folder",
-        title: "My Projects",
-        content: { type: "folder", folderId: "projects" },
-        minimized: false,
-        position: { x: 180, y: 120 },
-        size: { width: 600, height: 450 },
-        type: "folder",
-        zIndex: 10,
-      },
+    launchApplication("folder", dispatch, state.windows, { 
+      folderId: "projects", 
+      title: "My Projects" 
     });
   };
 
   const openContactWindow = () => {
-    dispatch({
-      type: "OPEN_WINDOW",
-      payload: {
-        id: "contact",
-        title: "Contact Me",
-        content: { type: "contact" },
-        minimized: false,
-        position: { x: 180, y: 120 },
-        size: { width: 450, height: 380 },
-        type: "contact",
-        zIndex: 10,
-      },
-    });
+    launchApplication("contact", dispatch, state.windows, { title: "Contact Me" });
   };
 
   const openTextEditor = () => {
-    dispatch({
-      type: "OPEN_WINDOW",
-      payload: {
-        id: `texteditor-${Date.now()}`,
-        title: "Text Editor",
-        content: { type: "texteditor" },
-        minimized: false,
-        position: { x: 200, y: 150 },
-        size: { width: 600, height: 400 },
-        type: "texteditor",
-        zIndex: 10,
-      },
-    });
+    launchApplication("texteditor", dispatch, state.windows, { title: "Text Editor" });
   };
 
   const openFileExplorer = () => {
-    dispatch({
-      type: "OPEN_WINDOW",
-      payload: {
-        id: `fileexplorer-${Date.now()}`,
-        title: "File Explorer",
-        content: { type: "fileexplorer", initialPath: "/home/guest" },
-        minimized: false,
-        position: { x: 150, y: 100 },
-        size: { width: 700, height: 500 },
-        type: "fileexplorer",
-        zIndex: 10,
-      },
+    launchApplication("fileexplorer", dispatch, state.windows, { 
+      title: "File Explorer", 
+      initialPath: "/home/guest" 
     });
   };
 
   const openWeatherApp = () => {
-    dispatch({
-      type: "OPEN_WINDOW",
-      payload: {
-        id: `weatherapp-${Date.now()}`,
-        title: "Weather App",
-        content: { type: "weatherapp" },
-        minimized: false,
-        position: { x: 180, y: 120 },
-        size: { width: 500, height: 400 },
-        type: "weatherapp",
-        zIndex: 10,
-      },
-    });
+    launchApplication("weatherapp", dispatch, state.windows, { title: "Weather App" });
   };
 
   const openSettings = () => {
-    dispatch({
-      type: "OPEN_WINDOW",
-      payload: {
-        id: "settings",
-        title: "Settings",
-        content: { type: "settings" },
-        minimized: false,
-        position: { x: 200, y: 150 },
-        size: { width: 500, height: 400 },
-        type: "settings",
-        zIndex: 10,
-      },
-    });
+    launchApplication("settings", dispatch, state.windows, { title: "Settings" });
   };
 
   const shutdown = () => {
@@ -213,8 +135,8 @@ const StartMenu: React.FC = () => {
       label: "Resume/CV",
       icon: <FileText size={16} />,
       action: () => {
-        // Open resume in a new window
         window.open("/cv.pdf", "_blank");
+        dispatch({ type: "TOGGLE_START_MENU", payload: { startMenuOpen: false } });
       },
       special: true,
     },
@@ -443,60 +365,9 @@ const StartMenu: React.FC = () => {
   );
 };
 
-// Missing icons
-const Calendar = (props: React.JSX.IntrinsicAttributes & React.SVGProps<SVGSVGElement>) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
-    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-    <line x1="16" y1="2" x2="16" y2="6"></line>
-    <line x1="8" y1="2" x2="8" y2="6"></line>
-    <line x1="3" y1="10" x2="21" y2="10"></line>
-  </svg>
-);
-
-const Star = (props: React.JSX.IntrinsicAttributes & React.SVGProps<SVGSVGElement>) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
-    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-  </svg>
-);
-
-const Clock = (props: React.JSX.IntrinsicAttributes & React.SVGProps<SVGSVGElement>) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
-    <circle cx="12" cy="12" r="10"></circle>
-    <polyline points="12 6 12 12 16 14"></polyline>
-  </svg>
-);
+// Dummy components for lucide-react icons if not directly available
+// const Calendar = (props: any) => <Paperclip {...props} />; // Placeholder
+// const Star = (props: any) => <Paperclip {...props} />;     // Placeholder
+// const Clock = (props: any) => <Paperclip {...props} />;    // Placeholder
 
 export default StartMenu;

@@ -1,0 +1,193 @@
+@use '../../../styles/_variables.scss' as *;
+@use 'sass:color';
+
+.contactWindow {
+  display: flex;
+  height: 100%;
+  overflow: hidden; // Prevent main container scroll
+  background-color: $win98-bg; // Window background
+  font-family: $win98-font-primary;
+  font-size: $win98-font-size-normal;
+}
+
+.windowContent {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+.contactInfo {
+  flex: 1;
+  padding: $spacing-lg;
+  background-color: color.scale($win98-bg, $lightness: 5%); // Slightly lighter pane
+  border-right: 1px solid $win98-border-dark; // Separator line
+  overflow-y: auto;
+  @include win98-scrollbar;
+}
+
+.contactForm {
+  flex: 1.5; // Make form area slightly larger
+  padding: $spacing-lg;
+  background-color: $win98-content-bg; // White background for form
+  overflow-y: auto;
+  @include win98-scrollbar;
+}
+
+.heading {
+  font-size: $win98-font-size-large + 2px;
+  font-weight: bold;
+  color: $win98-title-active-bg;
+  margin-top: 0;
+  margin-bottom: $spacing-lg;
+  border-bottom: 1px solid $win98-border-dark;
+  padding-bottom: $spacing-sm;
+}
+
+.infoItem {
+  display: flex;
+  align-items: center;
+  margin-bottom: $spacing-md;
+}
+
+.infoIcon {
+  width: 32px;
+  height: 32px;
+  margin-right: $spacing-md;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+}
+
+.infoText {
+  h3 {
+    font-size: $win98-font-size-normal;
+    font-weight: bold;
+    margin: 0 0 $spacing-xs 0;
+    color: $win98-text-dark;
+  }
+
+  p,
+  a {
+    font-size: $win98-font-size-normal;
+    color: color.adjust($win98-text-dark, $lightness: 10%);
+    text-decoration: none;
+    margin: 0;
+  }
+
+  a:hover {
+    text-decoration: underline;
+    color: $accent-color-main;
+  }
+}
+
+.socialLinks {
+  margin-top: $spacing-lg;
+  padding-top: $spacing-md;
+  border-top: 1px solid $win98-border-dark;
+  display: flex;
+  gap: $spacing-md;
+}
+
+.socialIcon {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+
+  svg {
+    width: 100%;
+    height: 100%;
+    fill: color.adjust($win98-text-dark, $lightness: 20%);
+    transition: fill $transition-fast;
+  }
+
+  &:hover svg {
+    fill: $accent-color-main;
+  }
+}
+
+// Form Styles
+.formGroup {
+  margin-bottom: $spacing-md;
+
+  label {
+    display: block;
+    margin-bottom: $spacing-xs;
+    font-weight: bold;
+    color: $win98-text-dark;
+  }
+}
+
+.formControl {
+  width: 100%;
+  padding: $spacing-sm;
+  font-family: $win98-font-primary;
+  font-size: $win98-font-size-normal;
+  background-color: $win98-content-bg; // White input background
+  color: $win98-text-dark;
+  @include win98-border-inset($win98-border-light, $win98-border-dark, 1px); // Inset border for inputs
+  outline: none;
+
+  &:focus {
+    // Optional: add subtle focus indicator, maybe a slightly different border
+    border-color: $win98-title-active-bg; // Example focus border
+  }
+
+  &:disabled {
+    background-color: $win98-bg; // Grey background when disabled
+    color: $win98-border-dark;
+    cursor: not-allowed;
+  }
+}
+
+textarea.formControl {
+  min-height: 80px;
+  resize: vertical;
+  @include win98-scrollbar;
+}
+
+.submitButton {
+  // Use the Button component styles by applying the class, or redefine here
+  // Example using redefined styles:
+  @include win98-border($win98-border-light, $win98-border-dark, 2px);
+  padding: $spacing-sm $spacing-lg;
+  background-color: $win98-button-face;
+  color: $win98-text-dark;
+  font-family: $win98-font-primary;
+  font-size: $win98-font-size-normal;
+  cursor: pointer;
+
+  &:active {
+    @include win98-border($win98-border-dark, $win98-border-light, 2px);
+  }
+
+  &:disabled {
+    color: $win98-border-dark;
+    cursor: not-allowed;
+    @include win98-border($win98-border-light, $win98-border-dark, 2px);
+  }
+}
+
+.statusMessage {
+  padding: $spacing-sm $spacing-md;
+  margin-bottom: $spacing-md;
+  @include win98-border($win98-border-light, $win98-border-dark, 1px);
+  font-size: $win98-font-size-small;
+
+  &.success {
+    background-color: color.adjust(green, $lightness: 50%);
+    border-color: color.adjust(green, $lightness: -10%);
+    color: color.adjust(green, $lightness: -20%);
+  }
+
+  &.error {
+    background-color: color.scale(red, $lightness: 40%);
+    border-color: color.adjust(red, $lightness: -10%);
+    color: color.adjust(red, $lightness: -20%);
+  }
+} 

@@ -4,6 +4,7 @@ import { browserFS, initFileSystem } from '../utils/browserFileSystem';
 import { err } from '@zenfs/core/internal/log.js';
 
 interface FileSystemContextType {
+  isLoaded: boolean;
   isReady: boolean;
   isPersistent: boolean;
   togglePersistence: () => Promise<boolean>;
@@ -11,13 +12,15 @@ interface FileSystemContextType {
   readFile: (path: string) => Promise<string | null>;
   deleteFile: (path: string) => Promise<boolean>;
   createDirectory: (path: string) => Promise<boolean>;
+  removeDirectory: (path: string) => Promise<boolean>;
   listDirectory: (path: string) => Promise<Array<{ name: string, isDirectory: boolean, isLink: boolean, linkTarget?: string }>>;
   moveFile: (oldPath: string, newPath: string) => Promise<boolean>;
   copyFile: (sourcePath: string, destinationPath: string) => Promise<boolean>;
-  getFileInfo: (path: string) => Promise<{ size: number, modified: Date, isDirectory: boolean } | null>;
+  getFileInfo: (path: string) => Promise<{ size: number, modified: Date, isDirectory: boolean, isSymbolicLink: boolean } | null>;
   createShortcut: (path: string, target: string) => Promise<boolean>;
   resolveShortcut: (path: string) => Promise<string | null>;
   refreshFileSystem: () => Promise<void>;
+  exists: (path: string) => Promise<boolean>;
 }
 
 const FileSystemContext = createContext<FileSystemContextType | undefined>(undefined);
@@ -60,11 +63,16 @@ export const FileSystemProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setIsReady(false); // Mark as not ready during toggle
     setError(null);
     try {
-      browserFS.reset(); // Use the fixed reset method
-      await initFileSystem(newPersistenceValue); // Re-initialize
+      // If turning OFF persistence, we want to keep the localStorage data but load a fresh in-memory FS.
+      // If turning ON, we want to clear in-memory and try to load from localStorage or init fresh.
+      browserFS.reset(false); // Reset in-memory state ONLY, don't clear 'retroos-filesystem' from localStorage yet.
+      
+      await initFileSystem(newPersistenceValue); // Re-initialize with the new persistence setting
+                                                // If newPersistenceValue is true, it will try to load from 'retroos-filesystem' or create default & persist.
+                                                // If newPersistenceValue is false, it will create a default in-memory FS.
 
       setIsPersistent(newPersistenceValue);
-      localStorage.setItem('retroos-persistence', newPersistenceValue.toString());
+      localStorage.setItem('retroos-persistence', newPersistenceValue.toString()); // Store the INTENT to persist for next full load
       setIsReady(true); // Mark as ready again
       console.log(`FS Context: Persistence toggled to ${newPersistenceValue}. Filesystem re-initialized.`);
       return true;
@@ -72,8 +80,10 @@ export const FileSystemProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       console.error('FS Context: Failed to toggle persistence:', err);
       setError(err instanceof Error ? err : new Error(String(err)));
       // Attempt to revert? Safer to leave in failed state and let user retry/refresh.
-      localStorage.setItem('retroos-persistence', isPersistent.toString()); // Revert setting
-      // Don't set isReady back to true on error
+      // Revert the localStorage item for persistence INTENT
+      localStorage.setItem('retroos-persistence', isPersistent.toString()); 
+      // Should we try to re-init with the old persistence value?
+      // For now, we leave FS in a potentially unready state with error.
       return false;
     }
  }, [isPersistent]);
@@ -144,29 +154,143 @@ export const FileSystemProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       return false;
     }
   }, []);
+
+  const removeDirectory = useCallback(async (path: string): Promise<boolean> => {
+    try {
+      if (browserFS.existsSync(path)) {
+        // Check if directory is empty first, as rmdirSync might require it depending on FS backend
+        const items = browserFS.readdirSync(path);
+        if (items.length > 0) {
+          // Optionally, implement recursive delete or return error for non-empty directory
+          // For now, let's attempt to delete and let browserFS handle it (it might fail for non-empty on some backends)
+          // A more robust solution would be a recursive delete utility if needed.
+          console.warn(`Attempting to delete non-empty directory: ${path}. This might fail or have unintended consequences.`);
+        }
+        browserFS.rmdirSync(path); // Use rmdirSync for directories
+        return true;
+      }
+      return false; // Directory does not exist
+    } catch (error) {
+      console.error(`Error removing directory ${path}:`, error);
+      return false;
+    }
+  }, []);
+
   // List directory contents
   const listDirectory = useCallback(async (path: string): Promise<Array<{ name: string, isDirectory: boolean, isLink: boolean, linkTarget?: string }>> => {
-    return []; // Return an empty array as a placeholder
+    try {
+      const items = browserFS.readdirSync(path);
+      return items.map(name => {
+        const fullPath = path === '/' ? `/${name}` : `${path}/${name}`;
+        let isDirectory = false;
+        let isLink = false;
+        let linkTarget: string | undefined = undefined;
+
+        try {
+          const stats = browserFS.statSync(fullPath);
+          isDirectory = stats.isDirectory();
+          isLink = stats.isSymbolicLink();
+          if (isLink) {
+            linkTarget = browserFS.readlinkSync(fullPath);
+          }
+          // Handling .lnk files, assuming they are files containing target path
+          if (name.endsWith('.lnk')) {
+            isLink = true; // Treat .lnk as a link
+            try {
+                linkTarget = browserFS.readFileSync(fullPath, { encoding: 'utf8' }) as string;
+            } catch (e) {
+                console.warn(`Error reading .lnk target for ${fullPath}:`, e);
+                linkTarget = '!error';
+            }
+          }
+        } catch (e) {
+          console.warn(`Error stating file ${fullPath} in listDirectory:`, e);
+          // Default to file if stat fails, or could return an error object
+        }
+        return { name, isDirectory, isLink, linkTarget };
+      });
+    } catch (error) {
+      console.error(`Error listing directory ${path}:`, error);
+      return [];
+    }
   }, []);
 
   const moveFile = useCallback(async (oldPath: string, newPath: string): Promise<boolean> => {
-    return false; // Return false as a placeholder
+    try {
+      browserFS.renameSync(oldPath, newPath);
+      return true;
+    } catch (error) {
+      console.error(`Error moving file from ${oldPath} to ${newPath}:`, error);
+      return false;
+    }
   }, []);
 
   const copyFile = useCallback(async (sourcePath: string, destinationPath: string): Promise<boolean> => {
-    return false; // Return false as a placeholder
+    try {
+      const content = browserFS.readFileSync(sourcePath); // Reads as Uint8Array or string
+      browserFS.writeFileSync(destinationPath, content);
+      return true;
+    } catch (error) {
+      console.error(`Error copying file from ${sourcePath} to ${destinationPath}:`, error);
+      return false;
+    }
   }, []);
 
-  const getFileInfo = useCallback(async (path: string): Promise<{ size: number, modified: Date, isDirectory: boolean } | null> => {
-    return null; // Return null as a placeholder
+  const getFileInfo = useCallback(async (path: string): Promise<{ size: number, modified: Date, isDirectory: boolean, isSymbolicLink: boolean } | null> => {
+    try {
+      const stats = browserFS.statSync(path);
+      return {
+        size: stats.size,
+        modified: stats.mtime,
+        isDirectory: stats.isDirectory(),
+        isSymbolicLink: stats.isSymbolicLink(),
+      };
+    } catch (error) {
+      console.error(`Error getting file info for ${path}:`, error);
+      return null;
+    }
   }, []);
 
   const createShortcut = useCallback(async (path: string, target: string): Promise<boolean> => {
-    return false; // Return false as a placeholder
+    try {
+      // Ensure .lnk extension, browserFS.writeFileSync handles target as content
+      const shortcutPath = path.endsWith('.lnk') ? path : `${path}.lnk`;
+      browserFS.writeFileSync(shortcutPath, target);
+      return true;
+    } catch (error) {
+      console.error(`Error creating shortcut ${path} to ${target}:`, error);
+      return false;
+    }
   }, []);
 
   const resolveShortcut = useCallback(async (path: string): Promise<string | null> => {
-    return null; // Return null as a placeholder
+    try {
+      if (path.endsWith('.lnk')) {
+        // .lnk files store target as their content
+        const target = browserFS.readFileSync(path, { encoding: 'utf8' });
+        return target as string;
+      } else {
+        // For actual symlinks (if browserFS supports them differently)
+        // This part might need adjustment based on how browserFS handles non .lnk symlinks
+        const stats = browserFS.statSync(path);
+        if (stats.isSymbolicLink()) {
+          return browserFS.readlinkSync(path);
+        }
+      }
+      return null; // Not a recognized shortcut/link type
+    } catch (error) {
+      console.error(`Error resolving shortcut ${path}:`, error);
+      return null;
+    }
+  }, []);
+
+  const exists = useCallback(async (path: string): Promise<boolean> => {
+    try {
+      return browserFS.existsSync(path);
+    } catch (error) {
+      console.error(`Error checking existence of ${path}:`, error);
+      return false; // Assume not exists on error
+    }
   }, []);
 
   const refreshFileSystem = useCallback(async (): Promise<void> => {
@@ -188,13 +312,13 @@ export const FileSystemProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const value = {
     isReady, isPersistent, togglePersistence, resetFileSystem, // Added reset
-    createFile, readFile, deleteFile, createDirectory, listDirectory,
-    moveFile, copyFile, getFileInfo, createShortcut, resolveShortcut,
-    refreshFileSystem
+    createFile, readFile, deleteFile, createDirectory, removeDirectory,
+    listDirectory, moveFile, copyFile, getFileInfo, createShortcut, resolveShortcut,
+    refreshFileSystem,
+    exists, // Added exists to provider value
   };
-
   return (
-    <FileSystemContext.Provider value={value}>
+    <FileSystemContext.Provider value={{ ...value, isLoaded: isReady }}>
       {children}
     </FileSystemContext.Provider>
   );

@@ -1,17 +1,15 @@
 // src/components/windows/WindowTypes/ImageViewerWindow.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { useFileSystem } from "../../../context/FileSystemContext";
-import { readFileContent } from "../../../utils/fileSystem";
-import styles from "../../styles/ImageViewerWindow.module.scss";
+import styles from "./ImageViewerWindow.module.scss";
 
 interface ImageViewerWindowProps {
   filePath?: string;
 }
 
 const ImageViewerWindow: React.FC<ImageViewerWindowProps> = ({ filePath }) => {
-  const fileSystemContext = useFileSystem();
-  const isLoaded = fileSystemContext?.isLoaded ?? false;
+  const fileSystem = useFileSystem();
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
@@ -20,55 +18,8 @@ const ImageViewerWindow: React.FC<ImageViewerWindowProps> = ({ filePath }) => {
   );
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load image when component mounts
-  useEffect(() => {
-    if (!isLoaded || !filePath) {
-      setIsLoading(false);
-      return;
-    }
-
-    const loadImage = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        // For demonstration purposes, we're using a placeholder
-        // In a real implementation, this would need to be adapted to work with your file system
-        if (filePath.includes("/assets/") || filePath.includes("/images/")) {
-          // For static images in the public folder
-          setImageUrl(filePath);
-        } else {
-          // For images in the virtual file system, we'd need to handle this differently
-          // This is a placeholder that would need to be replaced with actual implementation
-          setImageUrl(`/api/placeholder/400/300`);
-
-          // Example of how you might handle it with a file system that supports blobs
-          // const imageData = readFileContent(filePath, 'binary');
-          // if (imageData) {
-          //   const blob = new Blob([imageData], { type: getMimeType(filePath) });
-          //   setImageUrl(URL.createObjectURL(blob));
-          // } else {
-          //   setError("Could not read image file");
-          // }
-        }
-      } catch (err) {
-        console.error("Error loading image:", err);
-        setError("Failed to load image");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadImage();
-
-    // Update filename
-    if (filePath) {
-      setFileName(filePath.split("/").pop() || "Image");
-    }
-  }, [isLoaded, filePath]);
-
   // Get MIME type based on file extension
-  const getMimeType = (path: string): string => {
+  const getMimeType = useCallback((path: string): string => {
     const ext = path.toLowerCase().split(".").pop() || "";
     const mimeTypes: Record<string, string> = {
       jpg: "image/jpeg",
@@ -79,9 +30,69 @@ const ImageViewerWindow: React.FC<ImageViewerWindowProps> = ({ filePath }) => {
       webp: "image/webp",
       svg: "image/svg+xml",
     };
-
     return mimeTypes[ext] || "application/octet-stream";
-  };
+  }, []);
+
+  // Load image when component mounts
+  useEffect(() => {
+    if (!fileSystem.isReady || !filePath) {
+      setIsLoading(false);
+      if (!filePath) setError("No image file specified.");
+      else if (!fileSystem.isReady) setError("File system not ready.");
+      return;
+    }
+
+    const loadImage = async () => {
+      setIsLoading(true);
+      setError(null);
+      setImageUrl(null);
+
+      try {
+        // Check if the path is a direct public asset (e.g., for default icons/images)
+        // These paths won't be in the virtual FS.
+        if (filePath.startsWith('/assets/') || filePath.startsWith('/images/') || filePath.startsWith('/backgrounds/')) {
+          setImageUrl(filePath); // Directly use public path
+        } else {
+          // Attempt to read from the virtual file system
+          const imageData = await fileSystem.readFile(filePath);
+
+          if (imageData === null) {
+            setError(`File not found or error reading: ${filePath}`);
+          } else if (typeof imageData === 'string') {
+            // Handle case where it might be a data URI string or SVG string
+            if (imageData.startsWith('data:image')) {
+                setImageUrl(imageData);
+            } else {
+                // Potentially treat as SVG string if applicable, or error for other strings
+                // For now, we'll assume only data URIs are valid image strings
+                setError(`Unsupported string file content for image: ${filePath}. Expected data URI.`);
+            }
+          } else { // At this point, imageData must be Uint8Array
+            const mimeType = getMimeType(filePath);
+            const blob = new Blob([imageData], { type: mimeType });
+            const objectURL = URL.createObjectURL(blob);
+            setImageUrl(objectURL);
+            // It's important to revoke the object URL when the component unmounts or image changes
+            // This will be handled in the return function of this useEffect
+          }
+        }
+      } catch (err) {
+        console.error("Error loading image:", err);
+        setError(`Failed to load image: ${filePath}`);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadImage();
+    setFileName(filePath.split("/").pop() || "Image");
+
+    return () => {
+      if (imageUrl && imageUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(imageUrl);
+      }
+    };
+  }, [fileSystem.isReady, filePath, fileSystem.readFile, getMimeType, imageUrl, fileSystem]);
 
   // Handle zoom in
   const handleZoomIn = () => {
@@ -105,8 +116,8 @@ const ImageViewerWindow: React.FC<ImageViewerWindowProps> = ({ filePath }) => {
   };
 
   // Loading state
-  if (!isLoaded) {
-    return <div className={styles.loading}>Loading file system...</div>;
+  if (!fileSystem.isReady && isLoading) {
+    return <div className={styles.loading}>Initializing File System...</div>;
   }
 
   return (

@@ -1,0 +1,113 @@
+@use '../../../styles/_variables.scss' as *;
+@use 'sass:color';
+
+// Styles copied and refactored from ../styles/TextEditorWindow.module.scss
+
+.textEditor {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: $win98-bg;
+  font-family: $win98-font-primary;
+  font-size: $win98-font-size-normal;
+  overflow: hidden; // Prevent whole window scroll
+}
+
+.toolbar {
+  display: flex;
+  padding: 2px $spacing-xs;
+  height: $win98-title-bar-height;
+justify-content: space-between;
+  border-bottom: 1px solid $win98-border-dark;
+  align-items: center;
+  cursor: grab;
+  box-sizing: border-box;
+  background-color: $win98-bg;
+  @include no-select;
+}
+
+.menuItem {
+  padding: $spacing-xs $spacing-sm;
+  cursor: pointer;
+  position: relative;
+
+  &:hover {
+    background-color: $win98-title-active-bg;
+    color: $win98-title-text-color;
+  }
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: $win98-bg;
+  @include win98-border($win98-border-light, $win98-border-dark, 1px);
+  padding: $spacing-xs 0;
+  min-width: 150px;
+  z-index: $z-index-start-menu + 10; // Above menubar
+  box-shadow: $win98-shadow-normal;
+}
+
+.dropdownItem {
+  padding: $spacing-xs $spacing-lg $spacing-xs $spacing-sm;
+  white-space: nowrap;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  &:hover {
+    background-color: $win98-title-active-bg;
+    color: $win98-title-text-color;
+  }
+
+  &.disabled {
+    color: $win98-border-dark;
+    cursor: default;
+    &:hover {
+      background-color: transparent;
+      color: $win98-border-dark;
+    }
+  }
+}
+
+.shortcut {
+    font-size: $win98-font-size-small - 1px;
+    color: inherit; // Inherit from .dropdownItem
+    margin-left: $spacing-lg;
+}
+
+.textArea {
+  flex: 1;
+  width: 100%;
+  padding: $spacing-sm;
+  border: none;
+  border-top: 1px solid $win98-border-dark; // Separator from menu
+  resize: none;
+  outline: none;
+  font-family: $font-mono; // Use monospace font for text editor
+  font-size: $win98-font-size-normal;
+  line-height: 1.5;
+  background-color: $win98-content-bg; // White background
+  color: $win98-text-dark;
+  overflow-y: scroll; // Always show scrollbar? or auto?
+  @include win98-scrollbar;
+}
+
+.statusBar {
+  padding: 2px $spacing-sm;
+  border-top: 1px solid $win98-border-dark;
+  font-size: $win98-font-size-small - 1px;
+  color: $win98-text-dark;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: $win98-title-bar-height - 4px;
+}
+
+.statusItem {
+  @include win98-border-inset($win98-border-light, $win98-border-dark, 1px);
+  padding: 0 $spacing-sm;
+  margin-left: $spacing-sm;
+} 

@@ -8,7 +8,7 @@ import { supports3DTransforms } from "@/utils/browserSupport";
 const PerformanceOptimizer: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { gl, scene, camera } = useThree();
+  const { gl } = useThree();
   const [quality, setQuality] = useState(1.0);
   const frameSkipRef = useRef(0);
   const maxFrameSkip = useRef(0);

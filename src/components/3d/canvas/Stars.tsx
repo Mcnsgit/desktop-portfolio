@@ -28,7 +28,7 @@ const Stars = (props: StarsProps) => {
     return data;
   }, []);
   const rotationSpeed = { x: 0.1, y: 0.0667 };
-  useFrame((state, delta) => {
+  useFrame((_state, delta) => {
     if (ref.current) {
       ref.current.rotation.x -= delta * rotationSpeed.x;
       ref.current.rotation.y -= delta * rotationSpeed.y;

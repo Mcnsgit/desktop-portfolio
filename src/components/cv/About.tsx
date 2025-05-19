@@ -167,7 +167,6 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   
-  const cardDescription = description || `Provinding ${title.toLowerCase()} services. `
   return (
     <motion.div
       variants={fadeIn("right", "spring", index * 0.5, 0.75)}

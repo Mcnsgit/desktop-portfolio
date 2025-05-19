@@ -1,3 +1,5 @@
+@use '@/styles/variables' as v;
+
 .navbar { 
     width: 100%;
     display: flex;
@@ -143,5 +145,15 @@
       display: flex;
       justify-content: flex-end;
       align-items: center;
+    }
+  }
+
+.link {
+    &.active {
+      background-color: v.$accent-color-main;
+    }
+
+    &:hover:not(.active) {
+      color: v.$accent-color-main;
     }
   }

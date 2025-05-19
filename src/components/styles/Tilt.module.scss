@@ -1,5 +1,7 @@
 /* Tilt.module.scss - Dedicated styles for tilt components */
 
+@use '@/styles/variables' as v;
+
 /* Base tilt container styles */
 .tiltContainer {
     position: relative;
@@ -57,7 +59,7 @@
   
   /* Content container */
   .content {
-    background-color: var(--tertiary-color, #1d1836);
+    background-color: v.$secondary-bg;
     border-radius: 20px;
     padding: 1.25rem 1.5rem;
     min-height: 280px;
@@ -144,7 +146,7 @@
   
   /* Description text styles */
   .description {
-    color: var(--secondary-color, #aaa6c3);
+    color: v.$text-secondary-dark-bg;
     font-size: 0.875rem;
     text-align: center;
     transition: opacity 0.3s ease;

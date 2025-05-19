@@ -49,6 +49,11 @@ export interface EducationContent {
   type: "education";
 }
 
+export interface BrowserContent {
+  type: "browser";
+  url?: string;
+}
+
 export type WindowContent =
   | TextEditorContent
   | FileExplorerContent
@@ -60,6 +65,7 @@ export type WindowContent =
   | SkillsContent
   | ContactContent
   | EducationContent
+  | BrowserContent
   | { type: string; [key: string]: any };
 
 export interface Window {
@@ -72,6 +78,19 @@ export interface Window {
   type: string;
   zIndex?: number;
   isMaximized?: boolean;
+}
+
+export interface newWindow {
+  id: string;
+  title: string;
+  content: string;
+  isMinimized: boolean;
+  isMaximized: boolean;
+  position: Position;
+  size: Size;
+  zIndex: number;
+  type: string;
+  data?: WindowContent;
 }
 
 // --- FILE SYSTEM TYPES ---
@@ -107,6 +126,7 @@ export interface Project {
   details?: string;
   parentId?: string | null;
   type?: "code" | "interactive" | "visual" | string;
+  path?: string;
 }
 
 // --- FOLDER TYPE ---
@@ -117,6 +137,7 @@ export interface Folder {
   items?: string[];
   position?: Position;
   parentId?: string | null;
+  path?: string;
 }
 
 export interface FileItemData {
@@ -133,9 +154,12 @@ export interface DesktopItem {
   title: string;
   icon?: string;
   type: "project" | "folder" | "shortcut" | string;
+  onClick?: () => void;
   position: Position;
   parentId: string | null;
   zIndex?: number;
+  isCut?: boolean;
+  path?: string;
 }
 export interface DesktopState {
   windows: Window[];

@@ -1,13 +1,13 @@
 // src/components/fileSystem/FileExplorerWindow.tsx
 import React, { useState, useEffect, useCallback } from 'react';
+import { Folder, FileText, Link as LinkIcon, ArrowUp, RefreshCw } from 'lucide-react';
+import styles from './FileExplorerWindow.module.scss';
 import { useFileSystem } from '../../context/FileSystemContext';
-import { useDesktop } from '../../context/DesktopContext';
-import styles from '../styles/FileExplorerWindow.module.scss';
-import { useSounds } from '@/hooks/useSounds';
-import ImageWithFallback from '@/utils/ImageWithFallback';
 
 interface FileExplorerWindowProps {
   initialPath?: string;
+  onFileSelect?: (path: string, type: 'file' | 'directory' | 'link') => void;
+  id?: string;
 }
 
 interface FileItem {
@@ -19,270 +19,148 @@ interface FileItem {
 }
 
 const FileExplorerWindow: React.FC<FileExplorerWindowProps> = ({
-  initialPath = '/home/guest'
+  initialPath = "/home/guest/Desktop",
+  onFileSelect,
+  id
 }) => {
-  const { dispatch } = useDesktop();
   const fileSystem = useFileSystem();
-  const { playSound } = useSounds();
-
-  const [currentPath, setCurrentPath] = useState<string>(initialPath);
-  const [items, setItems] = useState<FileItem[]>([]);
-  const [selectedItem, setSelectedItem] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [currentPath, setCurrentPath] = useState(initialPath);
+  const [files, setFiles] = useState<FileItem[]>([]);
+  const [selectedFile, setSelectedFile] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [history, setHistory] = useState<string[]>([initialPath]);
+  const [historyIndex, setHistoryIndex] = useState(0);
 
-  // Load folder contents
-  const loadFolderContents = useCallback(async (path: string) => {
-    if (!path || !fileSystem.isReady) return;
-
+  const loadDirectory = useCallback(async (path: string) => {
+    if (!fileSystem.isReady) {
+      setError("File system not ready.");
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
-    setSelectedItem(null);
-
     try {
-      const contents = await fileSystem.listDirectory(path);
-
-      // Map directory contents to file items
-      const fileItems: FileItem[] = contents.map(item => ({
-        name: item.name,
-        isDirectory: item.isDirectory,
-        isLink: item.isLink,
-        linkTarget: item.linkTarget,
-        path: `${path}/${item.name}`.replace(/\/\//g, '/')
+      const directoryContents = await fileSystem.listDirectory(path);
+      const fileItems: FileItem[] = directoryContents.map(item => ({
+        ...item,
+        path: path === '/' ? `/${item.name}` : `${path}/${item.name}`,
       }));
-
-      setItems(fileItems);
+      setFiles(fileItems);
     } catch (err) {
-      console.error(`Error loading folder contents for ${path}:`, err);
-      setError(`Failed to load folder contents: ${err}`);
-      setItems([]);
+      console.error('Error loading directory:', err);
+      setError('Failed to load directory contents. Please try refreshing.');
+      setFiles([]);
     } finally {
       setLoading(false);
     }
   }, [fileSystem]);
 
-  // Load folder contents when path changes
   useEffect(() => {
-    if (fileSystem.isReady && currentPath) {
-      loadFolderContents(currentPath);
+    loadDirectory(currentPath);
+    if (history[historyIndex] !== currentPath) {
+        const newHistory = history.slice(0, historyIndex + 1);
+        newHistory.push(currentPath);
+        setHistory(newHistory);
+        setHistoryIndex(newHistory.length - 1);
     }
-  }, [currentPath, loadFolderContents, fileSystem.isReady]);
+  }, [currentPath, loadDirectory, history, historyIndex]);
 
-  // Handle item double click
-  const handleItemDoubleClick = async (item: FileItem) => {
-    playSound('click');
-
-    if (item.isDirectory) {
-      // Navigate to directory
-      setCurrentPath(item.path);
-    } else if (item.isLink) {
-      // Handle shortcut
-      if (item.linkTarget) {
-        if (item.linkTarget.startsWith('app:')) {
-          // Launch application
-          const appName = item.linkTarget.replace('app:', '');
-          // You would need to implement the appropriate app launching logic here
-          console.log(`Launching app: ${appName}`);
-        } else {
-          // Navigate to target path
-          const targetPath = await fileSystem.resolveShortcut(item.path);
-          if (targetPath) {
-            setCurrentPath(targetPath);
-          }
-        }
-      }
-    } else {
-      // Open file based on extension
-      const extension = item.name.includes('.') ? item.name.split('.').pop()?.toLowerCase() : '';
-
-      switch (extension) {
-        case 'txt':
-        case 'md':
-        case 'js':
-        case 'ts':
-        case 'jsx':
-        case 'tsx':
-        case 'css':
-        case 'html':
-          // Open in text editor
-          dispatch({
-            type: 'OPEN_WINDOW',
-            payload: {
-              id: `texteditor-${Date.now()}`,
-              title: `Text Editor - ${item.name}`,
-              content: { type: 'texteditor', filePath: item.path },
-              minimized: false,
-              position: { x: 120, y: 120 },
-              size: { width: 800, height: 600 },
-              zIndex: 1,
-              type: 'texteditor',
-            }
-          });
-          break;
-
-        case 'jpg':
-        case 'jpeg':
-        case 'png':
-        case 'gif':
-        case 'bmp':
-        case 'svg':
-          // Open in image viewer
-          dispatch({
-            type: 'OPEN_WINDOW',
-            payload: {
-              id: `imageviewer-${Date.now()}`,
-              title: `Image Viewer - ${item.name}`,
-              content: { type: 'imageviewer', filePath: item.path },
-              minimized: false,
-              position: { x: 150, y: 150 },
-              size: { width: 800, height: 600 },
-              zIndex: 1,
-              type: 'imageviewer',
-            }
-          });
-          break;
-
-        default:
-          // Default to text editor for unknown types
-          dispatch({
-            type: 'OPEN_WINDOW',
-            payload: {
-              id: `texteditor-${Date.now()}`,
-              title: `Text Editor - ${item.name}`,
-              content: { type: 'texteditor', filePath: item.path },
-              minimized: false,
-              position: { x: 120, y: 120 },
-              size: { width: 800, height: 600 },
-              zIndex: 1,
-              type: 'texteditor',
-            }
-          });
-          break;
-      }
-    }
+  const navigateToPath = (newPath: string) => {
+    setCurrentPath(newPath);
+    setSelectedFile(null);
   };
 
-  // Handle item selection
   const handleItemClick = (item: FileItem) => {
-    setSelectedItem(item.path);
+    setSelectedFile(item.path);
+    if (onFileSelect) {
+      onFileSelect(item.path, item.isDirectory ? 'directory' : item.isLink ? 'link' : 'file');
+    }
   };
 
-  // Handle navigation to parent directory
-  const handleNavigateUp = () => {
-    if (currentPath === '/') return;
-
-    const parentPath = currentPath.substring(0, currentPath.lastIndexOf('/'));
-    setCurrentPath(parentPath || '/');
-    playSound('click');
-  };
-
-  // Get appropriate icon for file type
-  const getFileIcon = (item: FileItem) => {
+  const handleItemDoubleClick = (item: FileItem) => {
     if (item.isDirectory) {
-      return '/assets/win98-icons/png/directory_open-0.png';
-    }
-
-    if (item.isLink) {
-      return '/assets/win98-icons/png/shortcut-0.png';
-    }
-
-    const extension = item.name.includes('.') ? item.name.split('.').pop()?.toLowerCase() : '';
-
-    switch (extension) {
-      case 'txt':
-        return '/assets/win98-icons/png/notepad_file-0.png';
-      case 'md':
-        return '/assets/win98-icons/png/notepad_file-0.png';
-      case 'js':
-      case 'ts':
-      case 'jsx':
-      case 'tsx':
-        return '/assets/win98-icons/png/file_lines-0.png';
-      case 'html':
-        return '/assets/win98-icons/png/html-0.png';
-      case 'css':
-        return '/assets/win98-icons/png/file_lines-0.png';
-      default:
-        return '/assets/win98-icons/png/file_blank-0.png';
+      navigateToPath(item.path);
+    } else if (item.isLink && item.linkTarget) {
+      if (onFileSelect) onFileSelect(item.path, 'link');
+    } else {
+      if (onFileSelect) onFileSelect(item.path, 'file');
     }
   };
 
-  // If file system is not ready, show loading
-  if (!fileSystem.isReady) {
-    return (
-      <div className={styles.fileExplorer}>
-        <div className={styles.loadingContainer}>
-          <div className={styles.loadingSpinner}></div>
-          <p>Initializing file system...</p>
-        </div>
-      </div>
-    );
+  const handleGoUp = () => {
+    if (currentPath === '/') return;
+    const parentPath = currentPath.substring(0, currentPath.lastIndexOf('/')) || '/';
+    navigateToPath(parentPath);
+  };
+
+ const handleRefresh = () => {
+    loadDirectory(currentPath);
+ };
+
+ const handlePathInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  e.preventDefault();
+  if (e.target.value !== currentPath) {
+    navigateToPath(e.target.value);
+  }
+ };
+
+ const handlePathInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+        navigateToPath(e.currentTarget.value);
+    }
+ };
+
+  if (!fileSystem.isReady && loading) {
+    return <div className={styles.loading}>Initializing File System...</div>;
   }
 
   return (
-    <div className={styles.fileExplorer}>
+    <div className={styles.fileExplorer} id={id}>
       <div className={styles.toolbar}>
-        <button
-          onClick={handleNavigateUp}
-          className={styles.toolbarButton}
-          title="Up"
-        >
-          Up
+        <button onClick={handleGoUp} disabled={currentPath === '/'} className={styles.toolbarButton} title="Up one level">
+          <ArrowUp size={18} />
         </button>
-        <div className={styles.breadcrumbs}>
-          <span className={styles.currentPath}>{currentPath}</span>
-        </div>
+        <input
+          type="text"
+          value={currentPath}
+          onChange={handlePathInputChange}
+          onKeyDown={handlePathInputKeyDown}
+          className={styles.addressBar}
+          placeholder="Enter path..."
+        />
+        <button onClick={handleRefresh} className={styles.toolbarButton} title="Refresh">
+          <RefreshCw size={18} />
+        </button>
       </div>
 
-      {loading ? (
-        <div className={styles.loadingContainer}>
-          <div className={styles.loadingSpinner}></div>
-          <p>Loading folder contents...</p>
-        </div>
-      ) : error ? (
-        <div className={styles.errorContainer}>
-          <p className={styles.errorMessage}>{error}</p>
-          <button onClick={() => loadFolderContents(currentPath)} className={styles.retryButton}>
-            Retry
-          </button>
-        </div>
-      ) : items.length === 0 ? (
-        <div className={styles.emptyFolder}>
-          <p>This folder is empty.</p>
-        </div>
-      ) : (
-        <div className={styles.folderContents}>
-          <div className={styles.itemsContainer}>
-            {items.map((item) => (
-              <div
+      <div className={styles.fileListContainer}>
+        {loading && !error && <div className={styles.loadingOverlay}>Loading...</div>}
+        {error && <div className={styles.errorOverlay}>{error}</div>}
+        {!loading && !error && files.length === 0 && <div className={styles.empty}>This folder is empty.</div>}
+        {!error && files.length > 0 && (
+          <ul className={styles.fileList}>
+            {files.map((item) => (
+              <li
                 key={item.path}
-                className={`${styles.fileItem} ${selectedItem === item.path ? styles.selected : ''}`}
+                className={`${styles.fileItem} ${selectedFile === item.path ? styles.selected : ''}`}
                 onClick={() => handleItemClick(item)}
                 onDoubleClick={() => handleItemDoubleClick(item)}
+                title={`${item.name}${item.isLink && item.linkTarget ? ` -> ${item.linkTarget}` : ''}`}
               >
                 <div className={styles.fileIcon}>
-                  <ImageWithFallback
-                    src={getFileIcon(item)}
-                    alt={item.name}
-                    width={16}
-                    height={16}
-                    fallbackSrc="/assets/win98-icons/png/file_windows-0.png"
-                  />
+                  {item.isDirectory ? <Folder size={20} /> : item.isLink ? <LinkIcon size={20} /> : <FileText size={20} />}
                 </div>
-                <div className={styles.fileName}>
-                  {item.name}
-                  {item.isLink && <span className={styles.shortcutIndicator}>↗</span>}
-                </div>
-              </div>
+                <span className={styles.fileName}>{item.name}</span>
+              </li>
             ))}
-          </div>
-        </div>
-      )}
+          </ul>
+        )}
+      </div>
 
       <div className={styles.statusBar}>
-        <div className={styles.statusText}>
-          {items.length} items
-        </div>
+        <span>{files.length} item(s)</span>
+        {selectedFile && <span>Selected: {selectedFile.split('/').pop()}</span>}
       </div>
     </div>
   );

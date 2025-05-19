@@ -73,7 +73,7 @@ const Contact = () => {
     <div className={`xl:mt-12 flex xl:flex-row flex-col-reverse gap-10 overflow-hidden`}>
       <motion.div
         variants={slideIn("left", "tween", 0.2, 1)}
-        className="flex-[0.75] bg-black-100 p-8 rounded-2xl" // Use theme variables if possible
+        className="flex-[0.75] bg-black-100 p-8 rounded-2xl shadow-2xl" // Added shadow-2xl for dimension
       >
         <p className={styles.sectionSubText}>Get in touch</p>
         <h3 className={styles.sectionHeadText}>Contact.</h3>
@@ -92,7 +92,7 @@ const Contact = () => {
               onChange={handleChange}
               placeholder="What's your name?"
               required // Add required attribute
-              className="bg-tertiary py-4 px-6 placeholder:text-secondary text-white rounded-lg outline-none border-none font-medium focus:ring-2 focus:ring-purple-500" // Added focus style
+              className="bg-tertiary py-4 px-6 placeholder:text-secondary text-white rounded-lg outline-none border-none font-medium focus:ring-2 focus:ring-[#915eff] focus:border-[#915eff] transition-all duration-300" // Enhanced focus style
             />
           </label>
           <label className="flex flex-col">
@@ -104,7 +104,7 @@ const Contact = () => {
               onChange={handleChange}
               placeholder="What's your email address?"
               required
-              className="bg-tertiary py-4 px-6 placeholder:text-secondary text-white rounded-lg outline-none border-none font-medium focus:ring-2 focus:ring-purple-500"
+              className="bg-tertiary py-4 px-6 placeholder:text-secondary text-white rounded-lg outline-none border-none font-medium focus:ring-2 focus:ring-[#915eff] focus:border-[#915eff] transition-all duration-300" // Enhanced focus style
             />
           </label>
           <label className="flex flex-col">
@@ -116,14 +116,14 @@ const Contact = () => {
               onChange={handleChange}
               placeholder="What do you want to say?"
               required
-              className="bg-tertiary py-4 px-6 placeholder:text-secondary text-white rounded-lg outline-none border-none font-medium focus:ring-2 focus:ring-purple-500"
+              className="bg-tertiary py-4 px-6 placeholder:text-secondary text-white rounded-lg outline-none border-none font-medium focus:ring-2 focus:ring-[#915eff] focus:border-[#915eff] transition-all duration-300" // Enhanced focus style
             />
           </label>
 
           <button
             type="submit"
             disabled={loading} // Disable button while loading
-            className="bg-tertiary py-3 px-8 rounded-xl outline-none w-fit text-white font-bold shadow-md shadow-primary hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-tertiary py-3 px-8 rounded-xl outline-none w-fit text-white font-bold shadow-md hover:shadow-lg shadow-primary hover:bg-[#915eff] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed" // Enhanced hover and shadow
           >
             {loading ? "Sending..." : "Send Message"}
           </button>

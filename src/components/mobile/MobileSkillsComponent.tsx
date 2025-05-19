@@ -8,7 +8,7 @@ import {
   Atom,
   Toolbox,
   Kanban,
-  Diamond,
+  // Diamond,
 } from "@phosphor-icons/react";
 
 interface SkillCategoryProps {
@@ -38,7 +38,7 @@ const SkillCategory: React.FC<SkillCategoryProps> = ({
 
       {isOpen && (
         <div className={styles.skillList}>
-          {skills.map((skill, index) => (
+          {skills.map((skill) => (
             <div key={`${title}-${skill}`} className={styles.skillPill}>
               {skill}
             </div>

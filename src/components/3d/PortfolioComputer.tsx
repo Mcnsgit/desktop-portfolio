@@ -1,8 +1,8 @@
 "use client"; // Add directive
 
-import React, { useCallback, Suspense, useEffect, useRef } from "react";
+import React, { useCallback, Suspense, useEffect,  useState } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Preload, useGLTF } from "@react-three/drei";
+import {  Preload, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import CanvasLoader from "./Loader";
 import OptimizedOrbitControls from "./OptimizedOrbitControls";
@@ -12,11 +12,12 @@ import { useSounds } from "@/hooks/useSounds";
 
 // --- ComputerModel Component ---
 // This renders the actual GLTF model and handles clicks
-const ComputerModel = () => {
+const ComputerModel = ({ isMobile }: { isMobile: boolean }) => {
+  const computer = useGLTF("./desktop_pc/scene.gltf"); // Path relative to /public
+
   const router = useRouter();
   const { playSound } = useSounds();
   // Load the GLTF model - ensure the path is correct relative to the public folder
-  const computer = useGLTF("./desktop_pc/scene.gltf"); // Path relative to /public
 
   // Click handler for navigation
   const handleClick = useCallback((event: React.MouseEvent) => { // Use React MouseEvent type
@@ -40,21 +41,21 @@ const ComputerModel = () => {
     // Add the onClick handler to the group containing the primitive
     <group onClick={handleClick} dispose={null}>
       <mesh>
-      <hemisphereLight intensity={0.18} groundColor="black" /> {/* Adjusted intensity */}
-      <spotLight
-       position={[-20, 50, 10]}
-       angle={0.12}
-       penumbra={1.3}
-       intensity={3}
-       castShadow
-       shadow-mapSize={1024}
-       />
-      <pointLight intensity={1} />
-      <primitive
-        object={computer.scene}
-        scale={1.50} // Slightly smaller scale might fit better
-        position={[0, -3.5, -1.5]} // Adjust Y position if needed
-        rotation={[-0.01, -0.2, -0.1]}
+        <hemisphereLight intensity={0.15} groundColor='black' />
+        <spotLight
+          position={[-20, 50, 10]}
+          angle={0.12}
+          penumbra={1}
+          intensity={1}
+          castShadow
+          shadow-mapSize={1024}
+        />
+        <pointLight intensity={1} />
+        <primitive
+          object={computer.scene}
+          scale={isMobile ? 0.7 : 0.75}
+          position={isMobile ? [0, -3, -2.2] : [0, -3.25, -1.5]}
+          rotation={[-0.01, -0.2, -0.1]}
         />
         </mesh>
     </group>
@@ -66,26 +67,42 @@ const ComputerModel = () => {
 // --- PortfolioComputer Component ---
 // This sets up the Canvas environment for the model
 const PortfolioComputer: React.FC = () => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 500px");
+
+    setIsMobile(mediaQuery.matches);
+
+    const handleMediaQueryChange = (e: { matches: boolean | ((prevState: boolean) => boolean); }) => {
+      setIsMobile(e.matches);
+    };
+
+    mediaQuery.addEventListener("change",handleMediaQueryChange);
+
+    return () => {
+      mediaQuery.removeEventListener("change", handleMediaQueryChange)
+    };
+  }, []);
   
   return (
     <div className="w-full h-full pointer-events-auto"> {/* Allow pointer events on canvas container */}
       <Canvas
         frameloop="demand"
         shadows
-        dpr={[1, 1.5]}
+        dpr={[1, 2]}
         camera={{ position: [20, 3, 5], fov: 25 }} // Keep camera settings
-        gl={{ preserveDrawingBuffer: false, antialias: true }}
+        gl={{ preserveDrawingBuffer: true }}
       >
         <PerformanceOptimizer>
           <Suspense fallback={<CanvasLoader />}>
             <OptimizedOrbitControls
               enableZoom={false}
-              maxPolarAngle={Math.PI / 2} minPolarAngle={Math.PI / 2} // Lock vertical
-              enablePan={false}
-              autoRotate={true} autoRotateSpeed={0.4} // Subtle rotation
-              // enableDamping={true} dampingFactor={0.1}
+              maxPolarAngle={Math.PI / 2} 
+              minPolarAngle={Math.PI / 2} // Lock vertical
+          
             />
-            <ComputerModel />
+            <ComputerModel isMobile={isMobile} />
           </Suspense>
           <Preload all />
         </PerformanceOptimizer>

@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from "react";
 import { OrbitControls as DreiOrbitControls } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
-import * as THREE from "three";
+// import * as THREE from "three";
 
 interface OptimizedOrbitControlsProps {
   enableZoom?: boolean;
@@ -25,7 +25,7 @@ const OptimizedOrbitControls: React.FC<OptimizedOrbitControlsProps> = ({
   autoRotateSpeed = 0.5,
 }) => {
   const controlsRef = useRef<any>(null);
-  const { gl, camera } = useThree();
+  useThree();
 
   useEffect(() => {
     if (controlsRef.current) {

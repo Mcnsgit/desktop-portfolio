@@ -69,6 +69,7 @@ export class File extends Item {
     this.#source = newSource;
     if (newSource && newSource.type) {
       let [type, mime] = newSource.type.split('/');
+      type = type.match(/[\w-]+/g);
       mime = mime.match(/[\w-]+/g);
       this.#type = type = 'text';
       this.#mimeType = !mime || mime[0] === 'plain' ? 'txt' : mime[0];

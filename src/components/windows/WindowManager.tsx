@@ -6,12 +6,12 @@ import Window from "./Window";
 import ErrorBoundary from "../error/ErrorBoundary";
 import WindowLoading from "./WindowLoading";
 // Utility for dynamic imports with fallback
-const dynamicImportWithFallback = (importFunc: () => Promise<any>, fallbackComponent: React.FC) => {
+function dynamicImportWithFallback<P = {}>(importFunc: () => Promise<{ default: React.ComponentType<P> }>, _fallbackComponent: React.FC<P>) {
   return dynamic(importFunc, {
     ssr: false,
     loading: () => <WindowLoading message={`Loading...`} />,
-  });
-};
+  }) as React.ComponentType<P>;
+}
 // Default window content
 const DefaultWindowContent = ({ type }: { type: string }) => (
   <div style={{ padding: '20px', height: '100%', overflow: 'auto' }}>
@@ -34,19 +34,37 @@ const SimpleFolderWindow = () => (
 );
 // Dynamic imports with fallbacks
 const AboutWindow = dynamicImportWithFallback(() => import("./WindowTypes/AboutWindow"), () => <DefaultWindowContent type="About" />);
-const ProjectWindow = dynamicImportWithFallback(() => import("./WindowTypes/ProjectWindow"), () => <DefaultWindowContent type="Project" />);
-const FileExplorerWindow = dynamicImportWithFallback(() => import("../fileSystem/FileExplorerWindow"), SimpleFolderWindow);
-const TextEditorWindow = dynamicImportWithFallback(() => import("./WindowTypes/TextEditorWindow"), () => <DefaultWindowContent type="Text Editor" />);
-const ImageViewerWindow = dynamicImportWithFallback(() => import("./WindowTypes/ImageViewerWindow"), () => <DefaultWindowContent type="Image Viewer" />);
-const WeatherApp = dynamicImportWithFallback(() => import("../projects/WeatherApp/WeatherApp"), () => <DefaultWindowContent type="Weather App" />);
-const FolderWindow = dynamicImportWithFallback(() => import("../fileSystem/FolderWindow"), SimpleFolderWindow);
+const ProjectWindow = dynamicImportWithFallback<{ project: any }>(
+  () => import("./WindowTypes/ProjectWindow"),
+  () => <DefaultWindowContent type="Project" />
+);
+const FileExplorerWindow = dynamicImportWithFallback<{ initialPath?: string }>(
+  () => import("../fileSystem/FileExplorerWindow"),
+  SimpleFolderWindow
+);
+const TextEditorWindow = dynamicImportWithFallback<{ filePath?: string, windowId: string }>(
+  () => import("./WindowTypes/TextEditorWindow"),
+  () => <DefaultWindowContent type="Text Editor" />
+);
+const ImageViewerWindow = dynamicImportWithFallback<{ filePath?: string }>(
+  () => import("./WindowTypes/ImageViewerWindow"),
+  () => <DefaultWindowContent type="Image Viewer" />
+);
+const WeatherApp = dynamicImportWithFallback(
+  () => import("../projects/WeatherApp/WeatherApp"),
+  () => <DefaultWindowContent type="Weather App" />
+);
+const FolderWindow = dynamicImportWithFallback<{ folderId: string }>(
+  () => import("../fileSystem/FolderWindow"),
+  SimpleFolderWindow
+);
 const ContactWindow = dynamicImportWithFallback(() => import("./WindowTypes/ContactWindow"), () => <DefaultWindowContent type="Contact" />);
 const SettingsWindow = dynamicImportWithFallback(() => import("./WindowTypes/SettingsWindow"), () => <DefaultWindowContent type="Settings" />);
 // WindowManager component
 const WindowManager: React.FC = () => {
   const { state, dispatch } = useDesktop();
   const containerRef = useRef<HTMLDivElement>(null);
-  const lastWindowPosition = useRef({ x: 50, y: 50 });
+  // const lastWindowPosition = useRef({ x: 50, y: 50 });
   useEffect(() => {
     // Update last window position logic...
   }, [state.activeWindowId, state.windows]);
@@ -78,7 +96,11 @@ const WindowManager: React.FC = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [dispatch, state.windows]);
-  const visibleWindows = useMemo(() => state.windows.filter(window => !window.minimized), [state.windows]);
+  // Only render non-minimized windows, sorted by zIndex ascending (lowest at bottom)
+  const visibleWindows = useMemo(() =>
+    state.windows.filter(window => !window.minimized).sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0)),
+    [state.windows]
+  );
   const renderWindowContent = useCallback((window: any) => {
     const { type, id, content } = window;
     switch (type) {
@@ -90,23 +112,23 @@ const WindowManager: React.FC = () => {
         return <SettingsWindow />;
       case "texteditor":
       case id.startsWith("texteditor-"):
-        return <TextEditorWindow filePath={content?.filePath} />;
+        return <TextEditorWindow windowId={id} filePath={content && content.filePath ? content.filePath : undefined} />;
       case "imageviewer":
       case id.startsWith("imageviewer-"):
-        return <ImageViewerWindow filePath={content?.filePath} />;
+        return <ImageViewerWindow filePath={content && content.filePath ? content.filePath : undefined} />;
       case "fileexplorer":
       case id.startsWith("fileexplorer-"):
-        return <FileExplorerWindow initialPath={content?.initialPath || "/home/guest"} />;
+        return <FileExplorerWindow initialPath={content && content.initialPath ? content.initialPath : "/home/guest"} />;
       case "weatherapp":
       case id.startsWith("weatherapp-"):
         return <WeatherApp />;
       case "folder":
       case id.startsWith("folder-"):
-        return <FolderWindow folderId={content?.folderId || id.split('-')[1]} />;
+        return <FolderWindow folderId={content && content.folderId ? content.folderId : id.split('-')[1]} />;
       case "project":
       case id.startsWith("project-"):
-        const projectId = content?.projectId || id.split('-')[1];
-        const project = state.projects.find(p => p.id === projectId);
+        const projectId = content && content.projectId ? content.projectId : id.split('-')[1];
+        const project = state.projects.find((p: any) => p.id === projectId);
         return project ? <ProjectWindow project={project} /> : <div className="error-container">Project not found: {projectId}</div>;
       default:
         return <DefaultWindowContent type={type} />;

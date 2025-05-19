@@ -1,7 +1,9 @@
 "use client";
 
-import React, { Suspense, useState, useEffect, useCallback } from "react";
+import React, {  useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import FontPreloader from "@/utils/FontPreloader";
+import styles from './page.module.scss'; // Import the SCSS module
 
 // CV Components
 import Navbar from "@/components/cv/Navbar";
@@ -12,21 +14,20 @@ import Works from "@/components/cv/Works";
 import Experience from "@/components/cv/Experience";
 import Contact from "@/components/cv/Contact";
 // 3D & Utils
-import StarsCanvas from "@/components/3d/canvas/Stars";
+// import StarsCanvas from "@/components/3d/canvas/Stars";
 import BootAnimation from "@/components/3d/BootAnimation";
 import LoadingScreen from "@/components/3d/LoadingScreen";
 import { useSounds } from "@/hooks/useSounds";
-import FontPreloader from "@/utils/FontPreloader";
+import './global.css';
+// const ClientOnly: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+//   const [isClient, setIsClient] = useState(false);
 
-const ClientOnly: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isClient, setIsClient] = useState(false);
+//   useEffect(() => {
+//     setIsClient(true);
+//   }, []);
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  return isClient ? <>{children}</> : null;
-};
+//   return isClient ? <>{children}</> : null;
+// };
 
 
 // const ComputerModel = () => {
@@ -105,13 +106,13 @@ export default function HomePage() {
     // Wrap with Providers if they aren't in a higher-level layout file
     // <DesktopProvider>
     //   <FileSystemProvider>
-    <div className="relative z-0 bg-primary text-white min-h-screen"> {/* Ensure background */}
+    <div className={`${styles.homePageContainer} relative z-0 bg-primary text-white min-h-screen`}> {/* Ensure background. bg-primary and text-white might be redundant if homePageContainer sets them via SCSS vars */}
       <FontPreloader />
       {/* <StarsCanvas /> Global background stars */}
 
       {/* Main Content Flow */}
-      <div className="relative z-10"> {/* Content layer */}
-        <div className="bg-hero-pattern bg-cover bg-no=repeat bg-center">
+      <div className={`${styles.contentLayer} relative z-10`}> {/* Content layer */}
+        <div className={`${styles.heroSection} bg-hero-pattern bg-cover bg-no-repeat bg-center`}> {/* Tailwind classes for bg-hero-pattern are kept */}
                 <Navbar />
         <Hero /> {/* Hero now contains the computer */}
         </div>
@@ -125,21 +126,22 @@ export default function HomePage() {
 
       {/* Fixed Desktop Prompt (No longer needs mobile check here) */}
       <div
-        className="fixed bottom-5 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-md shadow-lg backdrop-blur-sm border border-white/20 bg-black/60 text-white text-sm cursor-pointer hover:bg-black/80 transition-colors z-50 animate-pulse" // Ensure high z-index
+        className={`${styles.desktopEntryButton} fixed bottom-5 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-md shadow-lg backdrop-blur-sm border border-white/20 bg-black/60 text-white text-sm cursor-pointer hover:bg-black/80 transition-colors z-50 animate-pulse`} // Tailwind classes kept, added module style for animation
         onClick={() => router.push("/desktop")}
         title="Enter Retro Desktop Mode"
-        style={{ animation: "pulse 2s infinite" }} // Inline animation style if needed
+        // style={{ animation: "pulse 2s infinite" }} // Removed inline style
       >
         Click computer to enter desktop
       </div>
 
       {/* Pulse Keyframes (can be in globals.css) */}
-      <style jsx global>{`
+      {/* <style jsx global>{`
                         @keyframes pulse {
                           0%, 100% { opacity: 0.7; transform: translateX(-50%) scale(1); }
                           50% { opacity: 1; transform: translateX(-50%) scale(1.05); }
                         }
-                    `}</style>
+                    `}</style> */}
+      {/* Removed style jsx block */}
     </div>
     //   </FileSystemProvider>
     // </DesktopProvider>

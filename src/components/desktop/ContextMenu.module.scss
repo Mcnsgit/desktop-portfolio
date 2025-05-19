@@ -1,0 +1,173 @@
+
+@use '../../styles/_variables.scss' as *;
+
+.contextMenu {
+  position: fixed; // Important for positioning relative to viewport
+  background-color: $win98-bg;
+  @include win98-border($win98-border-light, $win98-border-dark, 2px);
+  box-shadow: $win98-shadow-normal;
+  padding: $spacing-xs;
+  min-width: 180px; // Standard min-width
+  max-width: 300px;
+  z-index: $z-index-context-menu;
+  overflow: visible; // Allows submenus to overflow
+  font-family: $win98-font-primary;
+  font-size: $win98-font-size-normal;
+  @include no-select;
+  // The ::before pseudo-element for an inner border can be complex with padding.
+  // The @include win98-border provides a good enough visual.
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  padding: $spacing-xs $spacing-sm;
+  cursor: pointer;
+  position: relative; // For submenu positioning
+  color: $win98-text-dark;
+  white-space: nowrap;
+  @include ellipsis; // Apply to label if it's direct child, or to .menuItemLabel
+
+  &:hover {
+    background-color: $win98-title-active-bg; // Selected item background
+    color: $win98-title-text-color;         // Selected item text color
+    .menuItemIcon svg, .menuItemIcon img { // Ensure icon color contrasts with selection
+        filter: brightness(0) invert(1); // Example to make icon white on dark blue bg
+    }
+  }
+
+  &.disabled {
+    color: $win98-border-dark; // Disabled text color
+    cursor: default;
+
+    &:hover {
+      background-color: transparent; // No hover effect for disabled items
+      color: $win98-border-dark;
+      .menuItemIcon svg, .menuItemIcon img {
+          filter: grayscale(100%) opacity(0.5); // Example disabled icon style
+      }
+    }
+  }
+
+  &.danger {
+    color: #c00; // Specific danger color
+
+    &:hover {
+      background-color: #c00;
+      color: $win98-title-text-color;
+    }
+  }
+}
+
+.menuItemIcon {
+  margin-right: $spacing-sm;
+  width: $win98-control-size;
+  height: $win98-control-size;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  svg,
+  img {
+    width: $win98-control-size;
+    height: $win98-control-size;
+    object-fit: contain;
+  }
+}
+
+.menuItemLabel {
+  flex: 1;
+  @include ellipsis; // Ensure label itself handles overflow
+}
+
+.separator {
+  height: 0px;
+  border-top: 1px solid $win98-border-dark;
+  border-bottom: 1px solid $win98-border-light;
+  margin: $spacing-xs 2px; // Keep horizontal margin for alignment
+}
+
+.submenu {
+  position: absolute;
+  top: - ($spacing-xs + 2px); // Align with parent item border, accounts for parent padding and border
+  left: calc(100% - 4px); // Slight overlap to connect menus
+  margin-left: 0;
+  background-color: $win98-bg;
+  @include win98-border($win98-border-light, $win98-border-dark, 2px);
+  box-shadow: $win98-shadow-normal;
+  padding: $spacing-xs;
+  min-width: 160px;
+  z-index: $z-index-context-menu + 10; // Above parent context menu
+  display: none; // Controlled by JS or hover
+}
+
+.hasSubmenu {
+  // position: relative; // Already on .menuItem
+
+  &::after { // Chevron for submenu indication
+    content: '▶'; // Or use a proper icon font/SVG
+    position: absolute;
+    right: $spacing-sm;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: $win98-font-size-small - 2px;
+    color: $win98-text-dark; // Default color
+  }
+
+  &:hover {
+    // .submenu { display: block; } // Handled by JS typically for better control
+    &::after {
+      color: $win98-title-text-color; // Chevron color on hover
+    }
+  }
+}
+
+// Specific context menu types can extend the base .contextMenu if needed,
+// but usually the content/items define the differences.
+// .fileContextMenu { @extend .contextMenu; }
+// .desktopContextMenu { @extend .contextMenu; }
+
+.tooltip {
+  position: absolute;
+  background-color: #ffffd9; // Classic tooltip color
+  border: 1px solid $win98-text-dark;
+  padding: 2px $spacing-sm;
+  font-family: $win98-font-primary;
+  font-size: $win98-font-size-small;
+  color: $win98-text-dark;
+  white-space: nowrap;
+  z-index: $z-index-tooltip;
+  pointer-events: none;
+  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+// Animation Keyframes - can be used with CSSTransition or similar
+@keyframes fadeInContextMenu {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeOutContextMenu {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+.fadeIn {
+  animation: fadeInContextMenu $animation-duration-fast $ease-out forwards;
+}
+
+.fadeOut {
+  animation: fadeOutContextMenu $animation-duration-fast $ease-out forwards;
+} 

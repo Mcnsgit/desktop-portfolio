@@ -33,10 +33,10 @@ export const supports3DTransforms = (): boolean => {
         'OTransformStyle' in document.documentElement.style;
       
       // Check for touch support (useful for mobile-specific optimizations)
-      const hasTouch = 
-        'ontouchstart' in window ||
-        navigator.maxTouchPoints > 0 ||
-        (navigator as any).msMaxTouchPoints > 0;
+      // const hasTouch = 
+      //   'ontouchstart' in window ||
+      //   navigator.maxTouchPoints > 0 ||
+      //   (navigator as any).msMaxTouchPoints > 0;
       
       // Check for specific browsers that have known issues with 3D transforms
       const userAgent = window.navigator.userAgent;

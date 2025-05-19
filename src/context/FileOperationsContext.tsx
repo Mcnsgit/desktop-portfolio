@@ -55,7 +55,7 @@ export const FileOperationsProvider: React.FC<{
             files: (FileItemData | DesktopItem)[];
         } | null>(null);
         const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
-        const [selectionMode, setSelectionMode] = useState<'single' | 'multi'>('single');
+        const [selectionMode] = useState<'single' | 'multi'>('single');
 
         // Check if file is selected
         const isFileSelected = useCallback((id: string) => {

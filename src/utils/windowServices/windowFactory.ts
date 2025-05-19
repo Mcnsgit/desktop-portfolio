@@ -1,9 +1,8 @@
 // src/utils/windowServices/windowFactory.ts
-import { WindowContent, Window } from "../../types";
+import { WindowContent, Window, TextEditorContent, ImageViewerContent, ProjectContent, FolderContent, BrowserContent } from "../../types";
 import { WINDOW_TYPES } from "../constants";
 import {
-  WINDOW_DEFAULT_SIZES,
-  WINDOW_SIZE_CONSTRAINTS,
+
   Z_INDEX,
 } from "../constants/windowConstants";
 import windowPositionService from "./WindowPositionService";
@@ -56,12 +55,13 @@ class WindowFactory {
     return {
       id,
       title: options.title || this.getDefaultTitle(type, options.content),
-      content: options.content || { type },
+      content: options.content || { type } as WindowContent,
       position: validPosition,
       size,
       minimized: options.minimized || false,
       type,
       zIndex: Z_INDEX.WINDOW_NORMAL,
+      isMaximized: false,
     };
   }
 
@@ -86,15 +86,13 @@ class WindowFactory {
         ? `Text Editor - ${filePath.split("/").pop()}`
         : "New Document");
 
-    const content = {
+    const content: TextEditorContent = {
       type: "texteditor",
       filePath,
     };
 
-    // Create a new options object without type to prevent type conflicts
-    const { type: _, ...optionsWithoutType } = options;
+    const { type: _omitType, ...optionsWithoutType } = options;
 
-    // Create window with the prepared content
     return this.create(type, existingWindows, {
       ...optionsWithoutType,
       id,
@@ -118,13 +116,12 @@ class WindowFactory {
     const type = WINDOW_TYPES.FILE_EXPLORER;
     const id = options.id || `${type}-${Date.now()}`;
 
-    const content = {
+    const content: WindowContent = {
       type: "fileexplorer",
       initialPath,
     };
 
-    // Create a new options object without type to prevent type conflicts
-    const { type: _, ...optionsWithoutType } = options;
+    const { type: _omitType, ...optionsWithoutType } = options;
 
     return this.create(type, existingWindows, {
       ...optionsWithoutType,
@@ -157,13 +154,12 @@ class WindowFactory {
         ? `Image Viewer - ${filePath.split("/").pop()}`
         : "Image Viewer");
 
-    const content = {
+    const content: ImageViewerContent = {
       type: "imageviewer",
       filePath,
     };
 
-    // Create a new options object without type to prevent type conflicts
-    const { type: _, ...optionsWithoutType } = options;
+    const { type: _omitType, ...optionsWithoutType } = options;
 
     return this.create(type, existingWindows, {
       ...optionsWithoutType,
@@ -184,24 +180,23 @@ class WindowFactory {
   createProjectWindow(
     existingWindows: Window[] = [],
     projectId: string,
-    projectTitle: string,
+    projectTitle?: string,
     options: WindowOptions = {}
   ): Window {
     const type = WINDOW_TYPES.PROJECT;
     const id = options.id || `${type}-${projectId}`;
 
-    const content = {
+    const content: ProjectContent = {
       type: "project",
       projectId,
     };
 
-    // Create a new options object without type to prevent type conflicts
-    const { type: _, ...optionsWithoutType } = options;
+    const { type: _omitType, ...optionsWithoutType } = options;
 
     return this.create(type, existingWindows, {
       ...optionsWithoutType,
       id,
-      title: options.title || projectTitle,
+      title: options.title || projectTitle || "Project",
       content,
     });
   }
@@ -219,12 +214,11 @@ class WindowFactory {
     const type = WINDOW_TYPES.WEATHER_APP;
     const id = options.id || `${type}-${Date.now()}`;
 
-    const content = {
+    const content: WindowContent = {
       type: "weatherapp",
     };
 
-    // Create a new options object without type to prevent type conflicts
-    const { type: _, ...optionsWithoutType } = options;
+    const { type: _omitType, ...optionsWithoutType } = options;
 
     return this.create(type, existingWindows, {
       ...optionsWithoutType,
@@ -245,61 +239,176 @@ class WindowFactory {
   createFolderWindow(
     existingWindows: Window[] = [],
     folderId: string,
-    folderTitle: string,
+    folderTitle?: string,
     options: WindowOptions = {}
   ): Window {
     const type = WINDOW_TYPES.FOLDER;
     const id = options.id || `${type}-${folderId}`;
 
-    const content = {
+    const content: FolderContent = {
       type: "folder",
       folderId,
     };
 
-    // Create a new options object without type to prevent type conflicts
-    const { type: _, ...optionsWithoutType } = options;
+    const { type: _omitType, ...optionsWithoutType } = options;
 
     return this.create(type, existingWindows, {
       ...optionsWithoutType,
       id,
-      title: options.title || folderTitle,
+      title: options.title || folderTitle || "Folder",
       content,
     });
   }
 
   /**
-   * Generate a default title based on window type and content
+   * Create an About Me window
+   * @param existingWindows Currently open windows
+   * @param options Additional options
+   * @returns About Me window
+   */
+  createAboutMeWindow(
+    existingWindows: Window[] = [],
+    options: WindowOptions = {}
+  ): Window {
+    const type = WINDOW_TYPES.ABOUT;
+    const id = options.id || `${type}-${Date.now()}`;
+    const content: WindowContent = { type: "aboutme" };
+    const { type: _omitType, ...optionsWithoutType } = options;
+
+    return this.create(type, existingWindows, {
+      ...optionsWithoutType,
+      id,
+      title: options.title || "About Me",
+      content,
+    });
+  }
+
+  /**
+   * Create a Contact window
+   * @param existingWindows Currently open windows
+   * @param options Additional options
+   * @returns Contact window
+   */
+  createContactWindow(
+    existingWindows: Window[] = [],
+    options: WindowOptions = {}
+  ): Window {
+    const type = WINDOW_TYPES.CONTACT;
+    const id = options.id || `${type}-${Date.now()}`;
+    const content: WindowContent = { type: "contact" };
+    const { type: _omitType, ...optionsWithoutType } = options;
+
+    return this.create(type, existingWindows, {
+      ...optionsWithoutType,
+      id,
+      title: options.title || "Contact",
+      content,
+    });
+  }
+
+  /**
+   * Create a Settings window
+   * @param existingWindows Currently open windows
+   * @param options Additional options
+   * @returns Settings window
+   */
+  createSettingsWindow(
+    existingWindows: Window[] = [],
+    options: WindowOptions = {}
+  ): Window {
+    const type = WINDOW_TYPES.SETTINGS;
+    const id = options.id || `${type}-${Date.now()}`;
+    const content: WindowContent = { type: "settings" };
+    const { type: _omitType, ...optionsWithoutType } = options;
+
+    return this.create(type, existingWindows, {
+      ...optionsWithoutType,
+      id,
+      title: options.title || "Settings",
+      content,
+    });
+  }
+
+  /**
+   * Create a Browser window
+   * @param existingWindows Currently open windows
+   * @param options Additional options, e.g., initial URL
+   * @returns Browser window
+   */
+  createBrowserWindow(
+    existingWindows: Window[] = [],
+    options: WindowOptions & { initialUrl?: string } = {}
+  ): Window {
+    const type = WINDOW_TYPES.BROWSER;
+    const id = options.id || `${type}-${Date.now()}`;
+    const content: BrowserContent = {
+      type: "browser",
+      url: options.initialUrl || "about:blank",
+    };
+    const { type: _omitType, initialUrl: _initialUrl, content: _omitContent, ...optionsWithoutSpecifics } = options;
+
+    return this.create(type, existingWindows, {
+      ...optionsWithoutSpecifics,
+      id,
+      title: options.title || "Web Browser",
+      content,
+    });
+  }
+
+  /**
+   * Get default title for a window type
    * @param type Window type
-   * @param content Window content
-   * @returns Default window title
+   * @param content Optional window content for context
+   * @returns Default title string
    */
   private getDefaultTitle(type: string, content?: WindowContent): string {
     switch (type) {
       case WINDOW_TYPES.TEXT_EDITOR:
-        return "Text Editor";
+        if (content && content.type === "texteditor") {
+          const textContent = content as TextEditorContent;
+          if (textContent.filePath) {
+            return `Text Editor - ${textContent.filePath.split("/").pop()}`;
+          }
+          return "New Document"; // Or "Text Editor - Untitled"
+        }
+        return "Text Editor"; // Fallback if content is not TextEditorContent
       case WINDOW_TYPES.FILE_EXPLORER:
         return "File Explorer";
       case WINDOW_TYPES.IMAGE_VIEWER:
-        return "Image Viewer";
+        if (content && content.type === "imageviewer") {
+          const imageContent = content as ImageViewerContent;
+          // filePath is mandatory in ImageViewerContent, so direct access is fine if content is confirmed ImageViewerContent
+          return `Image Viewer - ${imageContent.filePath.split("/").pop()}`;
+        }
+        return "Image Viewer"; // Fallback
       case WINDOW_TYPES.PROJECT:
-        return "Project";
-      case WINDOW_TYPES.ABOUT:
-        return "About Me";
-      case WINDOW_TYPES.CONTACT:
-        return "Contact";
-      case WINDOW_TYPES.SKILLS:
-        return "Skills";
+        if (content && content.type === "project") {
+          const projectContent = content as ProjectContent;
+          return projectContent.projectId ? `Project - ${projectContent.projectId}` : "Project";
+        }
+        return "Project"; // Fallback
       case WINDOW_TYPES.WEATHER_APP:
         return "Weather App";
       case WINDOW_TYPES.FOLDER:
-        return "Folder";
+        if (content && content.type === "folder") {
+          const folderContent = content as FolderContent;
+          return folderContent.folderId ? `Folder - ${folderContent.folderId}` : "Folder";
+        }
+        return "Folder"; // Fallback
+      case WINDOW_TYPES.ABOUT: 
+        return "About Me";
+      case WINDOW_TYPES.CONTACT:
+        return "Contact";
+      case WINDOW_TYPES.SETTINGS:
+        return "Settings";
+      case WINDOW_TYPES.BROWSER:
+        return "Web Browser";
       default:
         return "Window";
     }
   }
 }
 
-// Export singleton instance
 export const windowFactory = new WindowFactory();
 export default windowFactory;
 export type { WindowOptions };

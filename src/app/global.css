@@ -1,0 +1,103 @@
+/* app/globals.css */
+@import "tailwindcss";
+@import "../styles/_utilities.scss"; 
+
+/* Apply base styles */
+body {
+  font-family: var(--font-geist-sans), system-ui, sans-serif; /* Using CSS var defined by next/font */
+  background-color: #050816; /* Fallback, or use $primary-bg if SCSS processes this */
+  color: #000000; /* Fallback or use $text-primary if SCSS processes this */
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  /* Prevent horizontal scroll on body */
+}
+
+/* Ensure full height for layout */
+html,
+body,
+#__next {
+  height: 100%;
+  width: 100%;
+}
+
+/* Style links */
+a {
+  /* color: var(--accent-color-1); */ /* This var was not defined, consider using $accent-color-main from _variables.scss */
+  color: #915eff; /* Placeholder, to be replaced by an SCSS variable if desired */
+  text-decoration: none;
+  /* transition: color var(--transition-fast); */ /* Will be replaced by SCSS variable */
+  transition: color 150ms cubic-bezier(0, 0, 0.2, 1); /* Placeholder */
+}
+
+a:hover {
+  text-decoration: underline;
+  /* color: lighten(var(--accent-color-1), 10%); */ /* Will be replaced by SCSS lighten function */
+}
+
+/* Basic Reset/Defaults */
+* {
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Styles for the window management area */
+.window-manager-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: var(--taskbar-height); /* Defined in :root or via JS */
+  overflow: hidden; 
+  pointer-events: none; 
+}
+
+.window-manager-container > * { /* Targets Draggable wrappers */
+  pointer-events: auto;
+}
+
+.window {
+  position: absolute;
+  /* Let react-draggable handle position */
+  /* z-index is inline */
+  /* display/visibility is inline */
+  will-change: transform, opacity;
+  /* transform: translateZ(0); */ /* Commenting this out to test react-draggable behavior */
+  /* Other base window styles (background, border) go here or in Window.module.scss */
+}
+
+.desktop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: var(--taskbar-height);
+  z-index: var(--z-index-desktop);
+  overflow: hidden;
+}
+
+.taskbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--taskbar-height);
+  z-index: var(--z-index-taskbar);
+}
+
+/* Add reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Add specific overrides if needed */
+}
+
+/* Tailwind base/components/utilities are imported at the top */
+
+/* Utility classes like .green-pink-gradient are moved to _utilities.scss */

@@ -1,0 +1,58 @@
+@use '../../../styles/variables' as *;
+
+.button {
+  background-color: $win98-button-face;
+  // border-top: 2px solid $win98-button-highlight; // Old direct border style
+  // border-left: 2px solid $win98-button-highlight;
+  // border-right: 2px solid $win98-button-shadow;
+  // border-bottom: 2px solid $win98-button-shadow;
+  @include win98-border($win98-border-light, $win98-border-dark, 2px); // Using 2px width as per original
+  // For a more standard button look, use the button mixin which defaults to 1px border:
+  // @include win98-button-border(false);
+  padding: $spacing-sm $spacing-md; // Use spacing variables
+  font-family: $win98-font-primary;
+  font-size: $win98-font-size-normal;
+  color: $win98-text-dark;
+  cursor: pointer;
+  @include no-select;
+  text-align: center;
+
+  &:active,
+  &.active { // Added .active for consistency
+    // border-top: 2px solid $win98-button-shadow; // Old direct border style
+    // border-left: 2px solid $win98-button-shadow;
+    // border-right: 2px solid $win98-button-highlight;
+    // border-bottom: 2px solid $win98-button-highlight;
+    @include win98-border($win98-border-dark, $win98-border-light, 2px); // Using 2px width
+    // For a more standard button look, use the button mixin:
+    // @include win98-button-border(true);
+    // Optional: slightly move text for pressed effect
+    // padding: ($spacing-sm + 1px) ($spacing-md - 1px) ($spacing-sm - 1px) ($spacing-md + 1px);
+  }
+
+  // Modifier for primary action buttons (e.g., OK in a dialog)
+  &.primary {
+    background-color: $win98-title-active-bg; // Example: use title bar color for primary
+    color: $win98-title-text-color;
+    font-weight: bold;
+    // Ensure border still looks good on dark background
+    @include win98-border($win98-border-light, $win98-border-dark, 2px); 
+
+    &:active,
+    &.active {
+      @include win98-border($win98-border-dark, $win98-border-light, 2px);
+      background-color: darken($win98-title-active-bg, 10%);
+    }
+  }
+
+  &.disabled,
+  &:disabled { // Also support :disabled pseudo-class
+    color: $win98-border-dark; // Use a theme color for disabled text
+    cursor: not-allowed;
+    // Reset border to normal non-active state for disabled buttons
+    @include win98-border($win98-border-light, $win98-border-dark, 2px);
+    background-color: $win98-button-face; // Ensure background is standard
+    // Optional: add a pattern or more distinct visual for disabled state
+    // filter: grayscale(50%);
+  }
+} 

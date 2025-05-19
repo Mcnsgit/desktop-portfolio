@@ -1,3 +1,5 @@
+@use '@/styles/variables' as v;
+
 .container {
     width: 100%;
     margin-top: 2rem;
@@ -9,7 +11,7 @@
   
   .subText {
     font-size: 1.125rem;
-    color: var(--secondary-text, #aaa6c3);
+    color: v.$text-secondary-dark-bg;
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
@@ -77,7 +79,7 @@
   
   .categoryIcon {
     font-size: 1.5rem;
-    color: var(--highlight-color, #915eff);
+    color: v.$accent-color-main;
   }
   
   .arrow {
@@ -190,7 +192,7 @@
   
   // Description text
   .description {
-    color: var(--secondary-text, #aaa6c3);
+    color: v.$text-secondary-dark-bg;
     font-size: 1rem;
     line-height: 1.75;
     max-width: 48rem;
@@ -214,3 +216,15 @@
   .databases { background-color: rgba(34, 197, 94, 0.8); }
   .tools { background-color: rgba(234, 179, 8, 0.8); }
   .methodologies { background-color: rgba(236, 72, 153, 0.8); }
+
+.skillCard {
+    // ... other styles ...
+
+    &:hover .skillName {
+        // color: var(--highlight-color, #915eff); // Old
+        color: v.$accent-color-main; // Use SCSS variable
+         // ... other styles ...
+    }
+
+     // ... other styles ...
+}

@@ -1,15 +1,16 @@
 "use client";
 // app/desktop/age.tsx - without 3d model
-import React, { useEffect, useState, useCallback, use } from "react";
+import React, { useEffect, useState} from "react";
 import { DesktopProvider } from "@/context/DesktopContext";
 import Desktop from "@/components/desktop/Desktop";
 import MobileView from "@/components/mobile/MobileView";
-import projectsData from "@/data/project"; // Ensure this imports an array of projects
+import { portfolioProjects as projectsData } from "@/data/portfolioData"; // Ensure this imports an array of projects
 import Link from "next/link";
 import { useDesktop } from "@/context/DesktopContext"; // Importing context at the top
 import LoadingScreen from "@/components/3d/LoadingScreen";
 import { FileSystemProvider } from "@/context/FileSystemContext";
 import { ProjectTag } from "@/types";
+import styles from './desktop.module.scss'; // Import the SCSS module
 
 export default function DesktopPage() {
   const [isMobile, setIsMobile] = useState(false);
@@ -36,30 +37,19 @@ export default function DesktopPage() {
     <DesktopProvider>
       <FileSystemProvider>
       <DesktopInitializer />
-      <div className="desktop-container">
+      <div className={styles.desktopPageContainer}>
         {/* Back to 3D View Button */}
         <Link href="/" passHref>
           <button
-            className="back-button"
+            className={styles.backButton}
             aria-label="Back to 3D View"
-            style={{
-              position: "absolute",
-              top: "20px",
-              right: "20px",
-              zIndex: 1000,
-              padding: "5px 10px",
-              backgroundColor: "#c0c0c0",
-              border: "2px solid",
-              borderColor: "#dfdfdf #808080 #808080 #dfdfdf",
-              fontFamily: "MS Sans Serif, sans-serif",
-              fontSize: "12px",
-              cursor: "pointer",
-            }}
             >
             Back to 3D View
           </button>
         </Link>
-        {isMobile ? <MobileView /> : <Desktop />}
+        <div className={styles.contentWrapper}>
+          {isMobile ? <MobileView /> : <Desktop />}
+        </div>
       </div>
 </FileSystemProvider>
     </DesktopProvider>

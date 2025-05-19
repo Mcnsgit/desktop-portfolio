@@ -1,0 +1,220 @@
+@use '../../styles/_variables.scss' as *;
+
+.taskbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: $win98-taskbar-height; // Use variable
+  background-color: $win98-bg;
+  border-top: 2px solid $win98-border-light; // Can't use mixin for only top border easily
+  display: flex;
+  align-items: center;
+  padding: 2px 4px;
+  font-family: $win98-font-primary;
+  z-index: $z-index-taskbar; // Use variable
+  pointer-events: auto;
+}
+
+.startButton {
+  display: flex;
+  align-items: center;
+  background-color: $win98-button-face; // Use variable
+  @include win98-border($win98-border-light, $win98-border-dark, 2px); // Use mixin
+  padding: 2px 6px;
+  margin-right: 6px;
+  height: calc(#{$win98-taskbar-height} - 8px); // Adjust height based on taskbar height and padding
+  cursor: pointer;
+  @include no-select;
+
+  &:active,
+  &.active {
+    @include win98-border($win98-border-dark, $win98-border-light, 2px); // Use mixin for active state
+    // Consider adding inset effect if desired:
+    // padding: 3px 5px 1px 7px; // Example of shifting content for pressed look
+  }
+}
+
+.startButtonLogo {
+  margin-right: 4px;
+  width: 24px; // Consider making this a variable if used elsewhere
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  // img { max-width: 100%; max-height: 100%; }
+}
+
+.startButtonText {
+  font-weight: bold;
+  font-size: $win98-font-size-large; // Use variable
+  color: $win98-text-dark;
+}
+
+.taskbarDivider {
+  width: 1px; // Thinner divider
+  height: calc(#{$win98-taskbar-height} - 10px); // Adjust height
+  background-color: $win98-border-dark;
+  margin: 0 6px;
+  border-left: 1px solid $win98-border-light; // Gives 3D effect
+}
+
+.windowButtons {
+  display: flex;
+  flex: 1;
+  overflow-x: auto; // Allows scrolling if many windows
+  height: calc(#{$win98-taskbar-height} - 8px); // Consistent height with start button
+  gap: 4px;
+  @include win98-scrollbar; // Apply custom scrollbar if needed and visible
+}
+
+.windowButton {
+  display: flex;
+  align-items: center;
+  background-color: $win98-button-face;
+  @include win98-border($win98-border-light, $win98-border-dark, 2px);
+  padding: 2px 8px;
+  min-width: 120px;
+  max-width: 180px; // Or use a variable
+  height: 100%; // Fill available height in .windowButtons
+  cursor: pointer;
+  @include no-select;
+  @include ellipsis; // Use mixin for text overflow
+  color: $win98-text-dark;
+
+  &.active {
+    @include win98-border($win98-border-dark, $win98-border-light, 2px);
+    // Optionally, make it look more "pressed":
+    // background-color: darken($win98-button-face, 5%);
+  }
+}
+
+.windowIcon {
+  margin-right: 6px;
+  width: $win98-control-size; // Use variable
+  height: $win98-control-size; // Use variable
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  // img { max-width: 100%; max-height: 100%; }
+}
+
+.windowTitle {
+  flex: 1;
+  @include ellipsis; // Already applied to parent, but good for explicitness
+  font-size: $win98-font-size-normal; // Use variable
+}
+
+.clock {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: $win98-bg; // Or $win98-button-face for consistency
+  @include win98-border-inset($win98-border-light, $win98-border-dark, 1px); // Use inset mixin
+  padding: 2px 8px;
+  height: calc(#{$win98-taskbar-height} - 10px); // Adjust height
+  font-size: $win98-font-size-normal;
+  margin-left: 6px;
+  color: $win98-text-dark;
+}
+
+/* Start menu styles - Assuming StartMenu is part of or heavily tied to Taskbar styling */
+/* If StartMenu is a separate component, these should move to its own module */
+.startMenu {
+  position: absolute;
+  bottom: $win98-taskbar-height; // Position above the taskbar
+  left: 0;
+  width: 260px; // Consider making this a variable $startmenu-width
+  background-color: $win98-bg;
+  @include win98-border($win98-border-light, $win98-border-dark, 2px);
+  box-shadow: $win98-shadow-normal; // Use variable
+  z-index: $z-index-start-menu; // Use variable
+  display: none; // Controlled by JS
+
+  &.visible {
+    display: block;
+  }
+}
+
+.startMenuHeader {
+  height: 40px; // Consider $startmenu-header-height
+  background-color: $win98-title-active-bg; // Use variable
+  color: $win98-title-text-color; // Use variable
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  font-weight: bold;
+  font-size: $win98-font-size-large; // Use variable (or a specific $startmenu-header-font-size)
+  border-bottom: 1px solid $win98-border-dark; // Consistent with window title bars
+}
+
+.startMenuItems {
+  padding: 4px 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.startMenuItem {
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color: $win98-text-dark;
+  font-size: $win98-font-size-normal; // Use variable
+
+  &:hover,
+  &.active { // Added active state for consistency
+    background-color: $win98-title-active-bg; // Use variable for hover/selection
+    color: $win98-title-text-color; // Use variable
+  }
+}
+
+.startMenuIcon {
+  margin-right: 12px;
+  width: 24px; // Consider $startmenu-icon-size
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  // img { max-width: 100%; max-height: 100%; }
+}
+
+.startMenuText {
+  flex: 1;
+  // font-size inherited from .startMenuItem
+}
+
+.startMenuDivider {
+  height: 1px;
+  background-color: $win98-border-dark;
+  border-bottom: 1px solid $win98-border-light; // Gives 3D effect
+  margin: 4px 0;
+}
+
+.startMenuFooter {
+  height: 40px; // Match header height?
+  border-top: 1px solid $win98-border-dark; // Separator
+  border-top-color: $win98-border-dark; // Dark part of separator
+  border-bottom: 1px solid $win98-border-light; // Light part to complete 3D effect (optional)
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  font-weight: bold;
+  font-size: $win98-font-size-normal; // Use variable
+  cursor: pointer;
+  color: $win98-text-dark;
+
+  &:hover {
+    background-color: $win98-title-active-bg; // Use variable
+    color: $win98-title-text-color; // Use variable
+  }
+}
+
+.startMenuFooterIcon {
+  margin-right: 12px;
+  width: 24px; // Match .startMenuIcon size
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+} 

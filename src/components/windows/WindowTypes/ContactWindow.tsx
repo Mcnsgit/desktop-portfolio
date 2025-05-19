@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { fadeIn } from '../../../utils/motion';
 import { contact } from '../../../data/index';
 import Image from 'next/image';
-import styles from '../../styles/ContactWindow.module.scss';
+import styles from './ContactWindow.module.scss';
 
 const ContactWindow: React.FC = () => {
     const [formData, setFormData] = useState({

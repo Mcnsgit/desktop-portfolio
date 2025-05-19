@@ -1,7 +1,7 @@
 "use client"
 
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import "./global.css";
 import { DesktopProvider } from "@/context/DesktopContext";
 import { FileSystemProvider } from "@/context/FileSystemContext";
 

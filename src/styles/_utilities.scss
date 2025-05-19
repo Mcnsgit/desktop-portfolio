@@ -1,0 +1,20 @@
+// src/styles/_utilities.scss
+// Utility classes, previously in globals.css
+
+
+
+.green-pink-gradient {
+  background: linear-gradient(90deg, #00cea8 0%, #bf61ff 100%);
+}
+
+.violet-gradient {
+  // Consider using variables for these colors if they are part of a theme
+  // Example: background: linear-gradient(180deg, $accent-color-secondary 0%, transparent 100%);
+  background: linear-gradient(180deg, #915eff 0%, transparent 100%);
+}
+
+.black-gradient {
+  background: linear-gradient(rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.9) 100%);
+}
+
+// Add other general utility classes here as needed. 

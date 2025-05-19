@@ -1,169 +1,119 @@
 // src/components/desktop/Icon.tsx
-import React, { useState, useRef, useEffect } from "react";
-import { useSounds } from "@/hooks/useSounds";
-import { useDesktop } from "@/context/DesktopContext";
+import React, { useState } from "react";
+import { useDraggable } from "@dnd-kit/core";
+import { CSS } from "@dnd-kit/utilities";
+// import { useSounds } from "@/hooks/useSounds";
 import Image, { StaticImageData } from "next/image";
-import styles from "../styles/Icon.module.scss";
+import styles from "./Icon.module.scss";
 
 interface IconProps {
+  id: string;
+  title: string;
+  type: string;
+  position: { x: number; y: number };
   icon: string | StaticImageData;
-  label: string;
-  itemId: string;
   onDoubleClick: () => void;
+  isSelected: boolean;
+  onItemClick: (e: React.MouseEvent, itemId: string) => void;
+  isCut?: boolean;
+  parentId?: string | null;
 }
 
 const Icon: React.FC<IconProps> = ({
+  id,
+  title,
+  type,
+  position,
   icon,
-  label,
-  itemId,
   onDoubleClick,
+  isSelected,
+  onItemClick,
+  isCut,
+  parentId
 }) => {
-  const { playSound } = useSounds();
-  const { state, dispatch } = useDesktop();
-  const [isDragging, setIsDragging] = useState(false);
-  const [isSelected, setIsSelected] = useState(false);
-  const iconRef = useRef<HTMLDivElement>(null);
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: id,
+    data: {
+      id,
+      title,
+      type,
+      originalPosition: position,
+      parentId,
+      isCut
+    },
+  });
 
-  // Check if this item is in the selection
-  useEffect(() => {
-    // This would come from a selection context or manager
-    // For now, just check if active item matches this one
-    setIsSelected(state.activeWindowId === itemId);
-  }, [state.activeWindowId, itemId]);
+  const [iconError, setIconError] = useState(false);
 
-  // Handle double click
-  const handleDoubleClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    playSound("click");
-    onDoubleClick();
+  const style = transform ? {
+    transform: CSS.Translate.toString(transform),
+    position: 'absolute',
+    left: position.x,
+    top: position.y,
+    opacity: isCut ? 0.6 : (isDragging ? 0.5 : 1),
+    zIndex: isDragging ? 1000 : undefined,
+    cursor: isDragging ? 'grabbing' : 'pointer',
+    width: "80px",
+    height: "90px",
+  } : {
+    position: 'absolute',
+    left: position.x,
+    top: position.y,
+    opacity: isCut ? 0.6 : 1,
+    cursor: 'pointer',
+    width: "80px",
+    height: "90px",
   };
 
-  // Handle single click for selection
-  const handleClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-
-    // Handle multi-selection with Ctrl/Shift keys
-    const multiSelect = e.ctrlKey || e.shiftKey;
-
-    // This would dispatch to a selection manager
-    // For now, just simulate selection
-    setIsSelected(true);
-
-    // Dispatch to global state if needed
-    // dispatch({ type: 'SELECT_ITEM', payload: { id: itemId, multiSelect } });
-  };
-
-  // Drag and drop handling
-  const handleDragStart = (e: React.DragEvent) => {
-    e.stopPropagation();
-    setIsDragging(true);
-
-    // Set drag data
-    e.dataTransfer.setData("application/retroos-icon-id", itemId);
-    e.dataTransfer.setData("text/plain", label);
-    e.dataTransfer.effectAllowed = "move";
-
-    // Set drag image
-    if (iconRef.current) {
-      try {
-        const rect = iconRef.current.getBoundingClientRect();
-        const offsetX = e.clientX - rect.left;
-        const offsetY = e.clientY - rect.top;
-        e.dataTransfer.setDragImage(iconRef.current, offsetX, offsetY);
-      } catch (err) {
-        console.warn("Failed to set drag image:", err);
-      }
-    }
-  };
-
-  const handleDragEnd = () => {
-    setIsDragging(false);
-  };
-
-  // Fix icon path for display
   const fixIconPath = (pathInput: string | StaticImageData): string | StaticImageData => {
     if (typeof pathInput !== 'string') {
       return pathInput;
     }
-
     let path = pathInput;
-
-    // Default icon if not provided
-    if (!path) return '/assets/win98-icons/png/application-0.png';
-
-    // Add leading slash if missing and not a URL
+    if (!path) return '/assets/icons/win98/png/directory_open_cool-2.png';
     if (!path.startsWith('/') && !path.startsWith('http')) {
       path = `/${path}`;
     }
-
-    // Fix incorrect path structure (remove extra "icons" directory)
-    path = path.replace('/assets/win98-icons/icons/', '/assets/win98-icons/');
-
-    // Add extension if missing
+    path = path.replace('/assets/icons/win98/png/','/assets/win98-icons/png/');
     const hasExtension = /\.(png|ico|jpg|jpeg|svg|webp)$/i.test(path);
     if (!hasExtension && !path.includes('data:image')) {
       path = `${path}.png`;
     }
-
     return path;
   };
 
   const finalIconSrc = fixIconPath(icon);
 
-  // Fallback icon if image fails to load
-  const [iconError, setIconError] = useState(false);
-
-  // ColoredIcon as fallback
   const ColoredIcon = () => (
-    <div style={{
-      width: "32px",
-      height: "32px",
-      backgroundColor: "#1e90ff",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      borderRadius: "4px",
-      color: "white",
-      fontSize: "16px",
-      fontWeight: "bold",
-    }}>
-      {label.charAt(0).toUpperCase()}
+    <div className={styles.fallbackIcon}>
+      {title.charAt(0).toUpperCase()}
     </div>
   );
 
   return (
     <div
-      ref={iconRef}
-      className={`${styles.icon} ${isDragging ? styles.dragging : ""} ${isSelected ? styles.selected : ""}`}
-      style={{
-        width: "80px",
-        height: "90px",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "flex-start",
-        textAlign: "center",
-        cursor: isDragging ? "grabbing" : "pointer",
+      ref={setNodeRef}
+      style={style as React.CSSProperties}
+      {...listeners}
+      {...attributes}
+      className={`${styles.icon} ${isSelected ? styles.selected : ""} ${isCut ? styles.cut : ""} ${isDragging ? styles.dragging : ""}`}
+      onClick={(e) => {
+        if (isDragging) return;
+        onItemClick(e, id);
       }}
-      onClick={handleClick}
-      onDoubleClick={handleDoubleClick}
-      draggable
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      data-item-id={itemId}
+      onDoubleClick={(e) => {
+        e.stopPropagation();
+        if (isDragging) return;
+        onDoubleClick();
+      }}
+      data-item-id={id}
+      data-item-type={type}
     >
-      <div style={{
-        marginBottom: "8px",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        width: "40px",
-        height: "40px",
-      }}>
+      <div className={styles.iconImageContainer}>
         {!iconError && finalIconSrc ? (
           <Image
             src={finalIconSrc}
-            alt={label}
+            alt={title}
             width={32}
             height={32}
             onError={() => {
@@ -178,19 +128,8 @@ const Icon: React.FC<IconProps> = ({
           <ColoredIcon />
         )}
       </div>
-      <div style={{
-        width: "80px",
-        maxHeight: "40px",
-        overflow: "hidden",
-        wordWrap: "break-word",
-        textAlign: "center",
-        color: "white",
-        textShadow: "1px 1px 1px black, -1px -1px 1px black, 1px -1px 1px black, -1px 1px 1px black",
-        fontSize: "12px",
-        fontWeight: "bold",
-        lineHeight: "1.2",
-      }}>
-        {label}
+      <div className={styles.iconLabel}>
+        {title}
       </div>
     </div>
   );

@@ -3,7 +3,9 @@ import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSounds } from '@/hooks/useSounds';
 import { useDesktop } from '@/context/DesktopContext';
-import styles from '../styles/ContextMenu.module.scss';
+import { useFileSystem } from '@/context/FileSystemContext';
+import styles from './ContextMenu.module.scss';
+// import { DESKTOP_ICON_WIDTH, DESKTOP_ICON_HEIGHT } from "@/utils/constants"; // Import necessary constants
 
 // Import icons (adjust import path as needed)
 import {
@@ -19,33 +21,50 @@ import {
   Maximize
 } from 'lucide-react';
 
+interface ContextMenuItem {
+  id?: string;
+  label: string;
+  action: () => void;
+  icon?: React.ReactNode;
+  disabled?: boolean;
+  danger?: boolean;
+}
+
 interface ContextMenuProps {
   position: { x: number; y: number };
   onClose: () => void;
   targetId?: string;
-  targetType?: 'file' | 'folder' | 'desktop' | string;
+  targetType?: 'file' | 'folder' | 'desktop' | 'folderBackground' | string;
+  selectedItemIds?: Set<string>;
+  desktopOffset?: { left: number; top: number }; // Added desktopOffset prop
+  items?: ContextMenuItem[]; // New items prop
 }
 
 const ContextMenu: React.FC<ContextMenuProps> = ({
   position,
   onClose,
   targetId,
-  targetType = 'desktop'
+  targetType = 'desktop',
+  selectedItemIds = new Set<string>(),
+  // desktopOffset = { left: 0, top: 0 }, // Default offset
+  items: propItems // Use the new items prop
 }) => {
   const { playSound } = useSounds();
   const { state, dispatch } = useDesktop();
+  const fileSystem = useFileSystem();
   const [isVisible, setIsVisible] = useState(true);
   const contextMenuRef = useRef<HTMLDivElement>(null);
 
   // Adjusted position if menu goes outside viewport
   const [adjustedPosition, setAdjustedPosition] = useState({ x: position.x, y: position.y });
 
-  // Keep track of selected items
-  const selectedItems: string[] = []; // This would come from a selection context
-  if (targetId) selectedItems.push(targetId);
+  // Use passed selected IDs or fall back to targetId if only one item involved
+  const actualSelectedCount = selectedItemIds.size;
+  const isMultiSelect = actualSelectedCount > 1;
+  const singleTargetId = actualSelectedCount === 1 ? selectedItemIds.values().next().value : targetId;
 
   // Determine if we have clipboard content
-  const hasClipboard = Boolean(state.clipboard?.files?.length);
+  const hasClipboard = Boolean(state.clipboard?.items?.length);
 
   // Adjust position if menu is too close to edge
   useEffect(() => {
@@ -95,16 +114,21 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
   }, [onClose]);
 
   // Helper for menu item clicks
-  const handleItemClick = (action: () => void) => {
+  const handleItemClick = (itemAction: () => void, disabled?: boolean) => {
+    if (disabled) return;
     playSound("click");
     setIsVisible(false);
-    action();
+    itemAction(); // Changed from action() to itemAction() to avoid conflict
     setTimeout(onClose, 200); // Wait for animation to complete
   };
 
   // Menu actions
   const handleNewFolder = () => {
     const newFolderId = `folder-${Date.now()}`;
+    const newPosition = {
+      x: Math.max(10, adjustedPosition.x - 40),
+      y: Math.max(10, adjustedPosition.y - 40),
+    };
     dispatch({
       type: "CREATE_FOLDER",
       payload: {
@@ -112,87 +136,82 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
         title: "New Folder",
         icon: "/assets/win98-icons/png/directory_closed-1.png",
         items: [],
-        position: {
-          x: adjustedPosition.x - 40,
-          y: adjustedPosition.y - 40,
-        },
+        position: newPosition,
         parentId: null,
       },
     });
   };
 
   const handleCopy = () => {
-    // If we have selected items, copy them
-    if (selectedItems.length) {
-      // Get the actual file data for each selected item
-      const selectedItemsData = selectedItems.map(id => {
-        // In a real implementation, find the actual item data
-        const item = state.desktopItems.find(item => item.id === id);
-        return item || { id };
-      });
-
-      dispatch({
-        type: "UPDATE_CLIPBOARD",
-        payload: {
-          action: 'copy',
-          files: selectedItemsData,
-        },
-      });
+    if (actualSelectedCount > 0) {
+      const itemsToCopy = Array.from(selectedItemIds).map(id => state.desktopItems.find(item => item.id === id) || { id });
+      dispatch({ type: "UPDATE_CLIPBOARD", payload: { action: 'copy', files: itemsToCopy } });
     }
   };
 
   const handleCut = () => {
-    // Similar to copy, but mark for move
-    if (selectedItems.length) {
-      const selectedItemsData = selectedItems.map(id => {
-        const item = state.desktopItems.find(item => item.id === id);
-        return item || { id };
-      });
-
-      dispatch({
-        type: "UPDATE_CLIPBOARD",
-        payload: {
-          action: 'cut',
-          files: selectedItemsData,
-        },
-      });
+    if (actualSelectedCount > 0) {
+      const itemsToCut = Array.from(selectedItemIds).map(id => state.desktopItems.find(item => item.id === id) || { id });
+      dispatch({ type: "UPDATE_CLIPBOARD", payload: { action: 'cut', files: itemsToCut } });
     }
   };
 
   const handlePaste = () => {
     if (hasClipboard) {
       // If we're pasting to desktop or a folder
-      const destinationId = targetType === 'folder' ? targetId ?? null : null;
+      const destinationId = targetType === 'folder' || targetType === 'folderBackground' ? targetId ?? null : null;
 
       dispatch({
         type: "PASTE_ITEMS",
         payload: {
           destinationId,
           position: adjustedPosition,
-          items: state.clipboard?.files || [], // Include clipboard items
+          items: state.clipboard?.items || [], // Include clipboard items
         },
       });
     }
   };
 
-  const handleDelete = () => {
-    if (selectedItems.length) {
-      selectedItems.forEach(id => {
-        dispatch({
-          type: "DELETE_ITEM",
-          payload: { id },
-        });
-      });
+  const handleDelete = async () => {
+    if (actualSelectedCount > 0) {
+      for (const id of selectedItemIds) {
+        const itemToDelete = state.desktopItems.find(item => item.id === id);
+        if (itemToDelete) {
+          let deleteSuccess = true; // Assume success for non-FS items or if path is missing
+          if (itemToDelete.path && (itemToDelete.type === 'file' || itemToDelete.type === 'folder' || itemToDelete.type.startsWith('text') || itemToDelete.type === 'imageviewer')) { // Check for actual file system types
+            try {
+              if (itemToDelete.type === 'folder') {
+                console.log(`Attempting to delete directory from FS: ${itemToDelete.path}`);
+                await fileSystem.removeDirectory(itemToDelete.path);
+                console.log(`Successfully deleted directory from FS: ${itemToDelete.path}`);
+              } else {
+                console.log(`Attempting to delete file from FS: ${itemToDelete.path}`);
+                await fileSystem.deleteFile(itemToDelete.path);
+                console.log(`Successfully deleted file from FS: ${itemToDelete.path}`);
+              }
+            } catch (error) {
+              deleteSuccess = false;
+              console.error(`Failed to delete ${itemToDelete.type} from file system: ${itemToDelete.path}`, error);
+              // Optionally, notify the user about the failure
+            }
+          } else {
+             console.log(`Item ${id} (type: ${itemToDelete.type}) does not have a path or is not a synced FS type. Will only remove from context.`);
+          }
+
+          if (deleteSuccess) {
+            dispatch({ type: "DELETE_ITEM", payload: { id } });
+          }
+        }
+      }
+      // Optionally clear selection state in parent via callback?
     }
   };
 
   const handleRename = () => {
-    if (targetId) {
-      // In a real implementation, this would open a rename dialog
-      console.log(`Rename item ${targetId}`);
-
-      // For now, just log the action
-      // dispatch({ type: "START_RENAME", payload: { id: targetId } });
+    // Only allow rename if exactly one item is selected
+    if (!isMultiSelect && singleTargetId) {
+      console.log(`Rename item ${singleTargetId}`);
+      // dispatch({ type: "START_RENAME", payload: { id: singleTargetId } });
     }
   };
 
@@ -229,109 +248,84 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
   };
 
   // Determine which menu items to show based on context
-  let menuItems: any[] = [];
+  let menuItemsToRender: ContextMenuItem[] = [];
 
-  // Desktop context menu
-  if (targetType === 'desktop') {
-    menuItems = [
-      {
-        id: 'newFolder',
-        label: 'New Folder',
-        icon: <FolderPlus size={16} />,
-        action: handleNewFolder
-      },
-      {
-        id: 'paste',
-        label: 'Paste',
-        icon: <Clipboard size={16} />,
-        action: handlePaste,
-        disabled: !hasClipboard
-      },
-      {
-        id: 'refresh',
-        label: 'Refresh',
-        icon: <RefreshCcw size={16} />,
-        action: handleRefresh
-      },
-      {
-        id: 'background',
-        label: 'Change Background',
-        icon: <RefreshCcw size={16} />,
-        action: handleChangeBackground
-      },
-    ];
+  if (propItems && propItems.length > 0) {
+    menuItemsToRender = propItems;
+  } else {
+    // Fallback to internal logic if propItems is not provided
+    if (targetType === 'desktop' || targetType === 'folderBackground') {
+      menuItemsToRender = [
+        { id: 'newFolder', label: 'New Folder', icon: <FolderPlus size={16} />, action: handleNewFolder },
+        { id: 'paste', label: 'Paste', icon: <Clipboard size={16} />, action: handlePaste, disabled: !hasClipboard },
+        { id: 'refresh', label: 'Refresh', icon: <RefreshCcw size={16} />, action: handleRefresh },
+        // Only show Change Background on desktop
+        ...(targetType === 'desktop' ? [{ id: 'changeBackground', label: 'Change Background', icon: <PenTool size={16} />, action: handleChangeBackground }] : []),
+      ];
+    }
+    // File or folder context menu (single or multiple selection)
+    else if (targetType === 'file' || targetType === 'folder') {
+      const firstItem = state.desktopItems.find(item => item.id === singleTargetId);
+      menuItemsToRender = [
+        // Only show Open if single selection
+        ...(!isMultiSelect && firstItem ? [{
+            id: 'open',
+            label: 'Open',
+            icon: <Maximize size={16} />,
+            action: () => { /* ... open item logic using firstItem ... */ }
+        }] : []),
+        {
+          id: 'copy',
+          label: 'Copy',
+          icon: <Copy size={16} />,
+          action: handleCopy,
+          disabled: actualSelectedCount === 0 // Disable if nothing selected (shouldn't happen here)
+        },
+        {
+          id: 'cut',
+          label: 'Cut',
+          icon: <Scissors size={16} />,
+          action: handleCut,
+          disabled: actualSelectedCount === 0
+        },
+        {
+          id: 'rename',
+          label: 'Rename',
+          icon: <PenTool size={16} />,
+          action: handleRename,
+          disabled: isMultiSelect || actualSelectedCount === 0 // Disable for multi-select
+        },
+        {
+          id: 'favorite',
+          label: 'Add to Favorites',
+          icon: <Star size={16} />,
+          action: handleAddToFavorites, // AddToFavorites might need multi-select support
+          disabled: isMultiSelect || actualSelectedCount === 0 // Example: Disable for multi-select
+        },
+        {
+          id: 'delete',
+          label: actualSelectedCount > 1 ? 'Delete Items' : 'Delete',
+          icon: <Trash size={16} />,
+          action: handleDelete,
+          danger: true,
+          disabled: actualSelectedCount === 0
+        },
+        // Only show Properties if single selection
+        ...(!isMultiSelect && firstItem ? [{
+            id: 'properties',
+            label: 'Properties',
+            icon: <Info size={16} />,
+            action: handleProperties // Needs singleTargetId
+        }] : []),
+      ];
+    }
   }
-  // File or folder context menu
-  else if (targetType === 'file' || targetType === 'folder') {
-    menuItems = [
-      {
-        id: 'open',
-        label: 'Open',
-        icon: <Maximize size={16} />,
-        action: () => {
-          // Open file or folder based on selection
-          if (targetId) {
-            const item = state.desktopItems.find(item => item.id === targetId);
-            if (item) {
-              // This would simulate a double-click
-              dispatch({
-                type: "OPEN_WINDOW",
-                payload: {
-                  id: `${item.type}-${item.id}`,
-                  title: item.title,
-                  type: item.type,
-                  content: { type: item.type, [`${item.type}Id`]: item.id },
-                  minimized: false,
-                  position: { x: 100, y: 100 },
-                  size: { width: 500, height: 400 },
-                  zIndex: 1,
-                },
-              });
-            }
-          }
-        }
-      },
-      {
-        id: 'copy',
-        label: 'Copy',
-        icon: <Copy size={16} />,
-        action: handleCopy
-      },
-      {
-        id: 'cut',
-        label: 'Cut',
-        icon: <Scissors size={16} />,
-        action: handleCut
-      },
-      {
-        id: 'rename',
-        label: 'Rename',
-        icon: <PenTool size={16} />,
-        action: handleRename
-      },
-      // Only show Add to Favorites for non-desktop items
-      {
-        id: 'favorite',
-        label: 'Add to Favorites',
-        icon: <Star size={16} />,
-        action: handleAddToFavorites
-      },
-      // Only show delete for non-desktop items
-      {
-        id: 'delete',
-        label: 'Delete',
-        icon: <Trash size={16} />,
-        action: handleDelete,
-        danger: true
-      },
-      {
-        id: 'properties',
-        label: 'Properties',
-        icon: <Info size={16} />,
-        action: handleProperties
-      },
-    ];
-  }
+
+  // Animation variants
+  const menuVariants = {
+    hidden: { opacity: 0, scale: 0.95, transition: { duration: 0.1 } },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.1 } },
+  };
 
   return (
     <AnimatePresence>
@@ -343,21 +337,23 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
             top: adjustedPosition.y,
             left: adjustedPosition.x,
           }}
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.9 }}
-          transition={{ duration: 0.1 }}
+          variants={menuVariants}
+          initial="hidden"
+          animate="visible"
+          exit="hidden"
         >
-          {menuItems.map((item) => (
-            <div
-              key={item.id}
-              className={`${styles.menuItem} ${item.disabled ? styles.disabled : ''} ${item.danger ? styles.danger : ''}`}
-              onClick={() => !item.disabled && handleItemClick(item.action)}
-            >
-              <span className={styles.menuItemIcon}>{item.icon}</span>
-              <span className={styles.menuItemLabel}>{item.label}</span>
-            </div>
-          ))}
+          <ul>
+            {menuItemsToRender.map((item, index) => (
+              <li
+                key={item.id || item.label || index} // Use id, then label, then index as key
+                onClick={() => handleItemClick(item.action, item.disabled)}
+                className={`${styles.menuItem} ${item.disabled ? styles.disabled : ''} ${item.danger ? styles.danger : ''}`}
+              >
+                {item.icon && <span className={styles.menuIcon}>{item.icon}</span>}
+                <span className={styles.menuLabel}>{item.label}</span>
+              </li>
+            ))}
+          </ul>
         </motion.div>
       )}
     </AnimatePresence>

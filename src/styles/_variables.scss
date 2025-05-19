@@ -1,0 +1,208 @@
+// src/styles/_variables.scss
+// Single source of truth for global SCSS variables.
+
+// -----------------------------------------------------------------------------
+// Base & Global Variables
+// -----------------------------------------------------------------------------
+
+// Fonts
+$font-sans: var(--font-geist-sans), system-ui, sans-serif;
+$font-mono: var(--font-geist-mono), monospace;
+$font-family-primary-retro: 'MS Sans Serif', Arial, sans-serif;
+
+// General Color Palette
+$primary-bg: #050816;
+$secondary-bg: #151030;
+$text-primary-dark-bg: #ffffff; // Default text on dark backgrounds
+$text-secondary-dark-bg: #aaa6c3; // Softer text for secondary info on dark
+$accent-color-main: #0078d7; // Example, from --accent-color
+$background-light: #ffffff; // For light themes or components
+$foreground-light: #171717; // Text on light backgrounds
+
+// Spacing
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+
+// Border Radius
+$border-radius-sm: 2px;
+$border-radius-md: 4px;
+$border-radius-lg: 8px;
+
+// Transitions & Animations
+$ease-out: cubic-bezier(0, 0, 0.2, 1);
+$ease-in: cubic-bezier(0.4, 0, 1, 1);
+$animation-duration-fast: 150ms;
+$animation-duration-normal: 250ms;
+$animation-duration-slow: 350ms;
+
+$transition-fast: $animation-duration-fast $ease-out;
+$transition-normal: $animation-duration-normal $ease-out;
+$transition-slow: $animation-duration-slow $ease-out;
+
+// -----------------------------------------------------------------------------
+// RetroOS Theme (Win98 Inspired)
+// -----------------------------------------------------------------------------
+
+// Colors
+$win98-bg: #c0c0c0; // Window background color
+$win98-border-light: #dfdfdf; // Light border for 3D effect
+$win98-border-dark: #808080; // Dark border for 3D effect
+$win98-border-active-light: #efefef; // Light border for active windows
+$win98-border-active-dark: #505050; // Dark border for active windows
+$win98-content-bg: #c0c0c0; // Content background color
+$win98-title-active-bg: #000080; // Active title bar background
+$win98-title-inactive-bg: #808080; // Inactive title bar background
+$win98-title-text-color: #ffffff; // Title bar text color
+
+$win98-button-face: #c0c0c0; // Button background color
+$win98-button-highlight: #ffffff; // Button highlight color
+$win98-button-shadow: #808080; // Button shadow color
+
+$win98-text-dark: #000000; // Text on light backgrounds
+$win98-text-light: #ffffff; // Text on dark backgrounds
+$win98-content-bg: #ffffff; // Content background color (e.g., text editor)
+
+$win98-shadow-color: rgba(0, 0, 0, 0.3); // Shadow color
+
+// Sizes
+$win98-taskbar-height: 30px; // Taskbar height
+$win98-title-bar-height: 22px; // Window title bar height
+$win98-control-size: 16px; // Size for controls (checkboxes, scrollbar buttons)
+$win98-border-width: 2px; // Standard border width
+$win98-button-border-width: 1px; // Button border width
+
+$win98-window-min-width: 250px; // Minimum window width
+$win98-window-min-height: 150px; // Minimum window height
+
+// Fonts
+$win98-font-primary: $font-family-primary-retro;
+$win98-font-size-small: 11px;
+$win98-font-size-normal: 12px;
+$win98-font-size-large: 14px;
+
+// Shadows
+$win98-shadow-normal: 2px 2px 8px rgba(0, 0, 0, 0.2);
+$win98-shadow-active: 3px 3px 10px rgba(0, 0, 0, 0.3);
+
+// -----------------------------------------------------------------------------
+// Z-Indexes
+// -----------------------------------------------------------------------------
+$z-index-background: -10; // Stars canvas
+$z-index-content-back: 1; // Content behind fixed elements
+$z-index-3d-overlay: 5; // Fixed 3D computer model (on CV page)
+$z-index-content-front: 8; // Scrollable CV content
+$z-index-fixed-ui: 10; // Fixed prompts, CV navbar if fixed
+
+$z-index-desktop-env: 20; // RetroOS desktop base environment
+$z-index-window-normal: 100; // Default for inactive windows
+$z-index-window-active: 200; // For the currently active window
+$z-index-taskbar: 500;
+$z-index-start-menu: 600;
+$z-index-dialog: 2500;
+$z-index-context-menu: 3000;
+$z-index-tooltip: 4000;
+$z-index-loading-screen: 9999; // Boot/Loading screens
+
+// -----------------------------------------------------------------------------
+// Breakpoints
+// -----------------------------------------------------------------------------
+$breakpoint-mobile: 480px;
+$breakpoint-tablet: 768px;
+$breakpoint-desktop-small: 1024px;
+$breakpoint-desktop: 1280px;
+
+// -----------------------------------------------------------------------------
+// Mixins
+// -----------------------------------------------------------------------------
+
+// Classic Win98 style 3D border
+@mixin win98-border($light: $win98-border-light, $dark: $win98-border-dark, $width: $win98-border-width) {
+  border-style: solid;
+  border-width: $width;
+  border-color: $light $dark $dark $light;
+}
+
+// Inset version of the border
+@mixin win98-border-inset($light: $win98-border-light, $dark: $win98-border-dark, $width: $win98-border-width) {
+  border-style: solid;
+  border-width: $width;
+  border-color: $dark $light $light $dark;
+}
+
+// Classic Win98 button border style
+@mixin win98-button-border($active: false) {
+  border-style: solid;
+  border-width: $win98-button-border-width;
+
+  @if $active {
+    border-color: $win98-button-shadow $win98-button-highlight $win98-button-highlight $win98-button-shadow;
+  }
+
+  @else {
+    border-color: $win98-button-highlight $win98-button-shadow $win98-button-shadow $win98-button-highlight;
+  }
+}
+
+// Text truncation with ellipsis
+@mixin ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// Window shadow effect
+@mixin window-shadow($active: false) {
+  @if $active {
+    box-shadow: $win98-shadow-active;
+  }
+
+  @else {
+    box-shadow: $win98-shadow-normal;
+  }
+}
+
+// Prevent text selection
+@mixin no-select {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+// Win98 style scrollbar
+@mixin win98-scrollbar {
+  &::-webkit-scrollbar {
+    width: $win98-control-size;
+    height: $win98-control-size;
+  }
+
+  &::-webkit-scrollbar-track {
+    background-color: $win98-bg;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: $win98-bg; // Thumb itself is the bg color
+    @include win98-border($light: $win98-border-light, $dark: $win98-border-dark, $width: 1px); // With a border
+  }
+
+  // Buttons (arrows) for the scrollbar
+  &::-webkit-scrollbar-button {
+    background-color: $win98-bg;
+    border-style: solid;
+    border-width: 1px; // Assuming a finer border for scrollbar buttons
+    border-color: $win98-border-light $win98-border-dark $win98-border-dark $win98-border-light;
+    width: $win98-control-size;
+    height: $win98-control-size;
+    // Icons for arrows would typically be ::before/::after content or background images
+  }
+}
+
+// Utility to quickly apply a font
+@mixin apply-font($family: $font-sans, $size: $win98-font-size-normal, $weight: normal) {
+  font-family: $family;
+  font-size: $size;
+  font-weight: $weight;
+}

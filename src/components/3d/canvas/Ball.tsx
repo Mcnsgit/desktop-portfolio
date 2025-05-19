@@ -25,6 +25,7 @@ const Ball: React.FC<BallProps> = ({ imgUrl, isInView }) => {
   useFrame((state, delta) => {
     if (meshRef.current && isInView) {
       // Simple rotation example, can be linked to scrollProgress if that logic is restored
+      state.camera.position.z = 5;
       meshRef.current.rotation.y += delta * 0.5; // Slow continuous rotation
     }
   });

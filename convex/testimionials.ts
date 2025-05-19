@@ -28,7 +28,7 @@ export const addTestimonial = mutation({
       name: args.name.trim(), // Trim whitespace
       email: args.email?.trim(), // Trim if provided
       comment: args.comment.trim(),
-      consentToDisplay: args.consentToDisplay,
+      consentToDisplay: true,
       isApproved: false, // Default to not approved
       submittedAt: Date.now(),
     });
@@ -47,20 +47,15 @@ export const getDisplayableTestimonials = query({
             .query("testimonials")
             // Use the index for efficient filtering
             .withIndex("by_approval_and_time", q => q.eq("isApproved", true))
-            // Further filter for consent (Convex might optimize this)
+            // Further filter for consent
             .filter(q => q.eq(q.field("consentToDisplay"), true))
             // Order by submission time, newest first
             .order("desc");
 
          // Apply limit if provided and valid
-         if (args.count !== undefined && args.count > 0) {
-             queryBuilder = queryBuilder.take(args.count);
-         } else {
-              // Default limit if none provided (e.g., take latest 10)
-              queryBuilder = queryBuilder.take(10);
-         }
+        const limit = args.count !== undefined && args.count > 0 ? args.count : 10; // Default to 10
 
-        const testimonials = await queryBuilder.collect();
+        const testimonials = await queryBuilder.take(limit);
 
         // Exclude email before returning to the client
         return testimonials.map(({ email, ...rest }) => rest);

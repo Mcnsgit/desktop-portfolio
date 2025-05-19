@@ -1,4 +1,4 @@
-import { Project, ProjectTag } from "../types"; // Ensure ProjectTag is exported from types
+import { Project } from "../types"; // Ensure ProjectTag is exported from types
 import { StaticImageData } from "next/image";
 // --- Define Placeholder Images (Replace with actual imports or paths) ---
 const placeholderImg: StaticImageData = {

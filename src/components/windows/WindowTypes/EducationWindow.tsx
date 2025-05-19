@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { fadeIn, textVariant } from '../../../utils/motion';
 import { education, currentLearning } from '../../../data/index';
 import Image from 'next/image';
-import styles from '../../styles/EducationWindow.module.scss';
+import styles from './EducationWindow.module.scss';
 
 const EducationWindow: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'education' | 'current'>('education');

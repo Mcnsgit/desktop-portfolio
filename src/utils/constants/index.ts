@@ -62,6 +62,7 @@ export const WINDOW_TYPES = {
   CONTACT: "contact",
   SKILLS: "skills",
   SETTINGS: "settings",
+  BROWSER: "browser",
 };
 
 export const WINDOW_SIZES: Record<string, Size> = {
@@ -143,13 +144,13 @@ export const SOUNDS = {
 };
 
 // Icons paths
-export const DEFAULT_ICON = "/assets/win98-icons/png/application-0.png";
-export const FOLDER_ICON = "/assets/win98-icons/png/directory_closed-1.png";
-export const OPEN_FOLDER_ICON = "/assets/win98-icons/png/directory_open-0.png";
-export const FILE_ICON = "/assets/win98-icons/png/file_blank-0.png";
-export const TEXT_FILE_ICON = "/assets/win98-icons/png/notepad_file-0.png";
-export const IMAGE_FILE_ICON = "/assets/win98-icons/png/kodak_imaging-0.png";
-export const SHORTCUT_ICON = "/assets/win98-icons/png/shortcut-0.png";
+export const DEFAULT_ICON = "/assets/icons/win98/png/file_lines-0.png";
+export const FOLDER_ICON = "/assets/icons/win98/png/directory_closed-1.png";
+export const OPEN_FOLDER_ICON = "/assets/icons/win98/png/directory_open_file_mydocs_cool-3.png";
+export const FILE_ICON = "/assets/icons/win98/png/file_win_shortcut-2.png";
+export const TEXT_FILE_ICON = "/assets/icons/win98/png/notepad_file-0.png";
+export const IMAGE_FILE_ICON = "/assets/icons/win98/png/kodak_imaging-0.png";
+export const SHORTCUT_ICON = "/assets/icons/win98/png/users_key-0.png";
 
 export const APP_ICONS = {
   TEXT_EDITOR: "/assets/win98-icons/png/notepad_file-0.png",
@@ -157,8 +158,8 @@ export const APP_ICONS = {
   ABOUT: "/assets/win98-icons/png/address_book_user.png",
   WEATHER: "/assets/win98-icons/png/sun-0.png",
   PROJECTS: "/assets/win98-icons/png/briefcase-0.png",
-  SKILLS: "/assets/win98-icons/png/application_lightning-0.png",
-  CONTACT: "/assets/win98-icons/png/email-0.png",
+  SKILLS: "/assets/win98-icons/png/card_reader-3.png",
+  CONTACT: "/assets/win98-icons/png/msn3-5.png",
 };
 
 // Desktop wallpapers

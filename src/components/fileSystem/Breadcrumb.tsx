@@ -105,7 +105,9 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({
                     type="text"
                     className={styles.pathInput}
                     value={path}
-                    onChange={(e) => { }}
+                    onChange={(e) => {
+                        console.log(e.target.value);
+                    }}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                             onNavigate(e.currentTarget.value);
