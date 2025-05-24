@@ -1,7 +1,7 @@
 "use client"; // Add directive
 
 import React, { useCallback, Suspense, useEffect,  useState } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import {  Preload, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import CanvasLoader from "./Loader";
@@ -9,6 +9,18 @@ import OptimizedOrbitControls from "./OptimizedOrbitControls";
 import PerformanceOptimizer from "./PerformanceOptimizer";
 import { useRouter } from "next/navigation";
 import { useSounds } from "@/hooks/useSounds";
+
+// --- Scene Setup Component for Transparency ---
+const SceneSetup = () => {
+  const { scene, gl } = useThree();
+  
+  useEffect(() => {
+    scene.background = null; // Make scene background transparent
+    gl.setClearAlpha(0);    // Ensure the WebGLRenderer clear color has alpha 0
+  }, [scene, gl]);
+  
+  return null;
+};
 
 // --- ComputerModel Component ---
 // This renders the actual GLTF model and handles clicks
@@ -92,8 +104,9 @@ const PortfolioComputer: React.FC = () => {
         shadows
         dpr={[1, 2]}
         camera={{ position: [20, 3, 5], fov: 25 }} // Keep camera settings
-        gl={{ preserveDrawingBuffer: true }}
+        gl={{ preserveDrawingBuffer: true, alpha: true }} // Added alpha: true for transparency
       >
+        <SceneSetup /> {/* Add scene transparency setup */}
         <PerformanceOptimizer>
           <Suspense fallback={<CanvasLoader />}>
             <OptimizedOrbitControls

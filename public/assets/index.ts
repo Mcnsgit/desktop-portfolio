@@ -34,8 +34,8 @@ import tripguide from "./tripguide.png";
 import w98_directory_program_group from "./icons/win98/w98_directory_program_group.ico";
 
 export {
-  w98_directory_program_group,
   logo,
+  logo1,
   backend,
   creator,
   mobile,
@@ -63,5 +63,7 @@ export {
   carrent,
   jobit,
   tripguide,
-  logo1
+  w98_directory_program_group,
+
+
 };

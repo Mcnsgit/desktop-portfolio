@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faCheck, faTrash } from '@fortawesome/free-solid-svg-icons';
-import styles from '../styles/TodoList.module.scss';
+import styles from './TodoList.module.scss';
 
 // Define task interface
 interface Task {

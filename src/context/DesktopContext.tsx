@@ -1,155 +1,79 @@
-// Updated DesktopContext with fixes for infinite update loops
 import React, { createContext, useReducer, useContext, useRef, Dispatch, useCallback, useEffect } from "react";
-import { Project, Window, Folder, DesktopItem } from "../types";
-import { Z_INDEX } from "../utils/constants/windowConstants";
-import { TASKBAR_HEIGHT } from "../utils/constants"; // Corrected import path back to constants/index.ts (implicitly)
+import { Window, DesktopItem, DesktopAction, DesktopState } from "../types";
+import { Z_INDEX } from "../utils/constants";
+import { TASKBAR_HEIGHT } from "../utils/constants";
 import { portfolioProjects } from '../data/portfolioData'
 import { isDescendant } from '../utils/windowServices/isDescendant';
-import { getDefaultIcon } from '../utils/iconUtils'; // Import getDefaultIcon
-// import { Icon } from "@phosphor-icons/react";
+import { getDefaultIcon } from '../utils/iconUtils';
 
-const DESKTOP_POSITIONS_STORAGE_KEY = 'desktopItemPositions';
+const DESKTOP_POSITIONS_STORAGE_KEY = 'desktop-items-positions';
 
-// Helper function to load positions from localStorage
 const loadDesktopItemPositions = (): Record<string, { x: number; y: number }> => {
   if (typeof window !== 'undefined') {
     try {
       const storedPositions = localStorage.getItem(DESKTOP_POSITIONS_STORAGE_KEY);
-      if (storedPositions) {
-        return JSON.parse(storedPositions);
-      }
+      return storedPositions ? JSON.parse(storedPositions) : {};
     } catch (e) {
       console.error("Failed to parse desktop positions from localStorage", e);
     }
   }
   return {};
 };
-
-// Helper function to save a single item's position
-const saveDesktopItemPosition = (itemId: string, position: { x: number; y: number }) => {
+// Helper function to batch save positions to localStorage
+const saveDesktopItemPositions = (id: string, position: { x: number; y: number; }) => {
   if (typeof window !== 'undefined') {
     try {
       const currentPositions = loadDesktopItemPositions();
-      currentPositions[itemId] = position;
+      currentPositions[id] = position;
       localStorage.setItem(DESKTOP_POSITIONS_STORAGE_KEY, JSON.stringify(currentPositions));
     } catch (e) {
-      console.error("Failed to save desktop position to localStorage", e);
+      console.error("Failed to save desktop positions to localStorage", e);
     }
   }
 };
-
 // Helper function to remove a single item's position
 const removeDesktopItemPosition = (itemId: string) => {
     if (typeof window !== 'undefined') {
         try {
             const currentPositions = loadDesktopItemPositions();
             delete currentPositions[itemId];
-            localStorage.setItem(DESKTOP_POSITIONS_STORAGE_KEY, JSON.stringify(currentPositions));
+            saveDesktopItemPositions(itemId, currentPositions[itemId] || {x: 0, y: 0});
         } catch (e) {
             console.error("Failed to remove desktop position from localStorage", e);
         }
     }
 };
 
-type DesktopState = {
-  [x: string]: any;
-  windows: Window[];
-  activeWindowId: string | null;
-  projects: Project[];
-  folders: Folder[];
-  desktopItems: DesktopItem[];
-  startMenuOpen: boolean;
-  path?: string;
-  clipboard: {
-    action: "cut" | "copy" | null;
-    items: DesktopItem[];
-  } | null;
-};
-
-
-export type DesktopAction =
-  | { type: "OPEN_WINDOW"; payload: Window }
-  | { type: "CLOSE_WINDOW"; payload: { id: string } }
-  | { type: "FOCUS_WINDOW"; payload: { id: string } }
-  | { type: "MINIMIZE_WINDOW"; payload: { id: string } }
-  | { type: "TOGGLE_START_MENU"; payload?: { startMenuOpen?: boolean } }
-  | { type: "INIT_PROJECTS"; payload: { projects: Project[] } }
-  | { type: "CREATE_FOLDER"; payload: Folder }
-  | { type: "DELETE_FOLDER"; payload: { id: string } }
-  | { type: "RENAME_FOLDER"; payload: { id: string; title: string } }
-  | { type: "RESTORE_WINDOW"; payload: { id: string } }
-  | { type: "UPDATE_WINDOW"; payload: { id: string; position?: { x: number; y: number }; size?: { width: number; height: number } } }
-  | { type: "BATCH_UPDATES"; payload: DesktopState }
-  | { type: "MOVE_ITEM"; payload: { itemId: string; newParentId: string | null; position?: { x: number; y: number }; newPath?: string; } }
-  | { type: "UPDATE_ITEM_POSITION"; payload: { itemId: string; position: { x: number; y: number } }}
-  | { type: "UPDATE_WINDOW_POSITION"; payload: { id: string; position: { x: number; y: number } } }
-  | { type: "UPDATE_WINDOW_SIZE"; payload: { id: string; size: { width: number; height: number } } }
-  | { type: "CYCLE_BACKGROUND"; payload?: any }
-  | { type: "CREATE_ITEM"; payload: { id: string, title?: string, type: string, icon: string, parentId: string | null, path?: string, position?: {x: number, y: number} } }
-  | { type: "DELETE_ITEM"; payload: { id: string } }
-  | { type: "RENAME_ITEM"; payload: { id: string, title: string} }
-  | { type: "ADD_TO_FAVORITES"; payload: {id: string}}
-  | { type: "UPDATE_CLIPBOARD"; payload: { action: string; files: (DesktopItem | { id: string })[] } }
-  | { type: "PASTE_ITEMS"; payload: { destinationId: string | null; position?: { x: number; y: number }; items: DesktopItem[] } }
-  | { type: "UPDATE_WINDOW_TITLE"; payload: { id: string; title: string } }
-
-
 const desktopReducer = (state: DesktopState, action: DesktopAction): DesktopState => {
-  // Debugging
   if (process.env.NODE_ENV === 'development') {
     console.log(`DesktopContext Reducer - Action: ${action.type}`, (action as any).payload);
   }
-
   switch (action.type) {
     case "INIT_PROJECTS": {
       const savedPositions = loadDesktopItemPositions();
-      const initialDesktopItems = action.payload.projects.map(
-        (project, index): DesktopItem => {
-          const padding = 16; // From _variables.scss: $spacing-md
-          const gridCellWidth = 80; // DESKTOP_ICON_WIDTH
-          const gridCellHeight = 90; // DESKTOP_ICON_HEIGHT
-          const gridGap = 8; // From _variables.scss: $spacing-sm
-          
-          const itemsPerRow = 8; // Number of items per row before wrapping
-
-          const columnIndex = index % itemsPerRow;
-          const rowIndex = Math.floor(index / itemsPerRow);
-
-          const defaultX = padding + columnIndex * (gridCellWidth + gridGap);
-          const defaultY = padding + rowIndex * (gridCellHeight + gridGap);
-          
-          const savedPosition = savedPositions[project.id];
-
-          return {
-            id: project.id,
-            title: project.title,
-            icon: project.icon || "/assets/win98-icons/png/directory_open_cool-1.png", 
-            type: project.type || "project",
-            position: savedPosition || { x: defaultX, y: defaultY }, // Use saved or default
-            parentId: project.parentId ?? null,
-            path: project.path // Ensure path is initialized if available from project data
-          };
-        }
-      );
-      // Initialize folders and other desktop items similarly if they are part of initial setup
-      // For now, focusing on projects from portfolioData
-      const initialFolders = state.folders || []; // Keep existing folders if any, or initialize
-      const otherDesktopItems = state.desktopItems?.filter(item => !action.payload.projects.some(p => p.id === item.id && item.parentId === null)) || [];
-      
-      let combinedItems = [...initialDesktopItems];
-
-      // Merge with other items ensuring no duplicates by ID for top-level items
-      otherDesktopItems.forEach(item => {
-        if (!combinedItems.some(ci => ci.id === item.id)) {
-          const savedPosition = savedPositions[item.id];
-          if (savedPosition && item.parentId === null) { // Only apply saved position if it's a desktop item
-            item.position = savedPosition;
-          }
-          combinedItems.push(item);
-        }
+      const initialDesktopItems = action.payload.projects.map((project, index): DesktopItem => {
+        const padding = 16;
+        const gridCellWidth = 80;
+        const gridCellHeight = 90;
+        const gridGap = 8;
+        const itemsPerRow = 8;
+        const columnIndex = index % itemsPerRow;
+        const rowIndex = Math.floor(index / itemsPerRow);
+        const defaultX = padding + columnIndex * (gridCellWidth + gridGap);
+        const defaultY = padding + rowIndex * (gridCellHeight + gridGap);
+        const savedPosition = savedPositions[project.id];
+        return {
+          id: project.id,
+          title: project.title,
+          icon: project.icon || "/assets/win98-icons/png/directory_open_cool-1.png",
+          type: project.type || "project",
+          position: savedPosition || { x: defaultX, y: defaultY },
+          parentId: project.parentId ?? null,
+          path: project.path,
+        };
       });
-
-      return {...state, projects: action.payload.projects, desktopItems: combinedItems, folders: initialFolders};
+      const combinedItems = [...initialDesktopItems, ...state.desktopItems.filter(item => !action.payload.projects.some(p => p.id === item.id))];
+      return { ...state, projects: action.payload.projects, desktopItems: combinedItems, folders: state.folders };
     }
     case "OPEN_WINDOW": {
       const existingWindow = state.windows.find(w => w.id === action.payload.id);
@@ -256,7 +180,7 @@ const desktopReducer = (state: DesktopState, action: DesktopAction): DesktopStat
       if (isDesktopItem) {
         const savedPositions = loadDesktopItemPositions();
         position = savedPositions[newFolder.id] || position; // Use saved if available
-        saveDesktopItemPosition(newFolder.id, position); // Save initial position if created on desktop
+        saveDesktopItemPositions(newFolder.id, {x: position.x, y: position.y}); // Save initial position if created on desktop
       }
 
       const newFolderItem: DesktopItem = {
@@ -285,7 +209,7 @@ const desktopReducer = (state: DesktopState, action: DesktopAction): DesktopStat
     }
     case "UPDATE_ITEM_POSITION": {
       const { itemId, position } = action.payload;
-      saveDesktopItemPosition(itemId, position); // Save to localStorage
+      saveDesktopItemPositions(itemId, position); // Save to localStorage
       return {
         ...state,
         desktopItems: state.desktopItems.map(item =>
@@ -419,7 +343,7 @@ const desktopReducer = (state: DesktopState, action: DesktopAction): DesktopStat
           };
           if (newParentId === null && position) { // Moved to desktop
             updatedItem.position = position;
-            saveDesktopItemPosition(itemId, position);
+            saveDesktopItemPositions(itemId, position);
           } else if (newParentId !== null) { // Moved into a folder
             // Remove from localStorage as its desktop position is no longer active
             removeDesktopItemPosition(itemId);
@@ -468,7 +392,7 @@ const desktopReducer = (state: DesktopState, action: DesktopAction): DesktopStat
         const savedPositions = loadDesktopItemPositions();
         position = savedPositions[newItemPayload.id] || position;
         if (position) { 
-            saveDesktopItemPosition(newItemPayload.id, position);
+            saveDesktopItemPositions(newItemPayload.id, position);
         }
       }
        const newItem: DesktopItem = {

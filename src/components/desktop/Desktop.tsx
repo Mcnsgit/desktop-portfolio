@@ -20,10 +20,19 @@ import WindowManager from "../windows/WindowManager";
 import ContextMenu from "./ContextMenu";
 import styles from "./Desktop.module.scss";
 import { v4 as uuidv4 } from "uuid";
-import { DesktopItem, Window, Project, FileExplorerContent } from "../../types";
+import { DesktopItem, Window, Project } from "../../types";
 import { useFileSystem } from "../../context/FileSystemContext";
-import { launchApplication } from "../../utils/appLauncher";
-import { openFileWithAppropriateApp, openFolder } from "../../utils/windowServices/fileHandlers";
+import { 
+  launchApplication,
+  launchProject,
+  launchFileExplorer,
+  launchTodoList,
+  launchWeatherApp,
+  launchBrowser,
+  openFileWithAppropriateApp,
+  AppLauncherConfig
+} from "../../utils/appLauncher";
+import { openFolder } from "../../utils/windowServices/fileHandlers";
 import { DESKTOP_ICON_WIDTH, DESKTOP_ICON_HEIGHT, TASKBAR_HEIGHT } from "../../utils/constants";
 
 // Backgrounds can be customized
@@ -269,12 +278,18 @@ const Desktop: React.FC = () => {
 
     playSound("windowOpen");
 
+    // Create app launcher config
+    const launcherConfig: AppLauncherConfig = {
+      dispatch,
+      existingWindows: state.windows as Window[]
+    };
+
     const projectDetails = state.projects.find((p: Project) => p.id === item.id);
     const itemTypeToSwitch = projectDetails?.type || item.type;
 
     switch (itemTypeToSwitch) {
       case "folder":
-        openFolder(dispatch, state.windows as Window[], item.id, item.title);
+        openFolder(dispatch, item.id, item.title);
         break;
 
       case "project":
@@ -283,30 +298,25 @@ const Desktop: React.FC = () => {
       case "visual":
         if (projectDetails) {
           if (projectDetails.id === "todo-list") {
-            launchApplication("todolist", dispatch, state.windows as Window[], {
+            launchTodoList(launcherConfig, {
               title: projectDetails.title,
-              projectId: projectDetails.id,
             });
           } else if (projectDetails.id === "weather-app") {
-            launchApplication("weatherapp", dispatch, state.windows as Window[], {
+            launchWeatherApp(launcherConfig, {
               title: projectDetails.title,
-              projectId: projectDetails.id,
             });
           } else if (projectDetails.live_link || projectDetails.demoUrl) {
-            launchApplication("browser", dispatch, state.windows as Window[], {
+            launchBrowser(launcherConfig, projectDetails.live_link || projectDetails.demoUrl, {
               title: projectDetails.title,
-              initialUrl: projectDetails.live_link || projectDetails.demoUrl, 
             });
           } else {
-            launchApplication("project", dispatch, state.windows as Window[], {
-              projectId: projectDetails.id,
+            launchProject(projectDetails.id, launcherConfig, {
               title: projectDetails.title,
             });
           }
         } else {
           console.warn(`Desktop.tsx: Project details not found for item ID ${item.id} (type ${item.type}). Opening generic project window for ${item.title}.`);
-          launchApplication("project", dispatch, state.windows as Window[], {
-            projectId: item.id,
+          launchProject(item.id, launcherConfig, {
             title: item.title,
           });
         }
@@ -326,30 +336,20 @@ const Desktop: React.FC = () => {
 
           if (targetPath.startsWith("app:")) {
             const appName = targetPath.substring(4);
-            launchApplication(appName, dispatch, state.windows as Window[], { title: item.title });
+            launchApplication(appName, launcherConfig, { title: item.title });
           } else {
             const targetInfo = await fileSystem.getFileInfo(targetPath);
             if (targetInfo) {
               if (targetInfo.isDirectory) {
-                const folderTitle = item.title || targetPath.split("/").pop() || "Folder";
-                dispatch({
-                  type: "OPEN_WINDOW",
-                  payload: {
-                    id: `fileexplorer-${uuidv4()}`,
-                    title: folderTitle,
-                    type: "fileexplorer",
-                    content: { type: "fileexplorer", initialPath: targetPath } as FileExplorerContent,
-                    minimized: false,
-                    position: { x: 150, y: 150 }, 
-                    size: { width: 700, height: 500 }, 
-                  } as Window, 
+                launchFileExplorer(launcherConfig, targetPath, {
+                  title: item.title || targetPath.split("/").pop() || "Folder",
                 });
               } else { 
-                openFileWithAppropriateApp(dispatch, state.windows as Window[], targetPath); 
+                openFileWithAppropriateApp(targetPath, launcherConfig); 
               }
             } else {
               console.warn(`Desktop.tsx: Could not get info for shortcut target: ${targetPath}. Attempting to open as file.`);
-              openFileWithAppropriateApp(dispatch, state.windows as Window[], targetPath); 
+              openFileWithAppropriateApp(targetPath, launcherConfig); 
             }
           }
         } catch (error) {
@@ -361,11 +361,10 @@ const Desktop: React.FC = () => {
         console.log(`Desktop.tsx: Double-clicked on item with type: "${itemTypeToSwitch}" (ID: ${item.id}, Title: ${item.title}).`);
         if (item.path) {
           console.log(`Attempting to open ${item.title} as a file using its path: ${item.path}`);
-          openFileWithAppropriateApp(dispatch, state.windows as Window[], item.path); 
+          openFileWithAppropriateApp(item.path, launcherConfig); 
         } else if (projectDetails) {
            console.log(`Opening ${item.title} as a generic project window as it has projectDetails.`);
-           launchApplication("project", dispatch, state.windows as Window[], {
-            projectId: projectDetails.id,
+           launchProject(projectDetails.id, launcherConfig, {
             title: projectDetails.title,
           });
         } else {
@@ -373,7 +372,7 @@ const Desktop: React.FC = () => {
         }
         break;
     }
-  }, [dispatch, playSound, state.desktopItems, state.projects, state.windows, fileSystem]); // Removed launchApplication, openFolder, openFileWithAppropriateApp
+  }, [dispatch, playSound, state.desktopItems, state.projects, state.windows, fileSystem]);
 
   // Desktop click handlers
   const handleDesktopClick = useCallback((e: React.MouseEvent) => {

@@ -70,37 +70,37 @@ const StartMenu: React.FC = () => {
 
   // Open window handlers
   const openAboutWindow = () => {
-    launchApplication("aboutme", dispatch, state.windows, { title: "About Me" });
+    launchApplication("about", { dispatch, existingWindows: state.windows }, { title: "About Me" });
   };
 
   const openProjectsFolder = () => {
-    launchApplication("folder", dispatch, state.windows, { 
+    launchApplication("folder", { dispatch, existingWindows: state.windows }, { 
       folderId: "projects", 
       title: "My Projects" 
     });
   };
 
   const openContactWindow = () => {
-    launchApplication("contact", dispatch, state.windows, { title: "Contact Me" });
+    launchApplication("contact", { dispatch, existingWindows: state.windows }, { title: "Contact Me" });
   };
 
   const openTextEditor = () => {
-    launchApplication("texteditor", dispatch, state.windows, { title: "Text Editor" });
+    launchApplication("texteditor", { dispatch, existingWindows: state.windows }, { title: "Text Editor" });
   };
 
   const openFileExplorer = () => {
-    launchApplication("fileexplorer", dispatch, state.windows, { 
+    launchApplication("fileexplorer", { dispatch, existingWindows: state.windows }, { 
       title: "File Explorer", 
       initialPath: "/home/guest" 
     });
   };
 
   const openWeatherApp = () => {
-    launchApplication("weatherapp", dispatch, state.windows, { title: "Weather App" });
+    launchApplication("weatherapp", { dispatch, existingWindows: state.windows }, { title: "Weather App" });
   };
 
   const openSettings = () => {
-    launchApplication("settings", dispatch, state.windows, { title: "Settings" });
+    launchApplication("settings", { dispatch, existingWindows: state.windows }, { title: "Settings" });
   };
 
   const shutdown = () => {

@@ -6,10 +6,10 @@
   box-shadow: $win98-shadow-normal; // Use variable from _variables.scss
   position: absolute;
   overflow: hidden;
-  visibility: visible !important;
-  display: block !important;
-  opacity: 1 !important;
-  z-index: 10000 !important;
+  visibility: visible;
+  display: block;
+  opacity: 1;
+  // z-index is controlled by JavaScript via inline styles
   // Transitions for opacity/transform will be handled by Framer Motion or inline styles if needed
   // transition: opacity $animation-duration-normal $ease-out, transform $animation-duration-normal $ease-out;
   // border-radius: $border-radius-sm; // Win98 windows typically don't have rounded corners
@@ -41,18 +41,17 @@
 // Animations for minimizing/closing are often handled by Framer Motion if used.
 // If CSS animations are preferred, define them here.
 .minimizing {
-  // Example: transform: scale(0.8) translateY(50px) !important; // !important if overriding inline transform
-  // opacity: 0 !important;
-    transition: transform $animation-duration-normal $ease-in, opacity $animation-duration-fast $ease-in !important;
-    display: none !important;
-    visibility: hidden !important;
-    
+  // Example: transform: scale(0.8) translateY(50px); // Removed !important
+  // opacity: 0; // Removed !important
+  transition: transform $animation-duration-normal $ease-in, opacity $animation-duration-fast $ease-in;
+  display: none;
+  visibility: hidden;
 }
 
 .closing {
-  transform: scale(0.9) !important;
-  opacity: 0 !important;
-  // transition: transform $animation-duration-fast $ease-in, opacity $animation-duration-fast $ease-in !important;
+  transform: scale(0.9);
+  opacity: 0;
+  transition: transform $animation-duration-fast $ease-in, opacity $animation-duration-fast $ease-in;
 }
 
 // Placeholder for other window-specific styles that might have been in the original file

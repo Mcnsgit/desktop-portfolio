@@ -206,3 +206,43 @@ $breakpoint-desktop: 1280px;
   font-size: $size;
   font-weight: $weight;
 }
+
+// Win98 button styling
+@mixin win98-button {
+  @include win98-border($win98-border-light, $win98-border-dark, 1px);
+  background-color: $win98-button-face;
+  font-family: $win98-font-primary;
+  font-size: $win98-font-size-normal;
+  color: $win98-text-dark;
+  border: none;
+  cursor: pointer;
+  
+  &:hover {
+    background-color: $win98-button-highlight;
+  }
+  
+  &:active {
+    @include win98-border-inset($win98-border-light, $win98-border-dark, 1px);
+  }
+}
+
+// Win98 input styling
+@mixin win98-input {
+  @include win98-border-inset($win98-border-light, $win98-border-dark, 1px);
+  background-color: $win98-content-bg;
+  font-family: $win98-font-primary;
+  font-size: $win98-font-size-normal;
+  color: $win98-text-dark;
+  border: none;
+  
+  &:focus {
+    outline: 1px dotted $win98-text-dark;
+    outline-offset: -2px;
+  }
+}
+
+// Additional Win98 variables for missing elements
+$win98-input-bg: #ffffff;
+$win98-text-disabled: #808080;
+$win98-selected-bg: #000080;
+$win98-selected-text: #ffffff;

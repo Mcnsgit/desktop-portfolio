@@ -54,7 +54,7 @@ export const portfolioProjects: Project[] = [
     id: "ecommerce-platform",
     title: "E-commerce Platform",
     name: "E-commerce Platform",
-    icon: "/assets/win98-icons/png/shopping_cart-0.png", // More relevant icon?
+    icon: "/assets/win98-icons/png/shopping_cart-1.png",
     description:
       "Managed full lifecycle of an e-commerce platform for McNasty Studios.",
     tags: [

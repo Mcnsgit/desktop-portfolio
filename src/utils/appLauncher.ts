@@ -1,173 +1,376 @@
-// Enhanced appLauncher.ts with launchApplication export
+// src/utils/appLauncher.ts
 import { Dispatch } from "react";
-import { DesktopAction } from "../context/DesktopContext";
-import { windowFactory } from "./windowServices/windowFactory";
-// import { WindowOptions as WindowOptionsType } from "./windowServices/windowFactory";
-import { Window, WindowContent } from "../types"; // Ensure correct Window type is imported
+import { DesktopAction, Window } from "../types";
+import { createWindow, LaunchOptions } from "./windowServices/windowFactory";
+import { WINDOW_TYPES } from "./constants";
 
-// Define a more specific options type for launchApplication, extending general WindowOptions
-// This helps clarify what kind of specific properties might be passed for different apps.
-interface AppLaunchOptions {
-  id?: string;
-  title?: string;
-  position?: { x: number; y: number };
-  size?: { width: number; height: number };
-  minimized?: boolean;
-  // Specific content-related properties that might be passed at the top level for convenience
-  filePath?: string;      // For TextEditor, ImageViewer
-  initialPath?: string;   // For FileExplorer
-  projectId?: string;     // For ProjectWindow
-  folderId?: string;      // For FolderWindow
-  initialUrl?: string;    // For BrowserWindow
-  // If a full content object is provided, it might take precedence or be merged.
-  content?: WindowContent; 
+export interface AppLauncherConfig {
+  dispatch: Dispatch<DesktopAction>;
+  existingWindows: Window[];
 }
 
 /**
- * Launch an application with the given name
- * @param appName Name of the application to launch
- * @param dispatch Dispatch function from DesktopContext
- * @param existingWindows Array of currently open windows, to be passed to windowFactory for positioning
- * @param options Optional configuration for the application
+ * Main application launcher - handles opening all types of windows/apps
+ * This is the single point of entry for opening any windowed content
  */
-export const launchApplication = (
-  appName: string,
-  dispatch: Dispatch<DesktopAction>,
-  existingWindows: Window[],
-  options: AppLaunchOptions = {}
-) => {
-  let windowPayload: Window | null = null;
+export function launchApplication(
+  appType: string, 
+  config: AppLauncherConfig,
+  options: LaunchOptions = {}
+): void {
+  const { dispatch, existingWindows } = config;
 
-  // Extract specific properties from options for clarity, falling back to content if necessary
-  const filePath = options.filePath || (options.content && 'filePath' in options.content ? options.content.filePath : undefined);
-  const initialPath = options.initialPath || (options.content && 'initialPath' in options.content ? options.content.initialPath : undefined);
-  const projectId = options.projectId || (options.content && 'projectId' in options.content ? options.content.projectId : undefined);
-  const folderId = options.folderId || (options.content && 'folderId' in options.content ? options.content.folderId : undefined);
-  const initialUrl = options.initialUrl || (options.content && 'url' in options.content ? options.content.url : undefined);
-
-  // General options to pass to the factory (excluding the specific ones handled above)
-  const generalOptions: AppLaunchOptions = { ...options };
-  delete generalOptions.filePath;
-  delete generalOptions.initialPath;
-  delete generalOptions.projectId;
-  delete generalOptions.folderId;
-  delete generalOptions.initialUrl;
-
-  // Generate a unique ID for the window
-  // const timestamp = Date.now();
-  // const windowId = `${appName.toLowerCase().replace(/\s+/g, "-")}-${timestamp}`;
-
-  // // Default position with slight randomization
-  // const defaultPosition = {
-  //   x: 100 + Math.floor(Math.random() * 50),
-  //   y: 100 + Math.floor(Math.random() * 50),
-  // };
-
-  switch (appName.toLowerCase()) {
-    case "texteditor":
-    case "text editor":
-      windowPayload = windowFactory.createTextEditor(existingWindows, filePath, generalOptions);
-      break;
-    case "fileexplorer":
-    case "file explorer":
-      windowPayload = windowFactory.createFileExplorer(existingWindows, initialPath, generalOptions);
-      break;
-    case "imageviewer":
-    case "image viewer":
-      if (filePath) {
-        windowPayload = windowFactory.createImageViewer(existingWindows, filePath, generalOptions);
-      } else {
-        console.warn("Image Viewer launch requires a filePath.");
-      }
-      break;
-    case "project":
-      if (projectId) {
-        // The factory takes projectId and an optional projectTitle. Title can come from generalOptions.title.
-        windowPayload = windowFactory.createProjectWindow(existingWindows, projectId, generalOptions.title, generalOptions);
-      } else {
-        console.warn("Project launch requires a projectId.");
-      }
-      break;
-    case "folder":
-      if (folderId) {
-        // The factory takes folderId and an optional folderTitle. Title can come from generalOptions.title.
-        windowPayload = windowFactory.createFolderWindow(existingWindows, folderId, generalOptions.title, generalOptions);
-      } else {
-        console.warn("Folder launch requires a folderId.");
-      }
-      break;
-    case "weatherapp":
-    case "weather app":
-      windowPayload = windowFactory.createWeatherApp(existingWindows, generalOptions);
-      break;
-    case "aboutme":
-    case "about me":
-    case "about":
-      windowPayload = windowFactory.createAboutMeWindow(existingWindows, generalOptions);
-      break;
-    case "contact":
-      windowPayload = windowFactory.createContactWindow(existingWindows, generalOptions);
-      break;
-    case "settings":
-      windowPayload = windowFactory.createSettingsWindow(existingWindows, generalOptions);
-      break;
-    case "browser":
-    case "web browser":
-      // Pass initialUrl explicitly if the factory supports it like this, or ensure it's part of generalOptions.content
-      windowPayload = windowFactory.createBrowserWindow(existingWindows, { ...generalOptions, initialUrl });
-      break;
-    default:
-      console.warn(`Unknown app name/type for launchApplication: ${appName}`);
-      return;
+  // Check if window already exists for unique app types
+  const existingWindow = findExistingWindow(appType, existingWindows, options);
+  if (existingWindow) {
+    // Focus existing window instead of creating new one
+    if (existingWindow.minimized) {
+      dispatch({ type: "RESTORE_WINDOW", payload: { id: existingWindow.id } });
+    } else {
+      dispatch({ type: "FOCUS_WINDOW", payload: { id: existingWindow.id } });
+    }
+    return;
   }
 
-  if (windowPayload) {
-    dispatch({
-      type: "OPEN_WINDOW",
-      payload: windowPayload,
+  // Create new window using windowFactory
+  try {
+    const windowConfig = createWindow(appType, options);
+    dispatch({ type: "OPEN_WINDOW", payload: windowConfig });
+  } catch (error) {
+    console.error(`Failed to launch application ${appType}:`, error);
+    // Optionally show error notification to user
+  }
+}
+
+/**
+ * Launch a project window with project details
+ */
+function launchProject(
+  projectId: string,
+  config: AppLauncherConfig,
+  options: Partial<LaunchOptions> = {}
+): void {
+  launchApplication(WINDOW_TYPES.PROJECT, config, {
+    ...options,
+    projectId,
+    title: options.title || `Project: ${projectId}`,
+  });
+}
+
+/**
+ * Launch file explorer at specific path
+ */
+function launchFileExplorer(
+  config: AppLauncherConfig,
+  initialPath: string = "/home/guest/Desktop",
+  options: Partial<LaunchOptions> = {}
+): void {
+  launchApplication(WINDOW_TYPES.FILE_EXPLORER, config, {
+    ...options,
+    initialPath,
+    title: options.title || `File Explorer - ${getDisplayPath(initialPath)}`,
+  });
+}
+
+/**
+ * Launch folder window for browsing folder contents
+ */
+function launchFolder(
+  folderId: string,
+  config: AppLauncherConfig,
+  options: Partial<LaunchOptions> = {}
+): void {
+  launchApplication(WINDOW_TYPES.FOLDER, config, {
+    ...options,
+    folderId,
+    title: options.title || `Folder: ${folderId}`,
+  });
+}
+
+/**
+ * Launch text editor with optional file
+ */
+function launchTextEditor(
+  config: AppLauncherConfig,
+  filePath?: string,
+  options: Partial<LaunchOptions> = {}
+): void {
+  launchApplication(WINDOW_TYPES.TEXT_EDITOR, config, {
+    ...options,
+    filePath,
+    title: options.title || (filePath ? getFileName(filePath) : "Text Editor"),
+  });
+}
+
+/**
+ * Launch image viewer with image file
+ */
+function launchImageViewer(
+  filePath: string,
+  config: AppLauncherConfig,
+  options: Partial<LaunchOptions> = {}
+): void {
+  launchApplication(WINDOW_TYPES.IMAGE_VIEWER, config, {
+    ...options,
+    filePath,
+    title: options.title || `Image Viewer - ${getFileName(filePath)}`,
+  });
+}
+
+/**
+ * Launch browser window with URL
+ */
+function launchBrowser(
+  config: AppLauncherConfig,
+  initialUrl?: string,
+  options: Partial<LaunchOptions> = {}
+): void {
+  launchApplication(WINDOW_TYPES.BROWSER, config, {
+    ...options,
+    initialUrl,
+    title: options.title || "Browser",
+  });
+}
+
+/**
+ * Launch About window
+ */
+function launchAbout(
+  config: AppLauncherConfig,
+  options: Partial<LaunchOptions> = {}
+): void {
+  launchApplication(WINDOW_TYPES.ABOUT, config, {
+    ...options,
+    title: options.title || "About Me",
+  });
+}
+
+/**
+ * Launch Skills window
+ */
+function launchSkills(
+  config: AppLauncherConfig,
+  options: Partial<LaunchOptions> = {}
+): void {
+  launchApplication(WINDOW_TYPES.SKILLS, config, {
+    ...options,
+    title: options.title || "Skills & Technologies",
+  });
+}
+
+/**
+ * Launch Contact window
+ */
+function launchContact(
+  config: AppLauncherConfig,
+  options: Partial<LaunchOptions> = {}
+): void {
+  launchApplication(WINDOW_TYPES.CONTACT, config, {
+    ...options,
+    title: options.title || "Contact Information",
+  });
+}
+
+/**
+ * Launch Weather App
+ */
+function launchWeatherApp(
+  config: AppLauncherConfig,
+  options: Partial<LaunchOptions> = {}
+): void {
+  launchApplication(WINDOW_TYPES.WEATHER_APP, config, {
+    ...options,
+    title: options.title || "Weather App",
+  });
+}
+
+/**
+ * Launch Settings window
+ */
+function launchSettings(
+  config: AppLauncherConfig,
+  options: Partial<LaunchOptions> = {}
+): void {
+  launchApplication(WINDOW_TYPES.SETTINGS, config, {
+    ...options,
+    title: options.title || "Settings",
+  });
+}
+
+/**
+ * Launch Todo List app
+ */
+function launchTodoList(
+  config: AppLauncherConfig,
+  options: Partial<LaunchOptions> = {}
+): void {
+  launchApplication(WINDOW_TYPES.TODO_LIST, config, {
+    ...options,
+    title: options.title || "Todo List",
+  });
+}
+
+/**
+ * Open file with appropriate application based on file extension
+ */
+function openFileWithAppropriateApp(
+  filePath: string,
+  config: AppLauncherConfig,
+  options: Partial<LaunchOptions> = {}
+): void {
+  const extension = getFileExtension(filePath).toLowerCase();
+  const fileName = getFileName(filePath);
+
+  // Determine appropriate app based on file extension
+  if (isTextFile(extension)) {
+    launchTextEditor(config, filePath, {
+      ...options,
+      title: fileName,
     });
-    // It's generally better for the caller (e.g., StartMenu) to handle closing itself.
-    // dispatch({ type: "TOGGLE_START_MENU", payload: { startMenuOpen: false } });
+  } else if (isImageFile(extension)) {
+    launchImageViewer(filePath, config, {
+      ...options,
+      title: `${fileName} - Image Viewer`,
+    });
+  } else if (extension === '.lnk') {
+    // Handle shortcut files
+    handleShortcutFile(filePath, config, options);
+  } else {
+    // Default to text editor for unknown files
+    launchTextEditor(config, filePath, {
+      ...options,
+      title: `${fileName} - Text Editor`,
+    });
   }
-};
+}
 
-// For backward compatibility, export launchApp as an alias of launchApplication
-export const launchApp = launchApplication;
+// Helper Functions
 
-// Get icon for app
-export const getAppIcon = (appName: string): string => {
-  switch (appName.toLowerCase()) {
-    case "texteditor":
-    case "text editor":
-      return "/assets/icons/win98/png/notepad_file-0.png";
-    case "fileexplorer":
-    case "file explorer":
-      return "/assets/icons/win98/png/directory_explorer-0.png";
-    case "imageviewer": // Added for completeness, assuming it might be in a general app list
-    case "image viewer":
-      return "/assets/icons/win98/png/image_file-0.png"; // Placeholder, use actual image viewer icon
-    case "aboutme":
-    case "about me":
-    case "about":
-      return "/assets/icons/win98/png/address_book_user.png";
-    case "weatherapp":
-    case "weather app":
-      return "/assets/win98-icons/png/sun-0.png";
-    case "project":
-      return "/assets/icons/win98/png/briefcase-0.png";
-    case "folder":
-      return "/assets/icons/win98/png/directory_closed-1.png";
-    case "contact":
-      return "/assets/icons/win98/png/msn3-5.png";
-    case "settings":
-      return "/assets/icons/win98/png/settings_gear-0.png";
-    case "browser":
-    case "web browser":
-      return "/assets/icons/win98/png/html-0.png"; 
-    // Add other app types as needed, e.g., SKILLS
-    // case "skills":
-    //   return "/assets/icons/win98/png/card_reader-3.png";
-    default:
-      return "/assets/icons/win98/png/application_blue_lines-0.png";
+/**
+ * Find existing window that matches the app type and options
+ */
+function findExistingWindow(
+  appType: string,
+  existingWindows: Window[],
+  options: LaunchOptions
+): Window | undefined {
+  return existingWindows.find(window => {
+    if (window.type !== appType) return false;
+
+    // For file-based windows, check if same file is already open
+    if ((appType === WINDOW_TYPES.TEXT_EDITOR || appType === WINDOW_TYPES.IMAGE_VIEWER) && options.filePath) {
+      const content = window.content as any;
+      return content.filePath === options.filePath;
+    }
+
+    // For folder/file explorer windows, check if same path is open
+    if ((appType === WINDOW_TYPES.FILE_EXPLORER || appType === WINDOW_TYPES.FOLDER) && options.initialPath) {
+      const content = window.content as any;
+      return content.initialPath === options.initialPath || content.folderId === options.folderId;
+    }
+
+    // For project windows, check if same project is open
+    if (appType === WINDOW_TYPES.PROJECT && options.projectId) {
+      const content = window.content as any;
+      return content.projectId === options.projectId;
+    }
+
+    // For unique windows (About, Contact, Skills, Settings), always consider existing
+    if ([WINDOW_TYPES.ABOUT, WINDOW_TYPES.CONTACT, WINDOW_TYPES.SKILLS, WINDOW_TYPES.SETTINGS].includes(appType)) {
+      return true;
+    }
+
+    return false;
+  });
+}
+
+/**
+ * Handle shortcut (.lnk) files
+ */
+async function handleShortcutFile(
+  filePath: string,
+  config: AppLauncherConfig,
+  options: LaunchOptions
+): Promise<void> {
+  try {
+    // In a real implementation, you'd read the shortcut target from the file system
+    // For now, we'll simulate some common shortcuts
+    const fileName = getFileName(filePath);
+    
+    switch (fileName) {
+      case 'Text Editor.lnk':
+        launchTextEditor(config, undefined, options);
+        break;
+      case 'My Projects.lnk':
+        launchFileExplorer(config, '/projects', options);
+        break;
+      case 'My Documents.lnk':
+        launchFileExplorer(config, '/home/guest/Documents', options);
+        break;
+      default:
+        console.warn(`Unknown shortcut: ${fileName}`);
+        break;
+    }
+  } catch (error) {
+    console.error(`Failed to handle shortcut ${filePath}:`, error);
   }
+}
+
+/**
+ * Extract file name from path
+ */
+function getFileName(filePath: string): string {
+  return filePath.split('/').pop() || filePath;
+}
+
+/**
+ * Extract file extension from path
+ */
+function getFileExtension(filePath: string): string {
+  const fileName = getFileName(filePath);
+  const lastDot = fileName.lastIndexOf('.');
+  return lastDot >= 0 ? fileName.substring(lastDot) : '';
+}
+
+/**
+ * Get display-friendly path (e.g., remove /home/guest prefix)
+ */
+function getDisplayPath(path: string): string {
+  if (path.startsWith('/home/guest/')) {
+    return path.substring(11); // Remove '/home/guest'
+  }
+  return path;
+}
+
+/**
+ * Check if file extension is a text file
+ */
+function isTextFile(extension: string): boolean {
+  const textExtensions = ['.txt', '.md', '.html', '.htm', '.css', '.js', '.json', '.xml', '.csv'];
+  return textExtensions.includes(extension);
+}
+
+/**
+ * Check if file extension is an image file
+ */
+function isImageFile(extension: string): boolean {
+  const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg', '.webp'];
+  return imageExtensions.includes(extension);
+}
+
+// Export all launch functions
+export {
+  launchProject,
+  launchFileExplorer,
+  launchFolder,
+  launchTextEditor,
+  launchImageViewer,
+  launchBrowser,
+  launchAbout,
+  launchSkills,
+  launchContact,
+  launchWeatherApp,
+  launchSettings,
+  launchTodoList,
+  openFileWithAppropriateApp,
 };

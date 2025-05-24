@@ -1,3 +1,4 @@
+
 // src/components/windows/WindowManager.tsx
 import React, { useEffect, useRef, useMemo, useCallback } from "react";
 import { useDesktop } from "../../context/DesktopContext";
@@ -60,6 +61,10 @@ const FolderWindow = dynamicImportWithFallback<{ folderId: string }>(
 );
 const ContactWindow = dynamicImportWithFallback(() => import("./WindowTypes/ContactWindow"), () => <DefaultWindowContent type="Contact" />);
 const SettingsWindow = dynamicImportWithFallback(() => import("./WindowTypes/SettingsWindow"), () => <DefaultWindowContent type="Settings" />);
+const TodoList = dynamicImportWithFallback(
+  () => import("../projects/TodoList/TodoList"),
+  () => <DefaultWindowContent type="Todo List" />
+);
 // WindowManager component
 const WindowManager: React.FC = () => {
   const { state, dispatch } = useDesktop();
@@ -130,6 +135,9 @@ const WindowManager: React.FC = () => {
         const projectId = content && content.projectId ? content.projectId : id.split('-')[1];
         const project = state.projects.find((p: any) => p.id === projectId);
         return project ? <ProjectWindow project={project} /> : <div className="error-container">Project not found: {projectId}</div>;
+      case "todolist":
+      case id.startsWith("todolist-"):
+        return <TodoList />;
       default:
         return <DefaultWindowContent type={type} />;
     }

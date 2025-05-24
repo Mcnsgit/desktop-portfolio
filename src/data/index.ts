@@ -59,22 +59,22 @@ export const services: Array<{
   {
     title: "Web Developer",
     icon: web,
-    description: "Building responsive, high-performance web applications...",
+    description: "Building responsive, high-performance web applications using modern technologies and best practices.",
   },
   {
     title: "React Developer",
     icon: mobile,
-    description: "Crafting dynamic user interfaces with React...",
+    description: "Crafting dynamic user interfaces with React, creating engaging and interactive user experiences.",
   },
   {
     title: "Backend Developer",
     icon: backend,
-    description: "Designing robust server-side applications and APIs...",
+    description: "Designing robust server-side applications and APIs for scalable and efficient data management.",
   },
   {
     title: "Digital Marketer",
     icon: creator,
-    description: "Developing strategic marketing campaigns...",
+    description: "Developing strategic marketing campaigns that drive engagement and enhance brand visibility.",
   },
 ];
 // Technologies skillset

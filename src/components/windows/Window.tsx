@@ -107,9 +107,9 @@ const Window: React.FC<WindowProps> = ({
     // Ensure preMaximizedState is cleared if the window is no longer considered maximized by context/props
     // This might be redundant if handleMaximize already covers it, but acts as a safeguard.
     if (windowData && !windowData.isMaximized && windowState.preMaximizedState) {
-       // Assuming windowData can have an isMaximized property reflecting context truth
-       // If not, this part of the condition might need adjustment or removal.
-       // For now, let's focus on the animationClass.
+      // Assuming windowData can have an isMaximized property reflecting context truth
+      // If not, this part of the condition might need adjustment or removal.
+      // For now, let's focus on the animationClass.
     }
 
   }, [windowData, windowState.animationClass, windowState.preMaximizedState]); // Depend on windowData (for minimized status) and animationClass

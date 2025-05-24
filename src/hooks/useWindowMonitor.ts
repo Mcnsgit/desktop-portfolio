@@ -2,7 +2,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import { useDesktop } from "../context/DesktopContext";
 import { ensureWindowVisibility } from "../utils/windowServices/WindowPositionService";
-import { WINDOW_POSITIONS, TIMING } from "../utils/constants/windowConstants";
+import { TASKBAR_HEIGHT, TIMING } from "../utils/constants";
 
 /**
  * Hook to monitor window positions and ensure they stay visible
@@ -28,15 +28,15 @@ export const useWindowMonitor = () => {
 
       // Check if window bottom extends beyond viewport height - taskbar
       if (typeof window !== "undefined") {
-        const viewportHeight =
-          window.innerHeight - WINDOW_POSITIONS.TASKBAR_HEIGHT;
+        const viewportHeight = window.innerHeight - TASKBAR_HEIGHT;
         if (position.y + size.height > viewportHeight) {
           return true;
         }
       }
 
       // Check if window is below minimum y position (could be below taskbar)
-      if (position.y < WINDOW_POSITIONS.BASE_OFFSET_Y) {
+      const BASE_OFFSET_Y = TASKBAR_HEIGHT + 30; // Use calculated base offset
+      if (position.y < BASE_OFFSET_Y) {
         return true;
       }
 
