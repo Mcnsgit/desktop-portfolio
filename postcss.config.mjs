@@ -1,5 +1,8 @@
 const config = {
-  plugins: ["@tailwindcss/postcss"],
+  syntax: "postcss-scss", // It will use SCSS syntax.
+  plugins: {
+    "@tailwindcss/postcss": {},
+  },
 };
 
 export default config;

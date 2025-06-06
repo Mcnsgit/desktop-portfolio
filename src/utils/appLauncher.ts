@@ -300,17 +300,17 @@ async function handleShortcutFile(
     switch (fileName) {
       case 'Text Editor.lnk':
         launchTextEditor(config, undefined, options);
-        break;
+      break;
       case 'My Projects.lnk':
         launchFileExplorer(config, '/projects', options);
-        break;
+      break;
       case 'My Documents.lnk':
         launchFileExplorer(config, '/home/guest/Documents', options);
-        break;
-      default:
+      break;
+    default:
         console.warn(`Unknown shortcut: ${fileName}`);
         break;
-    }
+  }
   } catch (error) {
     console.error(`Failed to handle shortcut ${filePath}:`, error);
   }

@@ -1,5 +1,50 @@
 // src/types/index.ts
+// import { StaticImageData } from "next/image";
+
 import { StaticImageData } from "next/image";
+
+/*
+testing new destop   */
+
+export interface DesktopIcon {
+  id: string;
+  label: string;
+  type: "folder" | "application";
+  icon: string;
+  position: { x: number; y: number };
+  content?: string;
+  component?: string;
+}
+
+export interface Window {
+  id: string;
+  title: string;
+  component: string;
+  position: { x: number; y: number };
+  size: { width: number; height: number };
+  isActive: boolean;
+  isMinimized: boolean;
+}
+
+export interface TodoItem {
+  id: string;
+  text: string;
+  completed: boolean;
+}
+
+export interface ContextMenuItem {
+  label: string;
+  action: () => void;
+  separator?: boolean;
+}
+
+
+
+
+
+
+
+
 
 // --- Core Interfaces ---
 export interface Position {

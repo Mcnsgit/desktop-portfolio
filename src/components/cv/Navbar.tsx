@@ -4,7 +4,8 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 
 // Import your styles
-import styles from '../styles/Navbar.module.scss';
+import localStyles from '../styles/Navbar.module.scss';
+import { styles as globalStyles } from "../cv/styles";
 import { navLinks } from '../../data/index';
 import { logo } from '../../../public/assets';
 
@@ -19,48 +20,75 @@ const Navbar = () => {
   
   useEffect(() => {
     const handleScroll = () => {
-      const scrollTop = window.scrollY;
-      if (scrollTop > 100) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
+      const scrollY = window.scrollY;
+      setScrolled(scrollY > 50);
+
+      // Offset to account for fixed navbar height or desired trigger point
+      const scrollOffset = 150; // Adjust as needed
+
+      let currentSectionId = "";
+      navLinks.forEach((link) => {
+        const section = document.getElementById(link.id);
+        if (section) {
+          const sectionTop = section.offsetTop;
+          if (scrollY >= sectionTop - scrollOffset) {
+            currentSectionId = link.id;
+          }
+        }
+      });
+
+      // If scrolled to the very top, and "main" (or equivalent for Hero) is a navLink, set it active.
+      // Otherwise, if no section is matched (e.g., scrolled past the last one), clear active or set to last.
+      setActive(currentSectionId);
     };
+
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const scrollToSection = (event: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
+    event.preventDefault();
+    const section = document.getElementById(sectionId);
+    if (section) {
+      window.scrollTo({
+        top: section.offsetTop - 80, // Keep existing offset for click scroll
+        behavior: 'smooth',
+      });
+      setActive(sectionId); // Set active immediately on click
+      setToggle(false); // Close mobile menu if open
+    }
+  };
+
   return (
     <nav
-      className={`${styles.navbar} ${scrolled ? styles.scrolled : ''}`}
+      className={`${localStyles.navbar} ${scrolled ? localStyles.scrolled : ''} ${globalStyles.paddingX}`}
     >
-      <div className={styles.navContent}>
+      <div className={localStyles.navContent}>
         <Link href='/'
-          className={styles.logoContainer}
-          onClick={() => {
-            setActive("");
-            window.scrollTo(0, 0);
-          }}
-        >
+          className={localStyles.logoContainer}
+          onClick={(e) => scrollToSection(e, "main")}
+          >
           <Image 
             src={logo} 
             alt='Miguel Cardiga' 
-            className={styles.logo} 
+            className={localStyles.logo} 
             width={44}
             height={44}
           />
-          <span className={styles.logoText}>Miguel Cardiga</span>
+          <span className={localStyles.logoText}>Miguel Cardiga</span>
         </Link>
 
         {/* Desktop Navigation */}
-        <ul className={styles.desktopNav}>
+        <ul className={localStyles.desktopNav}>
           {navLinks.map((link) => (
             <li key={link.id}>
               <a
                 href={`#${link.id}`}
-                className={`${styles.navLink} ${active === link.title ? styles.navLinkActive : ''}`}
-                onClick={() => setActive(link.title)}
+                className={`${localStyles.navLink} ${active === link.id ? localStyles.navLinkActive : ''}`}
+                onClick={(e) => {
+                  scrollToSection(e, link.id);
+                }}
               >
                 {link.title}
               </a>
@@ -69,14 +97,14 @@ const Navbar = () => {
         </ul>
 
         {/* Mobile Navigation */}
-        <div className={styles.mobileMenuContainer}>
+        <div className={localStyles.mobileMenuContainer}>
           <button 
-            className={styles.menuButton}
+            className={localStyles.menuButton}
             onClick={() => setToggle(!toggle)}
             aria-label={toggle ? 'Close menu' : 'Open menu'}
           >
             <svg 
-              className={styles.menuIcon}
+              className={localStyles.menuIcon}
               viewBox="0 0 24 24" 
               fill="none" 
               xmlns="http://www.w3.org/2000/svg"
@@ -108,17 +136,16 @@ const Navbar = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
-              className={styles.mobileMenu}
+              className={localStyles.mobileMenu}
             >
-              <ul className={styles.mobileNav}>
+              <ul className={localStyles.mobileNav}>
                 {navLinks.map((link) => (
                   <li key={link.id}>
                     <a
                       href={`#${link.id}`}
-                      className={`${styles.navLink} ${active === link.title ? styles.navLinkActive : ''}`}
-                      onClick={() => {
-                        setToggle(false);
-                        setActive(link.title);
+                      className={`${localStyles.navLink} ${active === link.id ? localStyles.navLinkActive : ''}`}
+                      onClick={(e) => {
+                        scrollToSection(e, link.id);
                       }}
                     >
                       {link.title}

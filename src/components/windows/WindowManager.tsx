@@ -1,19 +1,32 @@
-
 // src/components/windows/WindowManager.tsx
 import React, { useEffect, useRef, useMemo, useCallback } from "react";
-import { useDesktop } from "../../context/DesktopContext";
+// import { useDesktop } from "../../context/DesktopContext"; // Replaced
 import dynamic from "next/dynamic";
-import Window from "./Window";
+import WindowComponent from "./Window"; // Renamed to avoid conflict with model
 import ErrorBoundary from "../error/ErrorBoundary";
 import WindowLoading from "./WindowLoading";
+
+// --- Import New Model Classes ---
+import { Desktop as DesktopModel } from "../../../src/model/Desktop";
+import { WindowModel } from "../../../src/model/Window";
+import { portfolioProjects } from "../../data/portfolioData";
+// import { IDesktopItem } from "../../../src/model/DesktopItem"; // Not directly used
+
+// Prop types for dynamically imported components
+import { FileExplorerWindowProps } from "../fileSystem/FileExplorerWindow"; 
+import { TextEditorWindowProps } from "./WindowTypes/TextEditorWindow";
+// Assuming ProjectWindowProps exists if ProjectWindow is used
+// interface ProjectWindowProps { project: any; /* other props */ }
+
+
 // Utility for dynamic imports with fallback
-function dynamicImportWithFallback<P = {}>(importFunc: () => Promise<{ default: React.ComponentType<P> }>, _fallbackComponent: React.FC<P>) {
+function dynamicImportWithFallback<P = {}>(importFunc: () => Promise<{ default: React.ComponentType<P> }>, _fallbackComponent?: React.FC<P> | React.ComponentType<P>) {
   return dynamic(importFunc, {
     ssr: false,
     loading: () => <WindowLoading message={`Loading...`} />,
   }) as React.ComponentType<P>;
 }
-// Default window content
+
 const DefaultWindowContent = ({ type }: { type: string }) => (
   <div style={{ padding: '20px', height: '100%', overflow: 'auto' }}>
     <h2>Window Content Unavailable</h2>
@@ -21,30 +34,33 @@ const DefaultWindowContent = ({ type }: { type: string }) => (
     <p>This is a placeholder component.</p>
   </div>
 );
-// Define simple default components for each window type
-const SimpleFolderWindow = () => (
-  <div className="simple-window-content">
-    <h2>Folder Contents</h2>
-    <p>This is a basic folder view.</p>
-    <ul>
-      <li>Example File 1.txt</li>
-      <li>Example File 2.docx</li>
-      <li>Example Folder</li>
-    </ul>
-  </div>
-);
-// Dynamic imports with fallbacks
+
+// Simple fallback for folder-like views if FileExplorer is loading
+const SimpleFileExplorerFallback = () => (
+    <div className="simple-window-content">
+      <h2>Explorer Loading...</h2>
+      <p>This is a basic file explorer view.</p>
+      <ul>
+        <li>File 1.txt</li>
+        <li>Folder A</li>
+      </ul>
+    </div>
+  );
+
+
+// Dynamic imports - these will need to be adapted to receive props from WindowModel.content
 const AboutWindow = dynamicImportWithFallback(() => import("./WindowTypes/AboutWindow"), () => <DefaultWindowContent type="About" />);
+const EducationWindow = dynamicImportWithFallback(() => import("./WindowTypes/EducationWindow"), () => <DefaultWindowContent type="Education" />);
 const ProjectWindow = dynamicImportWithFallback<{ project: any }>(
   () => import("./WindowTypes/ProjectWindow"),
   () => <DefaultWindowContent type="Project" />
 );
-const FileExplorerWindow = dynamicImportWithFallback<{ initialPath?: string }>(
-  () => import("../fileSystem/FileExplorerWindow"),
-  SimpleFolderWindow
+const FileExplorerWindow = dynamicImportWithFallback<FileExplorerWindowProps>(
+  () => import("../fileSystem/FileExplorerWindow").then(mod => ({ default: mod.default })),
+  SimpleFileExplorerFallback 
 );
-const TextEditorWindow = dynamicImportWithFallback<{ filePath?: string, windowId: string }>(
-  () => import("./WindowTypes/TextEditorWindow"),
+const TextEditorWindow = dynamicImportWithFallback<TextEditorWindowProps>(
+  () => import("./WindowTypes/TextEditorWindow").then(mod => ({ default: mod.default })),
   () => <DefaultWindowContent type="Text Editor" />
 );
 const ImageViewerWindow = dynamicImportWithFallback<{ filePath?: string }>(
@@ -55,103 +71,144 @@ const WeatherApp = dynamicImportWithFallback(
   () => import("../projects/WeatherApp/WeatherApp"),
   () => <DefaultWindowContent type="Weather App" />
 );
-const FolderWindow = dynamicImportWithFallback<{ folderId: string }>(
-  () => import("../fileSystem/FolderWindow"),
-  SimpleFolderWindow
-);
 const ContactWindow = dynamicImportWithFallback(() => import("./WindowTypes/ContactWindow"), () => <DefaultWindowContent type="Contact" />);
 const SettingsWindow = dynamicImportWithFallback(() => import("./WindowTypes/SettingsWindow"), () => <DefaultWindowContent type="Settings" />);
 const TodoList = dynamicImportWithFallback(
   () => import("../projects/TodoList/TodoList"),
   () => <DefaultWindowContent type="Todo List" />
 );
-// WindowManager component
-const WindowManager: React.FC = () => {
-  const { state, dispatch } = useDesktop();
+
+interface WindowManagerProps {
+  windows: WindowModel[]; // Use WindowModel from our new model
+  desktopModel: DesktopModel;
+  forceUpdate: () => void;
+}
+
+const WindowManager: React.FC<WindowManagerProps> = ({ windows, desktopModel, forceUpdate }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  // const lastWindowPosition = useRef({ x: 50, y: 50 });
-  useEffect(() => {
-    // Update last window position logic...
-  }, [state.activeWindowId, state.windows]);
+
+  // Resize handling might be better placed in Desktop.tsx or a general App layout component
   useEffect(() => {
     const handleResize = () => {
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
-      state.windows.forEach(window => {
+      windows.forEach(win => {
+        if (!win.isOpen || win.isMaximized) return; 
         let updated = false;
-        let newPosition = { ...window.position };
-        // Check if window is too far right
-        if (window.position.x + 100 > viewportWidth) {
-          newPosition.x = Math.max(0, viewportWidth - 100);
+        let newPosition = { ...win.position };
+        if (win.position.x + 100 > viewportWidth) { 
+          newPosition.x = Math.max(0, viewportWidth - (win.size.width / 2)); 
           updated = true;
         }
-        // Check if window is too far down
-        if (window.position.y + 100 > viewportHeight) {
-          newPosition.y = Math.max(0, viewportHeight - 100);
+        if (win.position.y + 100 > viewportHeight) {
+          newPosition.y = Math.max(0, viewportHeight - (win.size.height / 2));
           updated = true;
         }
         if (updated) {
-          dispatch({
-            type: "UPDATE_WINDOW_POSITION",
-            payload: { id: window.id, position: newPosition }
-          });
+          win.position = newPosition; 
+          forceUpdate(); 
         }
       });
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [dispatch, state.windows]);
-  // Only render non-minimized windows, sorted by zIndex ascending (lowest at bottom)
+  }, [windows, forceUpdate]);
+
   const visibleWindows = useMemo(() =>
-    state.windows.filter(window => !window.minimized).sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0)),
-    [state.windows]
+    windows.filter(window => window.isOpen && !window.isMinimized).sort((a, b) => {
+        if (a.isFocused) return 1;
+        if (b.isFocused) return -1;
+        return 0; 
+    }),
+    [windows]
   );
-  const renderWindowContent = useCallback((window: any) => {
-    const { type, id, content } = window;
-    switch (type) {
+
+  const renderWindowContent = useCallback((window: WindowModel) => {
+    const { content, id, sourceItem } = window; 
+    const contentType = typeof content === 'object' && content !== null && 'type' in content ? content.type : 'unknown';
+    
+    let effectiveType = contentType;
+    // Guess type if not explicitly set in content.type (legacy or simple cases)
+    if (contentType === 'unknown' || !contentType) {
+        if (window.title.toLowerCase().includes('about')) effectiveType = 'about';
+        else if (window.title.toLowerCase().includes('explorer') || sourceItem?.type === 'Folder') effectiveType = 'fileexplorer'; // Folder should open FileExplorer
+        else if (sourceItem?.type === 'File' && (sourceItem.name.endsWith('.txt') || sourceItem.name.endsWith('.md'))) effectiveType = 'texteditor'; // Example guess for text files
+        else if (sourceItem?.type === 'File' && (sourceItem.name.match(/\.(jpeg|jpg|gif|png)$/i))) effectiveType = 'imageviewer'; // Example for images
+    }
+    
+    const dynamicIdPrefix = id.split('-')[0]; // Fallback for older ID-based typing
+
+    switch (effectiveType) { 
       case "about":
         return <AboutWindow />;
       case "contact":
         return <ContactWindow />;
+      case "education":
+        return <EducationWindow />;
       case "settings":
         return <SettingsWindow />;
       case "texteditor":
-      case id.startsWith("texteditor-"):
-        return <TextEditorWindow windowId={id} filePath={content && content.filePath ? content.filePath : undefined} />;
+      case dynamicIdPrefix === "texteditor":
+        return <TextEditorWindow 
+                    desktopModel={desktopModel} 
+                    windowId={id} 
+                    filePath={content?.filePath || sourceItem?.path || ""} 
+                />;
       case "imageviewer":
-      case id.startsWith("imageviewer-"):
-        return <ImageViewerWindow filePath={content && content.filePath ? content.filePath : undefined} />;
-      case "fileexplorer":
-      case id.startsWith("fileexplorer-"):
-        return <FileExplorerWindow initialPath={content && content.initialPath ? content.initialPath : "/home/guest"} />;
+      case dynamicIdPrefix === "imageviewer":
+        return <ImageViewerWindow filePath={content?.filePath || sourceItem?.path} />;
+      
+      case "fileexplorer": // Handles 'folder' type implicitly now
+      case "folder": // Explicitly handle 'folder' to ensure it maps to FileExplorer
+      case dynamicIdPrefix === "fileexplorer":
+      case dynamicIdPrefix === "folder":
+        const initialPath = content?.initialPath || sourceItem?.path || "/home/guest/Desktop"; // Default to Desktop
+        const folderIdToUse = content?.folderId || (sourceItem?.type === 'Folder' ? sourceItem.id : undefined);
+        return <FileExplorerWindow 
+                    desktopModel={desktopModel} 
+                    windowId={id} 
+                    initialPath={initialPath} 
+                    folderId={folderIdToUse} 
+                />;
+
       case "weatherapp":
-      case id.startsWith("weatherapp-"):
+      case dynamicIdPrefix === "weatherapp":
         return <WeatherApp />;
-      case "folder":
-      case id.startsWith("folder-"):
-        return <FolderWindow folderId={content && content.folderId ? content.folderId : id.split('-')[1]} />;
-      case "project":
-      case id.startsWith("project-"):
-        const projectId = content && content.projectId ? content.projectId : id.split('-')[1];
-        const project = state.projects.find((p: any) => p.id === projectId);
-        return project ? <ProjectWindow project={project} /> : <div className="error-container">Project not found: {projectId}</div>;
+      
       case "todolist":
-      case id.startsWith("todolist-"):
+      case dynamicIdPrefix === "todolist":
         return <TodoList />;
+      
       default:
-        return <DefaultWindowContent type={type} />;
+        // Handle project-specific apps (skills/experience shown through projects)
+        if (effectiveType?.startsWith('project-')) {
+          const projectId = effectiveType.substring('project-'.length);
+          const projectData = portfolioProjects.find(p => p.id === projectId);
+          if (projectData) {
+            return <ProjectWindow project={projectData} />;
+          }
+        }
+        console.warn(`[WindowManager] Unknown effectiveType: '${effectiveType}' for window '${window.title}' (ID: ${id}). Content type was: '${contentType}'. SourceItem type: '${sourceItem?.type}'`);
+        return <DefaultWindowContent type={effectiveType || 'Unknown'} />;
     }
-  }, [state.projects]);
+  }, [desktopModel]); 
+
   return (
     <div ref={containerRef} className="window-manager-container">
-      {visibleWindows.map(window => (
-        <ErrorBoundary key={window.id} fallback={<DefaultWindowContent type="Error" />}>
-          <Window id={window.id} title={window.title} initialPosition={window.position} initialSize={window.size}>
-            {renderWindowContent(window)}
-          </Window>
+      {visibleWindows.map(win => (
+        <ErrorBoundary key={win.id} fallback={<DefaultWindowContent type={`Error in ${win.title}`} />}>
+          <WindowComponent 
+            model={win} // Pass the full WindowModel instance
+            desktopModel={desktopModel}
+            forceUpdate={forceUpdate}
+            // className, resizable can be added if needed based on model or type
+            >
+            {renderWindowContent(win)}
+          </WindowComponent>
         </ErrorBoundary>
       ))}
     </div>
   );
 };
+
 export default WindowManager;

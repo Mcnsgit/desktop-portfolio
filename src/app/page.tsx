@@ -14,7 +14,7 @@ import Works from "@/components/cv/Works";
 import Experience from "@/components/cv/Experience";
 import Contact from "@/components/cv/Contact";
 // 3D & Utils
-// import StarsCanvas from "@/components/3d/canvas/Stars";
+import StarsCanvas from "@/components/3d/canvas/Stars";
 import BootAnimation from "@/components/3d/BootAnimation";
 import LoadingScreen from "@/components/3d/LoadingScreen";
 import { useSounds } from "@/hooks/useSounds";
@@ -108,21 +108,31 @@ export default function HomePage() {
     //   <FileSystemProvider>
     <div className={`${styles.homePageContainer} relative z-0 bg-primary text-white min-h-screen`}> {/* Ensure background. bg-primary and text-white might be redundant if homePageContainer sets them via SCSS vars */}
       <FontPreloader />
-      {/* <StarsCanvas /> Global background stars */}
+      <StarsCanvas /> Global background stars
 
       {/* Main Content Flow */}
       <div className={`${styles.contentLayer} relative z-10`}> {/* Content layer */}
-        <div className={`${styles.heroSection} bg-hero-pattern bg-cover bg-no-repeat bg-center`}> {/* Tailwind classes for bg-hero-pattern are kept */}
+        <div className={`${styles.heroSection} bg-hero-pattern bg-cover bg-no-repeat bg-center`} id="main">
                 <Navbar />
         <Hero /> {/* Hero now contains the computer */}
         </div>
+        <div id="about">
         <About />
+        </div>
+        <div id="skills">
         <Tech />
+        </div>
+        <div id="experience">
         <Experience />
+        </div>
+        <div id="projects">
         <Works />
+        </div>
+        <div id="contact">
         <Contact />
-        {/* Add Footer component here if you have one */}
+        </div>
       </div>
+        {/* Add Footer component here if you have one */}
 
       {/* Fixed Desktop Prompt (No longer needs mobile check here) */}
       <div

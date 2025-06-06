@@ -1,0 +1,124 @@
+/* SCSS module for Contact component */
+
+.contactSectionContainer {
+    /* From outer div: xl:mt-12 flex xl:flex-row flex-col-reverse gap-10 overflow-hidden */
+    display: flex;
+    flex-direction: column-reverse; /* flex-col-reverse */
+    gap: 2.5rem; /* gap-10 */
+    overflow: hidden;
+
+    @media (min-width: 1280px) { /* xl: */
+        margin-top: 3rem; /* xl:mt-12 */
+        flex-direction: row; /* xl:flex-row */
+    }
+}
+
+.contactFormContainer {
+    /* From motion.div: flex-[0.75] bg-black-100 p-8 rounded-2xl shadow-2xl */
+    flex: 0.75;
+    background-color: #100d25; /* bg-black-100 */
+    padding: 2rem; /* p-8 */
+    border-radius: 1rem; /* rounded-2xl */
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); /* shadow-2xl */
+}
+
+.sectionSubText {
+    /* From styles.sectionSubText in styles.ts (imported via Contact.tsx) */
+    /* This will be applied by the globalStyles import in the component */
+}
+
+.sectionHeadText {
+    /* From styles.sectionHeadText in styles.ts (imported via Contact.tsx) */
+    /* This will be applied by the globalStyles import in the component */
+}
+
+.form {
+    /* From form element: mt-12 flex flex-col gap-8 */
+    margin-top: 3rem; /* mt-12 */
+    display: flex;
+    flex-direction: column;
+    gap: 2rem; /* gap-8 */
+}
+
+.label {
+    /* From label element: flex flex-col */
+    display: flex;
+    flex-direction: column;
+}
+
+.labelText {
+    /* From span inside label: text-white font-medium mb-4 */
+    color: white;
+    font-weight: 500; /* font-medium */
+    margin-bottom: 1rem; /* mb-4 */
+}
+
+.inputField, .textareaField {
+    /* Common styles for input and textarea */
+    /* bg-tertiary py-4 px-6 placeholder:text-secondary text-white rounded-lg outline-none border-none font-medium */
+    background-color: #151030; /* bg-tertiary */
+    padding: 1rem 1.5rem; /* py-4 px-6 */
+    color: white;
+    border-radius: 0.5rem; /* rounded-lg */
+    outline: none;
+    border: none;
+    font-weight: 500; /* font-medium */
+    transition: all 0.3s ease-in-out; /* transition-all duration-300 */
+
+    &::placeholder {
+        color: #aaa6c3; /* placeholder:text-secondary */
+    }
+
+    &:focus {
+        /* focus:ring-2 focus:ring-[#915eff] focus:border-[#915eff] */
+        box-shadow: 0 0 0 2px #915eff; /* ring-2 ring-[#915eff] */
+        /* border-color: #915eff; /* focus:border-[#915eff] - not needed if using ring for focus */
+    }
+}
+
+.textareaField {
+    /* rows={7} is an attribute, not a style */
+    resize: vertical; /* Allow vertical resize for textareas */
+}
+
+.submitButton {
+    /* From button: bg-tertiary py-3 px-8 rounded-xl outline-none w-fit text-white font-bold shadow-md hover:shadow-lg shadow-primary hover:bg-[#915eff] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed */
+    background-color: #151030; /* bg-tertiary */
+    padding: 0.75rem 2rem; /* py-3 px-8 */
+    border-radius: 0.75rem; /* rounded-xl */
+    outline: none;
+    width: fit-content; /* w-fit */
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); /* shadow-md */
+    /* shadow-primary - Assuming primary is a color for the shadow, e.g. #050816 */
+    /* This could be a colored shadow or a more intense one. Example: */
+    /* box-shadow: 0 4px 6px -1px theme('colors.primary') / 50%, 0 2px 4px -1px theme('colors.primary') / 30%; */
+    /* For simplicity, I'll enhance the existing shadow on hover or use a distinct one. */
+    transition: all 0.3s ease-in-out; /* transition-all duration-300 */
+
+    &:hover {
+        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); /* shadow-lg */
+        background-color: #915eff; /* hover:bg-[#915eff] */
+    }
+
+    &:disabled {
+        opacity: 0.5; /* disabled:opacity-50 */
+        cursor: not-allowed; /* disabled:cursor-not-allowed */
+    }
+}
+
+.earthCanvasContainer {
+    /* From motion.div: xl:flex-1 xl:h-auto md:h-[550px] h-[350px] */
+    flex: 1; /* xl:flex-1 */
+    height: 350px; /* h-[350px] */
+
+    @media (min-width: 768px) { /* md: */
+        height: 550px; /* md:h-[550px] */
+    }
+
+    @media (min-width: 1280px) { /* xl: */
+        height: auto; /* xl:h-auto */
+    }
+    /* EarthCanvas component will be placed here */
+} 

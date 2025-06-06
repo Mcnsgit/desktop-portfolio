@@ -5,7 +5,8 @@ import { motion } from "framer-motion";
 import Image, { StaticImageData } from "next/image";
 import { fadeIn, textVariant } from "../../utils/motion";
 import { SectionWrapper } from "../../hoc";
-import styles from "../styles/About.module.scss";
+import localStyles from "./About.module.scss";
+import { styles as globalStyles } from "./styles";
 
 // Services data (replace with actual imports if needed)
 import {backend, creator, mobile, web } from "../../../public/assets/index";
@@ -47,22 +48,8 @@ const CustomTilt: React.FC<{
     // Add glare element
     const addGlare = () => {
       const glareElement = document.createElement("div");
-      glareElement.className = "glare-effect";
-      glareElement.style.cssText = `
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        border-radius: 20px;
-        background: linear-gradient(0deg, 
-          rgba(255,255,255,0) 0%, 
-          rgba(255,255,255,${tiltSettings.glareMaxOpacity}) 100%);
-        pointer-events: none;
-        opacity: 0;
-        transform: translateX(-100%);
-        transition: transform 0.6s cubic-bezier(.03,.98,.52,.99), opacity 0.6s cubic-bezier(.03,.98,.52,.99);
-      `;
+      glareElement.className = localStyles.glareEffect;
+      glareElement.style.setProperty("--glare-max-opacity", tiltSettings.glareMaxOpacity.toString());
       element.appendChild(glareElement);
       return glareElement;
     };
@@ -136,9 +123,9 @@ const CustomTilt: React.FC<{
   return (
     <div 
       ref={tiltRef} 
-      className={`${styles.tiltRoot} ${className}`}
+      className={`${localStyles.tiltRoot} ${className}`}
     >
-      <div className={styles.tiltContent}>
+      <div className={localStyles.tiltContent}>
         {children}
       </div>
     </div>
@@ -156,15 +143,15 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
   return (
     <motion.div
       variants={fadeIn("right", "spring", index * 0.5, 0.75)}
-      className={styles.serviceCard}
+      className={localStyles.serviceCard}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <CustomTilt className={styles.serviceCardTilt}>
-        <div className={styles.serviceCardGradient}>
-          <div className={styles.serviceCardContent}>
+      <CustomTilt className={localStyles.serviceCardTilt}>
+        <div className={localStyles.serviceCardGradient}>
+          <div className={localStyles.serviceCardContent}>
             {/* Icon with animated container */}
-            <div className={styles.serviceIconContainer}>
+            <div className={localStyles.serviceIconContainer}>
               <motion.div
                 animate={{
                   y: isHovered ? [0, -4, 0] : 0,
@@ -174,19 +161,21 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
                   repeat: isHovered ? Infinity : 0,
                   repeatType: "loop",
                 }}
-                className={styles.serviceIconInner}
+                className={localStyles.serviceIconInner}
               >
                 {typeof icon === 'string' ? (
                   <Image
                     src={icon}
                     alt={title}
-                    className={styles.serviceIcon}
+                    className={localStyles.serviceIcon}
+                    width={64}
+                    height={64}
                   />
                 ) : (
                   <Image
                     src={icon}
                     alt={title}
-                    className={styles.serviceIcon}
+                    className={localStyles.serviceIcon}
                     width={64}
                     height={64}
                   />
@@ -195,7 +184,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
               
               {/* Icon glow effect */}
               <motion.div
-                className={styles.serviceIconGlow}
+                className={localStyles.serviceIconGlow}
                 animate={{
                   boxShadow: isHovered 
                     ? "0 0 15px 2px rgba(255,255,255,0.3)" 
@@ -206,10 +195,10 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
             </div>
             
             {/* Title */}
-            <div className={styles.serviceTitle}>
+            <div className={localStyles.serviceTitle}>
               <h3>{title}</h3>
               <motion.div 
-                className={styles.serviceTitleUnderline}
+                className={localStyles.serviceTitleUnderline}
                 initial={{ width: "0%" }}
                 animate={{ width: isHovered ? "80%" : "0%" }}
                 transition={{ duration: 0.5 }}
@@ -218,7 +207,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
             
             {/* Description */}
             <motion.p 
-              className={styles.serviceDescription}
+              className={localStyles.serviceDescription}
               animate={{
                 opacity: isHovered ? 1 : 0.7,
               }}
@@ -228,10 +217,10 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
             </motion.p>
             
             {/* Corner accents */}
-            <div className={`${styles.cornerAccent} ${styles.topLeft}`} />
-            <div className={`${styles.cornerAccent} ${styles.topRight}`} />
-            <div className={`${styles.cornerAccent} ${styles.bottomLeft}`} />
-            <div className={`${styles.cornerAccent} ${styles.bottomRight}`} />
+            <div className={`${localStyles.cornerAccent} ${localStyles.topLeft}`} />
+            <div className={`${localStyles.cornerAccent} ${localStyles.topRight}`} />
+            <div className={`${localStyles.cornerAccent} ${localStyles.bottomLeft}`} />
+            <div className={`${localStyles.cornerAccent} ${localStyles.bottomRight}`} />
           </div>
         </div>
       </CustomTilt>
@@ -267,13 +256,13 @@ const About = () => {
   return (
      <>
       <motion.div variants={textVariant(0.1)}>
-        <p className={styles.sectionSubText}>Introduction</p>
-        <h2 className={styles.sectionHeadText}>Overview.</h2>
+        <p className={`${globalStyles.sectionSubText} ${localStyles.sectionSubText}`}>Introduction</p>
+        <h2 className={`${globalStyles.sectionHeadText} ${localStyles.sectionHeadText}`}>Overview.</h2>
       </motion.div>
 
       <motion.p
         variants={fadeIn("up", "spring", 0.1, 1)}
-        className={styles.aboutDescription}
+        className={localStyles.aboutDescription}
       >
         I&apos;m diving into the world of software development with enthusiasm, focusing on JavaScript, Python, React, Node.js, and related technologies. While I&apos;m still relatively new to the field, I genuinely enjoy the constant learning process.
         <br /><br />
@@ -282,7 +271,7 @@ const About = () => {
         My focus is always on creating functional, accessible websites that work well for everyone. Living with ADHD has also shaped my problem-solving approach, pushing me towards finding clear, intuitive solutions – much like translating complex ideas across languages, a skill I developed early on. I strive to build digital tools that feel natural and straightforward to use.
       </motion.p>
 
-      <div className={styles.servicesContainer}>
+      <div className={localStyles.servicesContainer}>
         {services.map((service: Service, index) => (
           <ServiceCard
             key={`${service.title}-${index}`}

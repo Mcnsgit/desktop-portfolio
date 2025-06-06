@@ -95,15 +95,15 @@ $z-index-content-back: 1; // Content behind fixed elements
 $z-index-3d-overlay: 5; // Fixed 3D computer model (on CV page)
 $z-index-content-front: 8; // Scrollable CV content
 $z-index-fixed-ui: 10; // Fixed prompts, CV navbar if fixed
-
+$z-index-context-menu: 300; // Example from your z-index list
 $z-index-desktop-env: 20; // RetroOS desktop base environment
 $z-index-window-normal: 100; // Default for inactive windows
 $z-index-window-active: 200; // For the currently active window
 $z-index-taskbar: 500;
 $z-index-start-menu: 600;
-$z-index-dialog: 2500;
-$z-index-context-menu: 3000;
-$z-index-tooltip: 4000;
+$z-index-dialog: 250;
+
+$z-index-tooltip: 400;
 $z-index-loading-screen: 9999; // Boot/Loading screens
 
 // -----------------------------------------------------------------------------

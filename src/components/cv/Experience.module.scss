@@ -1,0 +1,114 @@
+/* SCSS module for Experience component */
+
+.sectionSubText {
+    /* From styles.sectionSubText (global) */
+    /* Applied via globalStyles in component */
+    text-align: center; /* text-center */
+}
+
+.sectionHeadText {
+    /* From styles.sectionHeadText (global) */
+    /* Applied via globalStyles in component */
+    text-align: center; /* text-center */
+}
+
+.timelineContainer {
+    margin-top: 5rem; /* mt-20 */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Styles for VerticalTimelineElement and its contents */
+/* Note: react-vertical-timeline-component has its own styling. */
+/* These classes will override or augment those default styles. */
+/* Check the component's documentation for precise selectors if needed. */
+
+.experienceCard {
+    /* For VerticalTimelineElement contentStyle */
+    /* background: "#1d1836", color: '#fff', boxShadow: "0 3px 10px rgba(0,0,0,0.2)" */
+    /* These are passed as props directly, but if you wanted to override via CSS: */
+    .vertical-timeline-element-content {
+        background: #1d1836 !important; // Or your desired dark color
+        color: #fff !important;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.2) !important;
+        border-radius: 0.5rem; // Optional: for consistency
+    }
+
+    /* For contentArrowStyle: borderRight:"7px solid #232631" */
+    .vertical-timeline-element-content-arrow {
+        border-right-color: #232631 !important; // Or your desired arrow color
+    }
+
+    /* For iconStyle: background: experience.icongBg */
+    /* This is dynamic, so it's best set via props. */
+    /* If there was a default icon background: */
+    .vertical-timeline-element-icon {
+        // background: #defaultIconBgColor !important;
+        box-shadow: none; // remove default shadow if not desired
+    }
+}
+
+.iconContainer {
+    /* div className='flex justify-center items-center w-full h-full' */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+.iconImage {
+    /* className='w-[60%] h=[60%] object-contain' */
+    /* width and height are controlled by Next/Image props (36x36) */
+    /* The w-[60%] h-[60%] likely means 60% of the icon PARENT, not the image itself */
+    /* So, if the icon div is 60x60 (default for timeline), image would be 36x36 */
+    object-fit: contain;
+    max-width: 60%; // As a fallback if Next/Image props aren't precise enough
+    max-height: 60%;
+}
+
+.title {
+    /* h3 className='text-white text-[24px] font-bold' */
+    color: white;
+    font-size: 1.5rem; /* text-[24px] */
+    font-weight: bold;
+}
+
+.companyName {
+    /* p className='text-secondary text-[16px] font-semibold' style={{ margin:0}} */
+    color: #aaa6c3; /* text-secondary */
+    font-size: 1rem; /* text-[16px] */
+    font-weight: 600; /* font-semibold */
+    margin: 0;
+}
+
+.pointsList {
+    /* ul className='mt-5 lst-disc ml-5 space-y-2' */
+    margin-top: 1.25rem; /* mt-5 */
+    list-style-type: disc; /* lst-disc */
+    margin-left: 1.25rem; /* ml-5, typically for actual bullets, padding-left might be better for custom bullets */
+    padding-left: 1.25rem; // Use padding for spacing if using custom bullet or hiding default
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem; /* space-y-2 */
+}
+
+.pointItem {
+    /* li className='text-white-100 text-[14px] pl-1 tracking-wider' */
+    color: #f3f3f3; /* text-white-100 (assuming slightly off-white) */
+    font-size: 0.875rem; /* text-[14px] */
+    padding-left: 0.25rem; /* pl-1 */
+    letter-spacing: 0.05em; /* tracking-wider */
+
+    &::marker {
+      // Styles for the actual bullet point if using list-style-type: disc
+      // color: #f3f3f3; // Example
+    }
+}
+
+/* Optional: if you want to customize the timeline line color globally for this instance */
+.customTimelineLine {
+    .vertical-timeline::before {
+        background: #232631 !important; // lineColor prop equivalent
+    }
+} 

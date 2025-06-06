@@ -49,6 +49,9 @@ const MobileView: React.FC = () => {
               position: { x: 0, y: 0 },
               size: { width: 0, height: 0 },
               type: "project",
+              component: "project", // Add missing component property
+              isActive: true, // Add missing isActive property
+              isMinimized: false, // Add missing isMinimized property
             },
           });
     }
@@ -74,6 +77,9 @@ const MobileView: React.FC = () => {
         position: { x: 0, y: 0 },
         size: { width: 0, height: 0 },
         type: "about",
+        component: "about", // Add missing component property
+        isActive: true, // Add missing isActive property
+        isMinimized: false, // Add missing isMinimized property
       },
     });
   };
@@ -90,6 +96,9 @@ const MobileView: React.FC = () => {
         position: { x: 0, y: 0 },
         size: { width: 0, height: 0 },
         type: "contact",
+        component: "contact", // Add missing component property
+        isActive: true, // Add missing isActive property
+        isMinimized: false, // Add missing isMinimized property
       },
     });
   };
@@ -106,6 +115,9 @@ const MobileView: React.FC = () => {
         position: { x: 0, y: 0 },
         size: { width: 0, height: 0 },
         type: "skills",
+        component: "skills", // Add missing component property
+        isActive: true, // Add missing isActive property
+        isMinimized: false, // Add missing isMinimized property
       },
     });
   };

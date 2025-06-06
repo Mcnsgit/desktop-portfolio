@@ -6,10 +6,10 @@ interface ComputersProps {
   isMobile: boolean;
 }
 const Computers = React.memo(({ isMobile }: ComputersProps) => {
-  const computer = useGLTF("./desktop_pc/scene.gltf");
+  const computer = useGLTF("./90s_desktop_pc_-_psx/scene.gltf");
   return (
     <mesh>
-      <hemisphereLight intensity={0.15} groundColor='black' />
+      <hemisphereLight intensity={0.15} />
       <spotLight
         position={[-20, 50, 10]}
         angle={0.12}

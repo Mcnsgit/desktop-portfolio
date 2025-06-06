@@ -162,6 +162,9 @@ export const APP_ICONS = {
   PROJECTS: "/assets/win98-icons/png/briefcase-0.png",
   SKILLS: "/assets/win98-icons/png/card_reader-3.png",
   CONTACT: "/assets/win98-icons/png/msn3-5.png",
+  EDUCATION: "/assets/win98-icons/png/book_blue_open-1.png",
+  TODO_LIST: "/assets/win98-icons/png/notepad_file_pen-0.png",
+  SETTINGS: "/assets/win98-icons/png/settings_gear-0.png",
 };
 
 // Desktop wallpapers

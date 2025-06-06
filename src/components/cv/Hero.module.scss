@@ -1,0 +1,144 @@
+/* SCSS module for Hero component */
+.heroSection {
+  position: relative;
+  width: 100%;
+  height: 100vh; /* h-screen */
+  margin-left: auto;
+  margin-right: auto;
+  z-index: 30;
+  /* background-color: #050816; */ /* Removed dark fallback background */
+  // overflow: hidden; /* Ensure StarsCanvas doesn't cause overflow if it misbehaves */
+}
+
+.heroContent {
+  position: absolute;
+  inset: 0;
+  top: 120px; /* top-[120px] */
+  max-width: 1152px; /* max-w-7xl */
+  margin-left: auto;
+  margin-right: auto;
+  /* styles.paddingX will be handled by the className prop */
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start; /* items-start */
+  gap: 1.25rem; /* gap-5 */
+  z-index: 30; /* Ensure text is above the 3D model */
+}
+
+.lineContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1.25rem; /* mt-5 */
+}
+
+.dot {
+  width: 1.25rem; /* w-5 */
+  height: 1.25rem; /* h-5 */
+  border-radius: 9999px; /* rounded-full */
+  background-color: #915EFF;
+}
+
+.line {
+  width: 0.25rem; /* w-1 */
+  /* sm:h-80 h-40 */
+  height: 10rem; /* h-40 */
+  /* violet-gradient is now a standalone class, applied alongside .line */
+}
+
+@media (min-width: 640px) { /* sm: */
+  .line {
+    height: 20rem; /* sm:h-80 */
+  }
+}
+
+// .heroTextContainer {
+  /* Rely on outer container padding and text style margins */
+  /* styles.heroHeadText, styles.heroSubText will be handled by className prop */
+// }
+
+.heroHeadText {
+  /* Placeholder - will be handled by styles.heroHeadText prop */
+  color: white; /* text-white */
+}
+
+.heroName {
+  color: #915eff; /* text-[#915eff] */
+}
+
+.heroSubText {
+  /* Placeholder - will be handled by styles.heroSubText prop */
+  margin-top: 0.5rem; /* mt-2 */
+  color: #e0e0e0; /* Assuming text-white-100 is a light gray. Adjust if needed. */
+  max-width: 42rem; /* max-w-xl */
+}
+
+.break {
+  display: none; /* hidden */
+}
+
+@media (min-width: 640px) { /* sm: */
+  .break {
+    display: block; /* sm:block */
+  }
+}
+
+
+.scrollIndicatorContainer {
+  position: absolute;
+  /* xs:bottom-10 bottom-32 */
+  bottom: 10rem; /* bottom-32 */
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@media (min-width: 480px) { /* xs: */
+  .scrollIndicatorContainer {
+    bottom: 2.5rem; /* xs:bottom-10 */
+  }
+}
+
+// .scrollIndicatorLink {
+  /* href='#about' will be in the component */
+// }
+
+.scrollIndicatorOuter {
+  width: 35px;
+  height: 64px;
+  border-radius: 1.875rem; /* rounded-3xl */
+  border-width: 4px;
+  border-color: #6b7280; /* Assuming border-secondary is a gray color */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 0.5rem; /* p-2 */
+}
+
+.scrollIndicatorInner {
+  width: 0.75rem; /* w-3 */
+  height: 0.75rem; /* h-3 */
+  border-radius: 9999px; /* rounded-full */
+  background-color: #6b7280; /* Assuming bg-secondary is a gray color */
+  margin-bottom: 0.25rem; /* mb-1 */
+  /* Animation properties will be handled by framer-motion */
+}
+
+/* Define violet-gradient if it's a common class */
+.line, .violet-gradient {
+  
+  width: 0.25rem; /* w-1 */
+  height: 10rem; /* h-40 */
+  /* violet-gradient is now a standalone class, applied alongside .line */
+  background: linear-gradient(360deg, #915EFF, #3B2D80); /* Example gradient */
+  /* Or if it's just a color: background-color: #someVioletColor; */
+} 
+.line, .violet-gradient {
+  width: 0.25rem; /* w-1 */
+  height: 10rem; /* h-40 */
+  /* violet-gradient is now a standalone class, applied alongside .line */
+  background: linear-gradient(180deg, #915EFF, #3B2D80); /* Example gradient */
+  /* Or if it's just a color: background-color: #someVioletColor; */
+} 

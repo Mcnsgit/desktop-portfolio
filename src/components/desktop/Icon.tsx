@@ -6,39 +6,46 @@ import { CSS } from "@dnd-kit/utilities";
 import Image, { StaticImageData } from "next/image";
 import styles from "./Icon.module.scss";
 
+// --- Import New Model --- 
+import { IDesktopItem } from "../../../src/model/DesktopItem"; // Assuming path is correct
+
 interface IconProps {
-  id: string;
-  title: string;
-  type: string;
-  position: { x: number; y: number };
-  icon: string | StaticImageData;
-  onDoubleClick: () => void;
+  // id: string; // From item model
+  // icon: string | StaticImageData; // From item model
+  // title: string; // From item model (name)
+  // type: string; // From item model
+  item: IDesktopItem;
+  position: { x: number; y: number }; // Position is UI-specific
+  onDoubleClick: () => void; // Action from Desktop.tsx
   isSelected: boolean;
   onItemClick: (e: React.MouseEvent, itemId: string) => void;
-  isCut?: boolean;
-  parentId?: string | null;
+  isCut?: boolean; // UI state, passed from Desktop.tsx
+  // parentId?: string | null; // From item model
 }
 
 const Icon: React.FC<IconProps> = ({
-  id,
-  title,
-  type,
+  // id, // Destructure from item
+  // title,
+  // type,
+  item,
   position,
-  icon,
+  // icon, // Destructure from item
   onDoubleClick,
   isSelected,
   onItemClick,
   isCut,
-  parentId
+  // parentId // Destructure from item
 }) => {
+  const { id, name: title, type, icon, parentId } = item; // Destructure from item model
+
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-    id: id,
+    id: id, // Use id from item
     data: {
       id,
-      title,
-      type,
+      title, // title is item.name
+      type,  // type from item
       originalPosition: position,
-      parentId,
+      parentId, // parentId from item
       isCut
     },
   });
@@ -47,16 +54,16 @@ const Icon: React.FC<IconProps> = ({
 
   const style = transform ? {
     transform: CSS.Translate.toString(transform),
-    position: 'absolute',
+    position: 'absolute' as 'absolute', // Ensure 'absolute' is literal type
     left: position.x,
     top: position.y,
     opacity: isCut ? 0.6 : (isDragging ? 0.5 : 1),
     zIndex: isDragging ? 1000 : undefined,
     cursor: isDragging ? 'grabbing' : 'pointer',
-    width: "80px",
+    width: "80px", // Consider making these configurable or part of styles
     height: "90px",
   } : {
-    position: 'absolute',
+    position: 'absolute' as 'absolute',
     left: position.x,
     top: position.y,
     opacity: isCut ? 0.6 : 1,
@@ -70,21 +77,22 @@ const Icon: React.FC<IconProps> = ({
       return pathInput;
     }
     let path = pathInput;
-    if (!path) return '/assets/icons/win98/png/directory_open_cool-2.png';
+    if (!path) return '/assets/icons/win98/png/directory_open_cool-2.png'; // Default fallback
     if (!path.startsWith('/') && !path.startsWith('http')) {
       path = `/${path}`;
     }
-    path = path.replace('/assets/icons/win98/png/','/assets/win98-icons/png/');
+    // Example: path = path.replace('/assets/icons/win98/png/','/assets/win98-icons/png/');
+    // Make sure this replace is still relevant or generalized
     const hasExtension = /\.(png|ico|jpg|jpeg|svg|webp)$/i.test(path);
     if (!hasExtension && !path.includes('data:image')) {
-      path = `${path}.png`;
+      path = `${path}.png`; // Attempt to add .png if no extension
     }
     return path;
   };
 
-  const finalIconSrc = fixIconPath(icon);
+  const finalIconSrc = icon ? fixIconPath(icon) : '/assets/icons/win98/png/file_lines-0.png'; // Use item.icon
 
-  const ColoredIcon = () => (
+  const ColoredIconFallback = () => (
     <div className={styles.fallbackIcon}>
       {title.charAt(0).toUpperCase()}
     </div>
@@ -104,7 +112,7 @@ const Icon: React.FC<IconProps> = ({
       onDoubleClick={(e) => {
         e.stopPropagation();
         if (isDragging) return;
-        onDoubleClick();
+        onDoubleClick(); // This will be connected to model.handleDoubleClick in Desktop.tsx
       }}
       data-item-id={id}
       data-item-type={type}
@@ -113,23 +121,23 @@ const Icon: React.FC<IconProps> = ({
         {!iconError && finalIconSrc ? (
           <Image
             src={finalIconSrc}
-            alt={title}
+            alt={title} // Use item.name (as title)
             width={32}
             height={32}
             onError={() => {
-              console.warn(`Using fallback for icon: ${finalIconSrc}`);
+              console.warn(`Icon.tsx: Error loading icon, using fallback for: ${finalIconSrc}`);
               setIconError(true);
             }}
             style={{ objectFit: "contain" }}
-            unoptimized
-            loading="eager"
+            unoptimized // Consider if this is always needed
+            loading="eager" // Consider if this is always needed
           />
         ) : (
-          <ColoredIcon />
+          <ColoredIconFallback />
         )}
       </div>
       <div className={styles.iconLabel}>
-        {title}
+        {title} {/* Use item.name (as title) */}
       </div>
     </div>
   );

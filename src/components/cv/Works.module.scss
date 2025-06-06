@@ -1,0 +1,302 @@
+/* SCSS module for Works component */
+
+.sectionSubText {
+    /* From globalStyles.sectionSubText */
+    /* Applied via globalStyles in component */
+}
+
+.sectionHeadText {
+    /* From globalStyles.sectionHeadText */
+    /* Applied via globalStyles in component */
+}
+
+.introContainer {
+    /* From div.w-full.flex */
+    width: 100%;
+    display: flex;
+}
+
+.introParagraph {
+    /* From motion.p: mt-3 text-secondary text-[17px] max-w-3xl leading-[30px] */
+    margin-top: 0.75rem; /* mt-3 */
+    color: #aaa6c3; /* text-secondary */
+    font-size: 1.0625rem; /* text-[17px] */
+    max-width: 48rem; /* max-w-3xl */
+    line-height: 1.875rem; /* leading-[30px] */
+}
+
+.projectsContainer {
+    /* From div: mt-20 flex flex-wrap gap-7 justify-center */
+    margin-top: 5rem; /* mt-20 */
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.75rem; /* gap-7 */
+    justify-content: center;
+}
+
+/* ProjectCard component styles */
+.projectCard {
+    /* From motion.div: bg-tertiary p-5 rounded-2xl sm:w-[360px] w-full relative cursor-pointer shadow-lg hover:shadow-xl transition-shadow duration-300 hover:scale-105 transform */
+    background-color: #151030; /* bg-tertiary */
+    padding: 1.25rem; /* p-5 */
+    border-radius: 1rem; /* rounded-2xl */
+    width: 100%; /* w-full */
+    position: relative;
+    cursor: pointer;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); /* shadow-lg */
+    transition: box-shadow 0.3s ease-in-out, transform 0.3s ease-in-out; /* transition-shadow duration-300 */
+    /* transform property is handled by whileHover or direct hover style */
+
+    @media (min-width: 640px) { /* sm: */
+        width: 360px; /* sm:w-[360px] */
+    }
+
+    &:hover {
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); /* hover:shadow-xl */
+        transform: scale(1.05) translateY(-5px); /* hover:scale-105, added translateY from whileHover */
+    }
+}
+
+.imageContainer {
+    /* From div: relative w-full h-[230px] overflow-hidden rounded-2xl group */
+    position: relative;
+    width: 100%;
+    height: 230px;
+    overflow: hidden;
+    border-radius: 1rem; /* rounded-2xl */
+    /* Group class is for parent-hover effects, handled with .projectCard:hover .projectImage */
+}
+
+.projectImage {
+    /* From Image: w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-in-out */
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease-in-out;
+
+    .projectCard:hover & {
+        transform: scale(1.1); /* group-hover:scale-110 */
+    }
+}
+
+.linksOverlay {
+    /* From div: absolute top-2 right-2 flex gap-2 */
+    position: absolute;
+    top: 0.5rem; /* top-2 */
+    right: 0.5rem; /* right-2 */
+    display: flex;
+    gap: 0.5rem; /* gap-2 */
+}
+
+.iconLink {
+    /* From div (GithubLogo, ArrowSquareOut): black-gradient w-10 h-10 rounded-full flex justify-center items-center cursor-pointer */
+    /* black-gradient might be a global utility or defined here */
+    background-image: linear-gradient(to right, #434343, #000000); /* Example black-gradient */
+    width: 2.5rem; /* w-10 */
+    height: 2.5rem; /* h-10 */
+    border-radius: 9999px; /* rounded-full */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    color: white; // For icon color
+
+    svg {
+        width: 50%; /* w-1/2 */
+        height: 50%; /* h-1/2 */
+    }
+
+    .arrowIcon svg { // Specific for ArrowSquareOut if it needs different sizing
+      width: 33.33%; // w-1/3
+      height: 33.33%; // h-1/3
+    }
+}
+
+.contentContainer {
+    /* From div: mt-5 */
+    margin-top: 1.25rem; /* mt-5 */
+}
+
+.projectName {
+    /* From h3: text-white font-bold text-[24px] */
+    color: white;
+    font-weight: bold;
+    font-size: 1.5rem; /* text-[24px] */
+}
+
+.projectDescriptionShort {
+    /* From p: mt-2 text-secondary text-[14px] line-clamp-2 */
+    margin-top: 0.5rem; /* mt-2 */
+    color: #aaa6c3; /* text-secondary */
+    font-size: 0.875rem; /* text-[14px] */
+    /* line-clamp-2 behavior */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.tagsContainer {
+    /* From div: mt-4 flex flex-wrap gap-2 */
+    margin-top: 1rem; /* mt-4 */
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem; /* gap-2 */
+}
+
+.tag {
+    /* From span: text-[14px] px-2 py-1 rounded-md bg-black/20 */
+    font-size: 0.875rem; /* text-[14px] */
+    padding: 0.25rem 0.5rem; /* px-2 py-1 */
+    border-radius: 0.375rem; /* rounded-md */
+    background-color: rgba(0,0,0,0.2); /* bg-black/20 */
+    /* Tag color is dynamic (e.g., tag.color), so it will be applied via inline style or specific classes if predefined */
+}
+
+/* Expanded Project Modal Styles */
+.modalOverlay {
+    /* From motion.div: fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 */
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0,0,0,0.8); /* bg-black/80 */
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem; /* p-4 */
+}
+
+.modalContent {
+    /* From motion.div: bg-tertiary rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto */
+    background-color: #151030; /* bg-tertiary */
+    border-radius: 1rem; /* rounded-2xl */
+    max-width: 48rem; /* max-w-3xl */
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative; // For close button positioning
+}
+
+.modalImageContainer {
+    /* From div: relative w-full h-[300px] overflow-hidden */
+    position: relative;
+    width: 100%;
+    height: 300px;
+    overflow: hidden;
+}
+
+.modalImage {
+    /* From Image: w-full h-full object-cover */
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.modalCloseButton {
+    /* From button: absolute top-4 right-4 bg-black/50 text-white p-2 rounded-full hover:bg-black/80 transition-colors duration-300 */
+    position: absolute;
+    top: 1rem; /* top-4 */
+    right: 1rem; /* right-4 */
+    background-color: rgba(0,0,0,0.5); /* bg-black/50 */
+    color: white;
+    padding: 0.5rem; /* p-2 */
+    border-radius: 9999px; /* rounded-full */
+    transition: background-color 0.3s ease-in-out;
+    border: none; // Reset button default border
+    cursor: pointer;
+
+    &:hover {
+        background-color: rgba(0,0,0,0.8); /* hover:bg-black/80 */
+    }
+
+    svg {
+        display: block; // Helps with sizing and alignment of Phosphor icon
+    }
+}
+
+.modalDetailsContainer {
+    /* From div: p-6 */
+    padding: 1.5rem; /* p-6 */
+}
+
+.modalProjectName {
+    /* From h2: text-white font-bold text-[32px] mb-4 */
+    color: white;
+    font-weight: bold;
+    font-size: 2rem; /* text-[32px] */
+    margin-bottom: 1rem; /* mb-4 */
+}
+
+.modalProjectDescription {
+    /* From p: text-secondary text-[16px] mb-6 */
+    color: #aaa6c3; /* text-secondary */
+    font-size: 1rem; /* text-[16px] */
+    margin-bottom: 1.5rem; /* mb-6 */
+}
+
+.modalTechHeader {
+    /* From h3: text-white font-bold text-[18px] mb-2 */
+    color: white;
+    font-weight: bold;
+    font-size: 1.125rem; /* text-[18px] */
+    margin-bottom: 0.5rem; /* mb-2 */
+}
+
+.modalTagsContainer {
+    /* From div: flex flex-wrap gap-2 (same as .tagsContainer, but mb-6 contextually) */
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem; /* gap-2 */
+    margin-bottom: 1.5rem; /* mb-6 (from overall context) */
+}
+
+.modalLinksContainer {
+    /* From div: flex flex-wrap gap-4 */
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem; /* gap-4 */
+}
+
+.modalLinkButton {
+    /* Common for a elements: px-6 py-3 rounded-md flex items-center gap-2 transition-colors duration-300 */
+    padding: 0.75rem 1.5rem; /* px-6 py-3 */
+    border-radius: 0.375rem; /* rounded-md */
+    display: inline-flex; /* flex for inline, items-center */
+    align-items: center;
+    gap: 0.5rem; /* gap-2 */
+    transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+    text-decoration: none; // Remove underline from links
+    font-weight: 500; // Added for better button text appearance
+
+    svg {
+        display: block; // Ensure icons are sized correctly
+    }
+
+    &.github {
+        /* bg-primary hover:bg-primary/80 text-white */
+        background-color: #050816; /* Assuming primary is this color */
+        color: white;
+        &:hover {
+            background-color: rgba(5, 8, 22, 0.8); /* hover:bg-primary/80 */
+        }
+    }
+
+    &.liveDemo {
+        /* bg-white hover:bg-white/80 text-primary */
+        background-color: white;
+        color: #050816; /* Assuming primary is this color for text */
+        border: 1px solid #050816; // Added border for definition
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.8); /* hover:bg-white/80 */
+        }
+    }
+}
+
+.noProjectsMessage {
+  /* From div: text-center text-secondary py-10 */
+  text-align: center;
+  color: #aaa6c3; /* text-secondary */
+  padding-top: 2.5rem; /* py-10 */
+  padding-bottom: 2.5rem;
+} 

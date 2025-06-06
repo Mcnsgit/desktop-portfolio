@@ -1,12 +1,12 @@
 // src/context/FileSystemContext.tsx
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { browserFS, initFileSystem } from '../utils/browserFileSystem';
-import { err } from '@zenfs/core/internal/log.js';
+import { browserFS, initFileSystem, BrowserFileSystem } from '../utils/browserFileSystem';
 
 interface FileSystemContextType {
   isLoaded: boolean;
   isReady: boolean;
   isPersistent: boolean;
+  fsInstance?: BrowserFileSystem;
   togglePersistence: () => Promise<boolean>;
   createFile: (path: string, content: string) => Promise<boolean>;
   readFile: (path: string) => Promise<string | null>;
@@ -303,7 +303,7 @@ export const FileSystemProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       console.log('FS Context: File system refreshed.');
     } catch (error) {
       console.error('FS Context: Error refreshing file system:', error);
-      setError(err instanceof Error ? err : new Error(String(err)));
+      setError(error instanceof Error ? error : new Error(String(error)));
     }
   }, [isPersistent]);
 
@@ -311,11 +311,25 @@ export const FileSystemProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   if (error && !isReady) { /* ... */ }
 
   const value = {
-    isReady, isPersistent, togglePersistence, resetFileSystem, // Added reset
-    createFile, readFile, deleteFile, createDirectory, removeDirectory,
-    listDirectory, moveFile, copyFile, getFileInfo, createShortcut, resolveShortcut,
+    isLoaded: isReady,
+    isReady,
+    isPersistent,
+    fsInstance: browserFS,
+    togglePersistence,
+    resetFileSystem,
+    createFile,
+    readFile,
+    deleteFile,
+    createDirectory,
+    removeDirectory,
+    listDirectory,
+    moveFile,
+    copyFile,
+    getFileInfo,
+    createShortcut,
+    resolveShortcut,
     refreshFileSystem,
-    exists, // Added exists to provider value
+    exists,
   };
   return (
     <FileSystemContext.Provider value={{ ...value, isLoaded: isReady }}>

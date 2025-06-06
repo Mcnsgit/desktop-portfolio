@@ -1,11 +1,9 @@
 // src/components/desktop/StartMenu.tsx
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useDesktop } from "../../context/DesktopContext";
 import { useSounds } from "@/hooks/useSounds";
 
 import styles from "./StartMenu.module.scss";
-import { launchApplication } from "../../utils/appLauncher"; // Import launchApplication
 
 // Import icons
 import {
@@ -24,36 +22,40 @@ import {
   Terminal,
   Calendar, // Assuming Calendar, Star, Clock are custom or from lucide-react elsewhere
   Star,
-  Clock
+  Clock,
+  ListChecks
 } from "lucide-react";
 
 // Define menu structure
-interface MenuItem {
+interface MenuItemStructure {
   id: string;
   label: string;
   icon: React.ReactNode;
-  action?: () => void;
-  submenu?: MenuItem[];
+  actionIdentifier?: string; // To be emitted by onAction prop
+  actionPayload?: any; // Optional payload for the action
+  submenu?: MenuItemStructure[];
   separator?: boolean;
-  special?: boolean;
+  special?: boolean; // For styling special items like user, projects
 }
 
-const StartMenu: React.FC = () => {
-  const { state, dispatch } = useDesktop();
+interface StartMenuProps {
+  onAction: (actionIdentifier: string, payload?: any) => void;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const StartMenu: React.FC<StartMenuProps> = ({ onAction, isOpen, onClose }) => {
   const { playSound } = useSounds();
   const menuRef = useRef<HTMLDivElement>(null);
-  const [activeSubmenu, setActiveSubmenu] = React.useState<string | null>(null);
+  const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
 
   // Handle outside click to close menu
   useEffect(() => {
-    if (!state.startMenuOpen) return;
+    if (!isOpen) return;
 
     const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        dispatch({
-          type: "TOGGLE_START_MENU",
-          payload: { startMenuOpen: false }
-        });
+        onClose();
       }
     };
 
@@ -66,78 +68,42 @@ const StartMenu: React.FC = () => {
       clearTimeout(timerId);
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [state.startMenuOpen, dispatch]);
+  }, [isOpen, onClose]);
 
-  // Open window handlers
-  const openAboutWindow = () => {
-    launchApplication("about", { dispatch, existingWindows: state.windows }, { title: "About Me" });
-  };
-
-  const openProjectsFolder = () => {
-    launchApplication("folder", { dispatch, existingWindows: state.windows }, { 
-      folderId: "projects", 
-      title: "My Projects" 
-    });
-  };
-
-  const openContactWindow = () => {
-    launchApplication("contact", { dispatch, existingWindows: state.windows }, { title: "Contact Me" });
-  };
-
-  const openTextEditor = () => {
-    launchApplication("texteditor", { dispatch, existingWindows: state.windows }, { title: "Text Editor" });
-  };
-
-  const openFileExplorer = () => {
-    launchApplication("fileexplorer", { dispatch, existingWindows: state.windows }, { 
-      title: "File Explorer", 
-      initialPath: "/home/guest" 
-    });
-  };
-
-  const openWeatherApp = () => {
-    launchApplication("weatherapp", { dispatch, existingWindows: state.windows }, { title: "Weather App" });
-  };
-
-  const openSettings = () => {
-    launchApplication("settings", { dispatch, existingWindows: state.windows }, { title: "Settings" });
-  };
-
-  const shutdown = () => {
-    window.location.reload();
-  };
+  // All actions now go through the onAction prop
 
   // Define menu items
-  const menuItems: MenuItem[] = [
+  const menuItems: MenuItemStructure[] = [
     {
       id: "about",
       label: "About Me",
       icon: <User size={16} />,
-      action: openAboutWindow,
+      actionIdentifier: "open_app",
+      actionPayload: { appType: "about", title: "About Me" },
       special: true,
     },
     {
       id: "projects",
       label: "My Projects",
       icon: <Briefcase size={16} />,
-      action: openProjectsFolder,
+      actionIdentifier: "open_app",
+      actionPayload: { appType: "folder", folderId: "projects", title: "My Projects" },
       special: true,
     },
     {
       id: "contact",
       label: "Contact Me",
       icon: <Mail size={16} />,
-      action: openContactWindow,
+      actionIdentifier: "open_app",
+      actionPayload: { appType: "contact", title: "Contact Me" },
       special: true,
     },
     {
       id: "cv",
       label: "Resume/CV",
       icon: <FileText size={16} />,
-      action: () => {
-        window.open("/cv.pdf", "_blank");
-        dispatch({ type: "TOGGLE_START_MENU", payload: { startMenuOpen: false } });
-      },
+      actionIdentifier: "open_url",
+      actionPayload: { url: "/cv.pdf" },
       special: true,
     },
     {
@@ -155,25 +121,36 @@ const StartMenu: React.FC = () => {
           id: "texteditor",
           label: "Text Editor",
           icon: <Edit3 size={16} />,
-          action: openTextEditor,
+          actionIdentifier: "open_app",
+          actionPayload: { appType: "texteditor", title: "Text Editor" },
         },
         {
           id: "fileexplorer",
           label: "File Explorer",
           icon: <FolderOpen size={16} />,
-          action: openFileExplorer,
+          actionIdentifier: "open_app",
+          actionPayload: { appType: "fileexplorer", title: "File Explorer", initialPath: "/home/guest" },
+        },
+        {
+          id: "todolist",
+          label: "Todo List",
+          icon: <ListChecks size={16} />,
+          actionIdentifier: "open_app",
+          actionPayload: { appType: "todolist", title: "Todo List" },
         },
         {
           id: "weatherapp",
           label: "Weather App",
           icon: <Cloud size={16} />,
-          action: openWeatherApp,
+          actionIdentifier: "open_app",
+          actionPayload: { appType: "weatherapp", title: "Weather App" },
         },
         {
           id: "terminal",
           label: "Terminal",
           icon: <Terminal size={16} />,
-          action: () => { },
+          actionIdentifier: "open_app",
+          actionPayload: { appType: "terminal", title: "Terminal" },
         },
         {
           id: "separator2",
@@ -185,19 +162,22 @@ const StartMenu: React.FC = () => {
           id: "mediaplayer",
           label: "Media Player",
           icon: <Headphones size={16} />,
-          action: () => { },
+          actionIdentifier: "open_app",
+          actionPayload: { appType: "mediaplayer", title: "Media Player" },
         },
         {
           id: "calculator",
           label: "Calculator",
           icon: <Layout size={16} />,
-          action: () => { },
+          actionIdentifier: "open_app",
+          actionPayload: { appType: "calculator", title: "Calculator" },
         },
         {
           id: "calendar",
           label: "Calendar",
           icon: <Calendar height={16} width={16} />,
-          action: () => { },
+          actionIdentifier: "open_app",
+          actionPayload: { appType: "calendar", title: "Calendar" },
         },
       ],
     },
@@ -205,19 +185,22 @@ const StartMenu: React.FC = () => {
       id: "documents",
       label: "Documents",
       icon: <FileText size={16} />,
-      action: () => { },
+      actionIdentifier: "open_app",
+      actionPayload: { appType: "documents", title: "Documents" },
     },
     {
       id: "favorites",
       label: "Favorites",
       icon: <Star height={16} width={16} />,
-      action: () => { },
+      actionIdentifier: "open_app",
+      actionPayload: { appType: "favorites", title: "Favorites" },
     },
     {
       id: "recent",
       label: "Recent",
       icon: <Clock height={16} width={16} />,
-      action: () => { },
+      actionIdentifier: "open_app",
+      actionPayload: { appType: "recent", title: "Recent" },
     },
     {
       id: "separator3",
@@ -229,41 +212,35 @@ const StartMenu: React.FC = () => {
       id: "settings",
       label: "Settings",
       icon: <Settings size={16} />,
-      action: openSettings,
+      actionIdentifier: "open_app",
+      actionPayload: { appType: "settings", title: "Settings" },
     },
     {
       id: "shutdown",
       label: "Shut Down",
       icon: <Power size={16} />,
-      action: shutdown,
+      actionIdentifier: "shutdown_system",
     },
   ];
 
   // Handle menu item click
-  const handleMenuItemClick = (item: MenuItem) => {
+  const handleMenuItemClick = (item: MenuItemStructure) => {
     if (item.separator) return;
 
     playSound("click");
 
+    if (item.actionIdentifier) {
+      onAction(item.actionIdentifier, item.actionPayload);
+    }
+
     if (item.submenu) {
       // Toggle submenu
       setActiveSubmenu(activeSubmenu === item.id ? null : item.id);
-      return;
-    }
-
-    if (item.action) {
-      item.action();
-
-      // Close start menu after action
-      dispatch({
-        type: "TOGGLE_START_MENU",
-        payload: { startMenuOpen: false }
-      });
     }
   };
 
   // Render submenu
-  const renderSubmenu = (parentId: string, items: MenuItem[]) => {
+  const renderSubmenu = (parentId: string, items: MenuItemStructure[]) => {
     if (activeSubmenu !== parentId) return null;
 
     return (
@@ -295,7 +272,7 @@ const StartMenu: React.FC = () => {
 
   return (
     <AnimatePresence>
-      {state.startMenuOpen && (
+      {isOpen && (
         <motion.div
           ref={menuRef}
           className={styles.startMenu}

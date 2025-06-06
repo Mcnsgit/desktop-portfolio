@@ -1,0 +1,259 @@
+/* SCSS module for About component */
+
+.sectionSubText {
+    /* From styles.sectionSubText in styles.ts */
+    font-size: 0.875rem; /* text-[14px] */
+    text-transform: uppercase;
+    letter-spacing: 0.05em; /* tracking-wider */
+    color: #aaa6c3; // Assuming text-secondary is #aaa6c3
+    @media (min-width: 640px) {
+        font-size: 1.125rem; /* sm:text-[18px] */
+    }
+}
+
+.sectionHeadText {
+    /* From styles.sectionHeadText in styles.ts */
+    color: white;
+    font-weight: 900; /* font-black */
+    font-size: 1.875rem; /* text-[30px] */
+    @media (min-width: 480px) { /* xs: */
+        font-size: 2.5rem; /* xs:text-[40px] */
+    }
+    @media (min-width: 640px) { /* sm: */
+        font-size: 3.125rem; /* sm:text-[50px] */
+    }
+    @media (min-width: 768px) { /* md: */
+        font-size: 3.75rem; /* md:text-[60px] */
+    }
+}
+
+.aboutDescription {
+    margin-top: 1rem; /* From motion.p variants, assuming fadeIn adds margin or use explicit margin */
+    color: #aaa6c3; // Assuming text-secondary, adjust if needed
+    font-size: 1.0625rem; /* text-[17px] - typical for body text, adjust as needed */
+    max-width: 48rem; /* max-w-3xl */
+    line-height: 1.875rem; /* leading-[30px] */
+}
+
+.servicesContainer {
+    margin-top: 5rem; /* mt-20 */
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2.5rem; /* gap-10 */
+    justify-content: center; // Added for better centering of cards if they don't fill a row
+}
+
+
+/* Styles for ServiceCard and CustomTilt */
+
+/* CustomTilt specific styles */
+.tiltRoot {
+    transform-style: preserve-3d;
+    transform: perspective(1000px);
+    position: relative;
+    border-radius: 20px;
+    & {transition: transform 400ms cubic-bezier(.03,.98,.52,.99);
+        will-change: transform;
+    };
+}
+
+.tiltContent {
+    // background-color: #151030; // Assuming tertiary is #151030
+    // border-radius: 1.25rem; /* rounded-[20px] */
+    // padding: 1.25rem; /* py-5 */
+    // padding-left: 3rem; /* px-12 */
+    // padding-right: 3rem;
+    // min-height: 280px;
+    // display: flex;
+    // flex-direction: column;
+    // justify-content: space-evenly;
+    // align-items: center;
+    // text-align: center;
+    // position: relative; // For glare effect positioning
+}
+
+
+/* ServiceCard specific styles */
+.serviceCard {
+    /* From motion.div className */
+    background-color: #100d25; /* Assuming bg-black-200 is this color */
+    padding: 2.5rem; /* p-10 */
+    border-radius: 1.5rem; /* rounded-3xl */
+    width: 100%;
+    position: relative; // For corner accents and other absolute elements
+    overflow: hidden; // Ensures gradients/accents don't bleed out incorrectly
+
+    @media (min-width: 480px) { /* xs: */
+        width: 320px; /* xs:w-[320px] */
+    }
+    /* Add transition for hover effects if any, e.g., transform, boxShadow */
+    &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+}
+
+.serviceCardTilt {
+    /* Styles for the CustomTilt instance within ServiceCard */
+    // This class is applied to the CustomTilt component itself
+    // It might need specific dimensions or positioning if not covered by .tiltRoot
+    // Example: width: 100%; height: 100%;
+    border-radius: 1.25rem; /* rounded-[20px] consistent with inner content */
+}
+
+.serviceCardGradient {
+    /* Mimics green-pink-gradient p-[1px] rounded-[20px] shadow-card from the original Tilt */
+    /* This acts as the outer shell for the gradient border and shadow */
+    padding: 1px; // for the gradient border effect
+    border-radius: 1.25rem; /* rounded-[20px] */
+    background-image: linear-gradient(to bottom right, #00cea8, #bf61ff); // Example green-pink gradient
+    box-shadow: 0px 10px 30px -5px rgba(0, 0, 0, 0.3); /* shadow-card equivalent */
+    transition: box-shadow 0.3s ease-in-out;
+
+    &:hover {
+        box-shadow: 0px 15px 35px -5px rgba(0, 0, 0, 0.4);
+    }
+}
+
+.serviceCardContent {
+    /* Styles from the div inside CustomTilt within ServiceCard */
+    background-color: #151030; /* Assuming options.bg is tertiary */
+    border-radius: 1.25rem; /* rounded-[20px] - inner radius slightly less or same as gradient parent */
+    padding: 2rem 1.5rem; /* py-5 px-6 or similar, adjust based on content needs */
+    min-height: 280px; /* Adjust as needed */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly; /* Or center, depending on desired alignment */
+    align-items: center;
+    text-align: center;
+    position: relative; /* For corner accents */
+    overflow: hidden; /* Clip corners if they are pseudo-elements */
+}
+
+.serviceIconContainer {
+    width: 4rem; /* w-16 */
+    height: 4rem; /* h-16 */
+    margin-bottom: 1rem; /* Implicit spacing, adjust as needed */
+    position: relative; /* For glow */
+    display: flex; // Center the icon inner
+    justify-content: center;
+    align-items: center;
+}
+
+.serviceIconInner {
+    /* Styles for the motion.div wrapping the icon */
+    /* Animation handled by Framer Motion */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.serviceIcon {
+    object-fit: contain;
+    width: 100%; // Ensure image takes up container space for sizing via parent
+    height: 100%;
+    // If using Next/Image, width/height props on component are preferred
+}
+
+.serviceIconGlow {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    border-radius: 50%;
+    /* Animation (boxShadow) handled by Framer Motion */
+}
+
+.serviceTitle {
+    margin-top: 1.25rem; /* mt-5 */
+    margin-bottom: 0.75rem; /* mb-3 */
+    text-align: center;
+    h3 {
+        color: white;
+        font-weight: bold;
+        font-size: 1.25rem; /* text-[20px] */
+        margin: 0; // Reset default h3 margin
+    }
+}
+
+.serviceTitleUnderline {
+    height: 2px;
+    background-color: white; // Or a specific highlight color
+    margin: 0.25rem auto 0 auto; /* mt-1 mx-auto */
+    /* Width animation handled by Framer Motion */
+}
+
+.serviceDescription {
+    font-size: 0.875rem; /* text-[14px] */
+    color: #aaa6c3; // Assuming text-secondary
+    line-height: 1.5;
+    min-height: 3em; // Reserve space for a couple of lines
+    /* Opacity animation handled by Framer Motion */
+}
+
+/* Corner Accents */
+.cornerAccent {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background-color: white; // Or your accent color
+    opacity: 0.6;
+    transition: opacity 0.3s ease;
+
+    // Modern approach with clip-path for sharper corners
+    // clip-path: polygon(0 0, 100% 0, 0 100%) for top-left, adjust for others
+
+    // Simple border approach (can be less sharp)
+    // border-style: solid;
+    // border-color: white; // Or accent color
+
+    &.topLeft {
+        top: -1px; // Adjust to align with the border of serviceCardContent
+        left: -1px;
+        // border-width: 2px 0 0 2px;
+        // Example using clip-path for L-shape
+        clip-path: polygon(0 0, 100% 0, 100% 20%, 20% 20%, 20% 100%, 0 100%);
+
+    }
+    &.topRight {
+        top: -1px;
+        right: -1px;
+        // border-width: 2px 2px 0 0;
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 80% 100%, 80% 20%, 0 20%);
+    }
+    &.bottomLeft {
+        bottom: -1px;
+        left: -1px;
+        // border-width: 0 0 2px 2px;
+        clip-path: polygon(0 0, 20% 0, 20% 80%, 100% 80%, 100% 100%, 0 100%);
+    }
+    &.bottomRight {
+        bottom: -1px;
+        right: -1px;
+        // border-width: 0 2px 2px 0;
+        clip-path: polygon(80% 0, 100% 0, 100% 100%, 0 100%, 0 80%, 80% 80%);
+    }
+
+    .serviceCardContent:hover & {
+        opacity: 1;
+    }
+}
+
+
+/* Glare effect for CustomTilt */
+.glareEffect {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 20px; 
+    background: linear-gradient(0deg, 
+      rgba(255,255,255,0) 0%, 
+      rgba(255,255,255, var(--glare-max-opacity, 0.45)) 100%); 
+    pointer-events: none;
+    opacity: 0;
+    transform: translateX(-100%);
+    transition: transform 0.6s cubic-bezier(.03,.98,.52,.99), opacity 0.6s cubic-bezier(.03,.98,.52,.99);
+    z-index: 10;
+} 
