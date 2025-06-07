@@ -1,5 +1,5 @@
-import { useRef, Suspense, useMemo, useEffect } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { useRef, Suspense, useMemo } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { Points, PointMaterial, Preload } from "@react-three/drei";
 import * as THREE from "three";
 // Create a type declaration for custom random function
@@ -46,7 +46,7 @@ const Stars = (props: StarsProps) => {
         <PointMaterial
           transparent
           color='#f272c8'
-          size={0.015}
+          size={0.002}
           sizeAttenuation={true}
           depthWrite={false}
         />
@@ -54,28 +54,10 @@ const Stars = (props: StarsProps) => {
     </group>
   );
 };
-
-const StarsSceneTransparent = () => {
-  const { scene, gl } = useThree();
-  useEffect(() => {
-    scene.background = null;
-    gl.setClearAlpha(0);
-  }, [scene, gl]);
-  return null;
-};
-
 const StarsCanvas = () => {
-  const eventSourceRef = useRef<HTMLDivElement>(null);
-
   return (
-    <div ref={eventSourceRef} className='w-full h-auto absolute inset-0 bg-[#050816]'>
-      {/* Canvas will only render client-side due to dynamic import in parent */}
-      <Canvas 
-        camera={{ position: [0, 0, 1] }} 
-        eventSource={eventSourceRef.current ?? undefined}
-        gl={{ alpha: true }} // Make R3F canvas transparent
-      >
-        <StarsSceneTransparent /> {/* Set R3F scene background to transparent */}
+    <div className='w-full h-auto absolute inset-0 z-[-1]'>
+      <Canvas camera={{ position: [0, 0, 1] }}>
         <Suspense fallback={null}>
           <Stars />
         </Suspense>

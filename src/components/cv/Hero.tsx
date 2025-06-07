@@ -3,20 +3,20 @@
 import { motion } from "framer-motion";
 import { styles as globalStyles } from "./styles";
 import localStyles from "./Hero.module.scss"; // Import the SCSS module
-import dynamic from 'next/dynamic';
+// import dynamic from 'next/dynamic';
 // import PortfolioComputer from "../3d/PortfolioComputer"; // Reverted to dynamic import below
-
+import ComputersCanvas from "../3d/canvas/Computers";
 // Dynamically import client-side heavy components
-const PortfolioComputer = dynamic(() => import("../3d/PortfolioComputer"), {
-  ssr: false,
+// const PortfolioComputer = dynamic(() => import("../3d/PortfolioComputer"), {
+  // ssr: false,
   // Optional: loading component while PortfolioComputer loads
   // loading: () => <p>Loading 3D Model...</p>,
-});
-const StarsCanvas = dynamic(() => import("../3d/canvas").then(mod => mod.StarsCanvas), {
-  ssr: false,
+// });
+// const StarsCanvas = dynamic(() => import("../3d/canvas").then(mod => mod.StarsCanvas), {
+  // ssr: false,
   // Optional: loading component
   // loading: () => <p>Loading Stars...</p>,
-});
+// });
 
 const Hero = () => {
   return (
@@ -41,8 +41,7 @@ const Hero = () => {
         </div>
       </div>
             <div style={{ zIndex: 20, position: 'relative', width: '100%', height: '100%'}} > 
-              <StarsCanvas/>
-              <PortfolioComputer />
+              <ComputersCanvas/>
             </div>
 
       <div className={localStyles.scrollIndicatorContainer}>

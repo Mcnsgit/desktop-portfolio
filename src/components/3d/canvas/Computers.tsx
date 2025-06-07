@@ -9,7 +9,8 @@ const Computers = React.memo(({ isMobile }: ComputersProps) => {
   const computer = useGLTF("./90s_desktop_pc_-_psx/scene.gltf");
   return (
     <mesh>
-      <hemisphereLight intensity={0.15} />
+      <hemisphereLight intensity={0.15}
+      groundColor="black" />
       <spotLight
         position={[-20, 50, 10]}
         angle={0.12}
@@ -49,7 +50,7 @@ const ComputersCanvas = () => {
       shadows
       dpr={[1, 2]}
       camera={{ position: [20, 3, 5], fov: 25 }}
-      gl={{ preserveDrawingBuffer: false }} // Set to false if not needed
+      gl={{ preserveDrawingBuffer: true }} // Set to false if not needed
     >
       <Suspense fallback={<CanvasLoader />}>
         <OrbitControls
