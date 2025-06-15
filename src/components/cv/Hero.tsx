@@ -40,12 +40,12 @@ const Hero = () => {
           </p>
         </div>
       </div>
-            <div style={{ zIndex: 20, position: 'relative', width: '100%', height: '100%'}} > 
+
               <ComputersCanvas/>
-            </div>
+
 
       <div className={localStyles.scrollIndicatorContainer}>
-        <a href='#about' className={localStyles.scrollIndicatorLink}>
+        <a href='#computer' className={localStyles.scrollIndicatorLink}>
           <div className={localStyles.scrollIndicatorOuter}>
             <motion.div
               animate={{

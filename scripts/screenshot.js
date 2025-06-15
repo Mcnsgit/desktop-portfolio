@@ -1,88 +1,40 @@
-const puppeteer = require("puppeteer");
-const fs = require("fs-extra");
-const path = require("path");
-let browser; // Keep browser instance for reuse
-async function launchBrowser() {
-  if (!browser) {
-    console.log("Launching browser...");
-    browser = await puppeteer.launch({
-      headless: "new",
-      args: ["--disable-gpu", "--no-sandbox", "--disable-setuid-sandbox"],
-    });
-  }
-}
-async function takeScreenshot(fullPage = false) {
-  await launchBrowser(); // Ensure the browser is launched
-  const screenshotsDir = path.join(__dirname, "..", "screenshots");
-  await fs.ensureDir(screenshotsDir);
+const puppeteer = require('puppeteer');
+const fs = require('fs-extra');
+const path = require('path');
 
-  //define page varibale outside the try block
-  let page = null;
+const screenshotPath = path.join(__dirname, '..', 'screenshots');
+
+(async () => {
   try {
-    console.log("Opening new page...");
-    page = await browser.newPage();
-    await page.setViewport({
-      width: 1280,
-      height: 800,
-      deviceScaleFactor: 2,
+    console.log('Starting screenshot script...');
+    await fs.ensureDir(screenshotPath);
+    console.log('Screenshots directory ensured.');
+
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
-    const url =
-      process.env.WEBSITE_URL ||
-      "https://desktop-portfolio-git-main-mcnsgits-projects.vercel.app/";
+    console.log('Browser launched.');
+    const page = await browser.newPage();
+    console.log('New page created.');
+    await page.setViewport({ width: 1920, height: 1080 });
+    console.log('Viewport set.');
+
+    const url = 'http://localhost:3000';
     console.log(`Navigating to ${url}...`);
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
+    console.log('Page loaded.');
 
-    const response = await page.goto(url, {
-      waitUntil: "networkidle2",
-      timeout: 30000,
-    });
+    const screenshotFile = path.join(screenshotPath, 'screenshot.png');
+    console.log(`Taking screenshot and saving to ${screenshotFile}...`);
+    await page.screenshot({ path: screenshotFile, fullPage: true });
+    console.log('Screenshot taken successfully.');
 
-    if (!response || !response.ok()) {
-      throw new Error(`Failed to load page: ${response.status()}`);
-    }
-
-    await page.evaluate(
-      () => new Promise((resolve) => setTimeout(resolve, 1000))
-    );
-
-    const screenshotPath = path.join(screenshotsDir, "screenshot.png");
-    console.log(`Taking screenshot and saving to ${screenshotPath}...`);
-
-    await page.screenshot({
-      path: screenshotPath,
-      fullPage: fullPage,
-    });
-
-    console.log("Screenshot taken successfully");
-    return screenshotPath;
-  } catch (error) {
-    console.error("Error taking screenshot:", error);
-    throw error; // Re-throw the error to handle it in the calling function
-  } finally {
-    // Only close the page if it was successfully created
-    if (page) {
-      await page.close();
-    }
-  }
-}
-
-// Clean up function to close browser when done
-async function closeBrowser() {
-  if (browser) {
     await browser.close();
-    browser = null;
+    console.log('Browser closed.');
+    console.log('Screenshot script finished successfully.');
+  } catch (error) {
+    console.error('Error taking screenshot:', error);
+    process.exit(1);
   }
-}
-
-if (require.main === module) {
-  takeScreenshot()
-    .then(() => {
-      console.log("Screenshot process completed");
-      return closeBrowser();
-    })
-    .catch((error) => {
-      console.error("Screenshot process failed:", error);
-      closeBrowser().then(() => process.exit(1));
-    });
-}
-
-module.exports = { takeScreenshot, closeBrowser };
+})();

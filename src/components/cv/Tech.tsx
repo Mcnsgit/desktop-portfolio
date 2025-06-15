@@ -6,12 +6,12 @@ import { SectionWrapper } from "../../hoc";
 import { technologies, technicalSkills } from "../../data/index";
 import { fadeIn, textVariant } from "../../utils/motion";
 import {
-  CodeBlockIcon,
-  DatabaseIcon,
-  AtomIcon,
-  ToolboxIcon,
-  KanbanIcon,
-  DiamondIcon,
+  CodeBlock,
+  Database,
+  Atom,
+  Toolbox,
+  Kanban,
+  Diamond,
 
 } from "@phosphor-icons/react";
 // import Image from "next/image";
@@ -96,15 +96,15 @@ interface SkillCategoryProps {
 
 const SkillCategory: React.FC<SkillCategoryProps> = ({ title, skills, icon, isOpen, onToggle }) => {
   const categoryIcons = useMemo(() => ({
-    programming: <CodeBlockIcon size={24} />,
-    frameworks: <AtomIcon size={24} />,
-    databases: <DatabaseIcon size={24} />,
-    tools: <ToolboxIcon size={24} />,
-    methodologies: <KanbanIcon size={24} />,
+    programming: <CodeBlock size={24} />,
+    frameworks: <Atom size={24} />,
+    databases: <Database size={24} />,
+    tools: <Toolbox size={24} />,
+    methodologies: <Kanban size={24} />,
   }), []); // Added useMemo for categoryIcons
 
   const displayIcon = icon || categoryIcons[title.toLowerCase() as keyof typeof categoryIcons] || (
-    <DiamondIcon className={localStyles.diamondIcon} size={24} />
+    <Diamond className={localStyles.diamondIcon} size={24} />
   );
 
   return (

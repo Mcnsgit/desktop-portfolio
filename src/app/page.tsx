@@ -134,7 +134,7 @@ export default function HomePage() {
                 <Navbar />
         <Hero />
         </div>
-         <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}>Add commentMore actions
+         {/* <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}>
         <Canvas
           frameloop="demand"
           shadows
@@ -155,7 +155,7 @@ export default function HomePage() {
           </Suspense>
           <Preload all />
         </Canvas>
-      </div>
+      </div> */}
 
       <div style={{
         position: 'absolute',

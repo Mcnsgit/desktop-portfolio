@@ -82,7 +82,7 @@ const CanvasLoader = () => {
             marginBottom: "0",
           }}
         >
-          {progress.toFixed(0)}% Complete
+          {progress.toFixed(2)}% Complete
         </p>
       </div>
 
