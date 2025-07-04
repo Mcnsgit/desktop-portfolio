@@ -44,6 +44,9 @@ dependencies:
   framer-motion:
     specifier: ^12.5.0
     version: 12.5.0(react-dom@19.1.0)(react@19.1.0)
+  gridstack:
+    specifier: ^12.2.1
+    version: 12.2.1
   leva:
     specifier: ^0.10.0
     version: 0.10.0(@types/react@19.0.12)(react-dom@19.1.0)(react@19.1.0)
@@ -83,9 +86,15 @@ dependencies:
   react-next-tilt:
     specifier: ^0.4.3
     version: 0.4.3(react-dom@19.1.0)(react@19.1.0)
+  react-resizable:
+    specifier: ^3.0.5
+    version: 3.0.5(react-dom@19.1.0)(react@19.1.0)
   react-vertical-timeline-component:
     specifier: ^3.5.3
     version: 3.5.3(@babel/core@7.0.0-beta.56)(react@19.1.0)
+  react-window:
+    specifier: ^1.8.11
+    version: 1.8.11(react-dom@19.1.0)(react@19.1.0)
   sass:
     specifier: ^1.85.1
     version: 1.86.0
@@ -127,9 +136,15 @@ devDependencies:
   '@types/react-dom':
     specifier: ^19
     version: 19.0.4(@types/react@19.0.12)
+  '@types/react-resizable':
+    specifier: ^3.0.8
+    version: 3.0.8
   '@types/react-vertical-timeline-component':
     specifier: ^3.3.6
     version: 3.3.6
+  '@types/react-window':
+    specifier: ^1.8.8
+    version: 1.8.8
   '@types/three':
     specifier: ^0.176.0
     version: 0.176.0
@@ -2911,8 +2926,20 @@ packages:
       '@types/react': 19.0.12
     dev: false
 
+  /@types/react-resizable@3.0.8:
+    resolution: {integrity: sha512-Pcvt2eGA7KNXldt1hkhVhAgZ8hK41m0mp89mFgQi7LAAEZiaLgm4fHJ5zbJZ/4m2LVaAyYrrRRv1LHDcrGQanA==}
+    dependencies:
+      '@types/react': 19.0.12
+    dev: true
+
   /@types/react-vertical-timeline-component@3.3.6:
     resolution: {integrity: sha512-OUvyPXRjXvUD/SNLO0CW0GbIxVF32Ios5qHecMSfw6kxnK1cPULD9NV80EuqZ3WmS/s6BgbcwmN8k4ISb3akhQ==}
+    dependencies:
+      '@types/react': 19.0.12
+    dev: true
+
+  /@types/react-window@1.8.8:
+    resolution: {integrity: sha512-8Ls660bHR1AUA2kuRvVG9D/4XpRC6wjAaPT9dil7Ckc76eP9TKWZwwmgfq8Q1LANX3QNDnoU4Zp48A3w+zK69Q==}
     dependencies:
       '@types/react': 19.0.12
     dev: true
@@ -5155,6 +5182,10 @@ packages:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
     dev: true
 
+  /gridstack@12.2.1:
+    resolution: {integrity: sha512-xU69tThmmVxgMHTuM/z3rIKiiGm0zW4tcB6yRcuwiOUUBiwb3tslzFOrUjWz+PwaxoAW+JChT4fqOLl+oKAxZA==}
+    dev: false
+
   /has-bigints@1.1.0:
     resolution: {integrity: sha512-R3pbpkcIqv2Pm3dUwgjclDRVmWpTJW2DcMzcIhEXEx1oh/CEMObMm3KLmRJOdvhM7o4uQBnwr8pzRK2sJWIqfg==}
     engines: {node: '>= 0.4'}
@@ -6449,6 +6480,10 @@ packages:
       utilium: 2.3.8
     dev: false
 
+  /memoize-one@5.2.1:
+    resolution: {integrity: sha512-zYiwtZUcYyXKo/np96AGZAckk+FWWsUdJ3cHGGmld7+AhvcWmQyGCYUh1hc4Q/pkOhb65dQR/pqCyK0cOaHz4Q==}
+    dev: false
+
   /merge-stream@2.0.0:
     resolution: {integrity: sha512-abv/qOcuPfk3URPfDzmZU1LKmuw8kT+0nIHvKrKgFrwifol/doWcdA4ZqsWQ8ENrFKkd67Mfpo/LovbIUsbt3w==}
 
@@ -7127,6 +7162,18 @@ packages:
       scheduler: 0.25.0
     dev: false
 
+  /react-resizable@3.0.5(react-dom@19.1.0)(react@19.1.0):
+    resolution: {integrity: sha512-vKpeHhI5OZvYn82kXOs1bC8aOXktGU5AmKAgaZS4F5JPburCtbmDPqE7Pzp+1kN4+Wb81LlF33VpGwWwtXem+w==}
+    peerDependencies:
+      react: '>= 16.3'
+    dependencies:
+      prop-types: 15.8.1
+      react: 19.1.0
+      react-draggable: 4.4.6(react-dom@19.1.0)(react@19.1.0)
+    transitivePeerDependencies:
+      - react-dom
+    dev: false
+
   /react-use-measure@2.1.7(react-dom@19.1.0)(react@19.1.0):
     resolution: {integrity: sha512-KrvcAo13I/60HpwGO5jpW7E9DfusKyLPLvuHlUyP5zqnmAPhNc6qTRjUQrdTADl0lpPpDVU2/Gg51UlOGHXbdg==}
     peerDependencies:
@@ -7151,6 +7198,19 @@ packages:
       - '@babel/core'
       - react
       - supports-color
+    dev: false
+
+  /react-window@1.8.11(react-dom@19.1.0)(react@19.1.0):
+    resolution: {integrity: sha512-+SRbUVT2scadgFSWx+R1P754xHPEqvcfSfVX10QYg6POOz+WNgkN48pS+BtZNIMGiL1HYrSEiCkwsMS15QogEQ==}
+    engines: {node: '>8.0.0'}
+    peerDependencies:
+      react: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+      react-dom: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+    dependencies:
+      '@babel/runtime': 7.26.10
+      memoize-one: 5.2.1
+      react: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
     dev: false
 
   /react@19.1.0:
