@@ -2,7 +2,7 @@ import React from "react";
 // import { motion } from "framer-motion";
 import Image from "next/image";
 // import { styles } from "../cv/styles";
-import { services } from "../../data/index";
+import { services } from "../../config/index";
 // import { fadeIn } from "../../utils/motion";
 import styles2 from "../styles/MobileAbout.module.scss";
 

@@ -56,11 +56,12 @@ $win98-content-bg: #c0c0c0; // Content background color
 $win98-title-active-bg: #000080; // Active title bar background
 $win98-title-inactive-bg: #808080; // Inactive title bar background
 $win98-title-text-color: #ffffff; // Title bar text color
-
+$win98-gray: #808080;
 $win98-button-face: #c0c0c0; // Button background color
 $win98-button-highlight: #ffffff; // Button highlight color
 $win98-button-shadow: #808080; // Button shadow color
-
+$win98-white: #ffffff;
+$win98-black: #000000;
 $win98-text-dark: #000000; // Text on light backgrounds
 $win98-text-light: #ffffff; // Text on dark backgrounds
 $win98-content-bg: #ffffff; // Content background color (e.g., text editor)
@@ -95,15 +96,15 @@ $z-index-content-back: 1; // Content behind fixed elements
 $z-index-3d-overlay: 5; // Fixed 3D computer model (on CV page)
 $z-index-content-front: 8; // Scrollable CV content
 $z-index-fixed-ui: 10; // Fixed prompts, CV navbar if fixed
-
+$z-index-context-menu: 300; // Example from your z-index list
 $z-index-desktop-env: 20; // RetroOS desktop base environment
 $z-index-window-normal: 100; // Default for inactive windows
 $z-index-window-active: 200; // For the currently active window
 $z-index-taskbar: 500;
 $z-index-start-menu: 600;
-$z-index-dialog: 2500;
-$z-index-context-menu: 3000;
-$z-index-tooltip: 4000;
+$z-index-dialog: 250;
+
+$z-index-tooltip: 400;
 $z-index-loading-screen: 9999; // Boot/Loading screens
 
 // -----------------------------------------------------------------------------
@@ -205,4 +206,58 @@ $breakpoint-desktop: 1280px;
   font-family: $family;
   font-size: $size;
   font-weight: $weight;
+}
+
+// Win98 button styling
+@mixin win98-button {
+  @include win98-border($win98-border-light, $win98-border-dark, 1px);
+  background-color: $win98-button-face;
+  font-family: $win98-font-primary;
+  font-size: $win98-font-size-normal;
+  color: $win98-text-dark;
+  border: none;
+  cursor: pointer;
+  
+  &:hover {
+    background-color: $win98-button-highlight;
+  }
+  
+  &:active {
+    @include win98-border-inset($win98-border-light, $win98-border-dark, 1px);
+  }
+}
+
+// Win98 input styling
+@mixin win98-input {
+  @include win98-border-inset($win98-border-light, $win98-border-dark, 1px);
+  background-color: $win98-content-bg;
+  font-family: $win98-font-primary;
+  font-size: $win98-font-size-normal;
+  color: $win98-text-dark;
+  border: none;
+  
+  &:focus {
+    outline: 1px dotted $win98-text-dark;
+    outline-offset: -2px;
+  }
+}
+
+// Additional Win98 variables for missing elements
+$win98-input-bg: #ffffff;
+$win98-text-disabled: #808080;
+$win98-selected-bg: #000080;
+$win98-selected-text: #ffffff;
+
+@mixin beveled-border {
+  border: 2px solid;
+  border-radius: 4px;
+  border-color: $win98-border-light $win98-border-dark $win98-border-dark $win98-border-light;
+  box-shadow: 1px 1px 0px 1px $win98-border-light;
+}
+
+@mixin beveled-border-inset {
+  border: 2px solid;
+  border-radius: 4px;
+  border-color: $win98-border-active-dark $win98-border-active-light $win98-border-active-light $win98-border-active-dark;
+  box-shadow: inset 1px 1px 0px 1px $win98-border-active-light;
 }

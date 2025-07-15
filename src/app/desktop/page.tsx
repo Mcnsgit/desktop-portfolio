@@ -1,93 +1,92 @@
 "use client";
-// app/desktop/age.tsx - without 3d model
-import React, { useEffect, useState} from "react";
-import { DesktopProvider } from "@/context/DesktopContext";
+import React, { useEffect, useState, useCallback } from "react";
 import Desktop from "@/components/desktop/Desktop";
 import MobileView from "@/components/mobile/MobileView";
-import { portfolioProjects as projectsData } from "@/data/portfolioData"; // Ensure this imports an array of projects
 import Link from "next/link";
-import { useDesktop } from "@/context/DesktopContext"; // Importing context at the top
+import { isMobile as isMobileDetect } from "react-device-detect";
+import styles from './desktop.module.scss'; 
 import LoadingScreen from "@/components/3d/LoadingScreen";
-import { FileSystemProvider } from "@/context/FileSystemContext";
-import { ProjectTag } from "@/types";
-import styles from './desktop.module.scss'; // Import the SCSS module
+import { WindowProps } from "@/types/window";
+import { DesktopFile } from "@/types/fs";
+import { desktopFiles } from "@/config/data";
+import generateWindowContent from "@/utils/windowContentGenerator";
+import { useSounds } from "@/hooks/useSounds";
 
-export default function DesktopPage() {
-  const [isMobile, setIsMobile] = useState(false);
-  const [isClientReady, setIsClientReady] = useState(false);
-  // Check for mobile devices
-  useEffect(() => {
-    setIsMobile(window.innerWidth < 768);
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener("resize", handleResize);
-
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+const DesktopPageContent = () => {
+  const [isClient, setIsClient] = useState(false);
+  const { playSound } = useSounds();
+  const [windows, setWindows] = useState<WindowProps[]>([]);
+  const isMobile = isClient && isMobileDetect;
 
   useEffect(() => {
-    setIsClientReady(true);
+    setIsClient(true);
   }, []);
 
-  if (!isClientReady) {
-    return <LoadingScreen show={true} message="Initializing..." />;
+  const setActiveWindow = useCallback((id: string) => {
+    setWindows(prev => prev.map(win => ({ ...win, isActive: win.id === id })));
+  }, []);
+
+  const updateWindowState = useCallback((id: string, newProps: Partial<WindowProps>) => {
+    setWindows(prev => prev.map(win => (win.id === id ? { ...win, ...newProps } : win)));
+  }, []);
+
+  const closeWindow = useCallback((id: string) => {
+    playSound("windowClose");
+    setWindows(prev => prev.filter(win => win.id !== id));
+  }, [playSound]);
+
+  const openWindow = useCallback((file: DesktopFile) => {
+    const existing = windows.find(win => win.id === file.id);
+    if (existing) {
+      if (existing.isMinimized) updateWindowState(file.id, { isMinimized: false });
+      setActiveWindow(file.id);
+      return;
+    }
+
+    playSound("windowOpen");
+    const newWindow: WindowProps = {
+      id: file.id,
+      title: file.name,
+      content: generateWindowContent(file),
+      x: Math.random() * (isMobile ? 10 : 200) + (isMobile ? 5 : 50),
+      y: Math.random() * (isMobile ? 20 : 100) + (isMobile ? 10 : 20),
+      w: isMobile ? window.innerWidth - 20 : 550,
+      h: isMobile ? window.innerHeight - 40 : 400,
+      isMinimized: false,
+      isMaximized: false,
+      isActive: true,
+    };
+    setWindows(prev => [...prev.map(w => ({ ...w, isActive: false })), newWindow]);
+  }, [windows, isMobile, playSound, setActiveWindow, updateWindowState]);
+
+  if (!isClient) {
+    return <LoadingScreen show={true} />; 
   }
 
   return (
-    
-    <DesktopProvider>
-      <FileSystemProvider>
-      <DesktopInitializer />
-      <div className={styles.desktopPageContainer}>
-        {/* Back to 3D View Button */}
-        <Link href="/" passHref>
-          <button
-            className={styles.backButton}
-            aria-label="Back to 3D View"
-            >
-            Back to 3D View
-          </button>
-        </Link>
-        <div className={styles.contentWrapper}>
-          {isMobile ? <MobileView /> : <Desktop />}
-        </div>
+    <div className={styles.desktopPageContainer}>
+      <Link href="/" passHref>
+        <button
+          className={styles.backButton}
+          aria-label="Back to 3D View"
+          >
+          Back to 3D View
+        </button>
+      </Link>
+      <div className={styles.contentWrapper}>
+        {isMobile ? <MobileView 
+            windows={windows}
+            desktopFiles={desktopFiles}
+            onOpenWindow={openWindow}
+            onCloseWindow={closeWindow}
+        /> : <Desktop />}
       </div>
-</FileSystemProvider>
-    </DesktopProvider>
+    </div>
+  );
+};
+
+export default function DesktopPage() {
+  return (
+      <DesktopPageContent />
   );
 }
-
-// Component to initialize projects
-const DesktopInitializer = () => {
-  const { dispatch } = useDesktop(); // Using a custom hook for better readability
-  useEffect(() => {
-    console.log("Initializing projects with data:", projectsData);
-    if (projectsData && projectsData.length > 0) {
-      dispatch({
-        type: "INIT_PROJECTS",
-        payload: { projects: projectsData },
-      });
-    } else {
-      console.error("No projects data available or invalid format");
-      // Provide fallback project
-      dispatch({
-        type: "INIT_PROJECTS",
-        payload: {
-          projects: [
-            {
-              id: "about",
-              title: "About Me",
-              icon: "/assets/icons/win98/w98_directory_program_group.ico",
-              description: "About the developer",
-              tags: ["html" as unknown as ProjectTag],
-              technologies: ["html", "css", "javascript"],
-              content: "About Me content goes here",
-              name: "",
-              image: ""
-            },
-          ],
-        },
-      });
-    }
-  }, [dispatch]);
-  return null;
-};

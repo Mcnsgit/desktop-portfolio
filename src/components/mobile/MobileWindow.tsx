@@ -1,118 +1,87 @@
-import React from "react";
-import styles from "../styles/MobileWindow.module.scss";
-import { useDesktop } from "../../context/DesktopContext";
-import { useSounds } from "@/hooks/useSounds";
-import { Project, Window } from "@/types/index";
-import MobileAboutComponent from "./MobileAboutComponent";
-import MobileSkillsComponent from "./MobileSkillsComponent";
-import MobileContactComponent from "./MobileContactComponent";
+// import React from "react";
+// import styles from "../styles/MobileWindow.module.scss";
+// import { useSounds } from "@/hooks/useSounds";
+// import MobileAboutComponent from "./MobileAboutComponent";
+// import MobileSkillsComponent from "./MobileSkillsComponent";
+// import MobileContactComponent from "./MobileContactComponent";
+// import ProjectWindow from "../content/ProjectWindow";
+// import { Window } from "@/types/window";
+// import { Desktop } from "@/types/desktop";
+// import { WINDOW_TYPES } from "@/utils/constants/windowConstants";
+// import { useLocalStorage } from "@/hooks/useLocalStorage";
 
-import ProjectWindow from "../windows/WindowTypes/ProjectWindow";
+// interface MobileWindowProps {
+//   window: Window;
+//   desktopModel: Desktop;
+// }
 
-interface MobileWindowProps {
-  window: Window;
-}
+// const MobileWindow: React.FC<MobileWindowProps> = ({ window, desktopModel }) => {
+//   const { playSound } = useSounds();
+//   const [windowManager] = useLocalStorage("windowManager", {});
+//   const handleClose = () => {
+//     playSound("windowClose");
+//     windowManager.closeWindow(window.id);
+//   };
 
-const MobileWindow: React.FC<MobileWindowProps> = ({ window }) => {
-  const { dispatch, state } = useDesktop();
-  const { playSound } = useSounds();
+//   const renderContent = () => {
+//     // The 'content' property on the new WindowModel holds the payload
+//     const { content } = window; 
+    
+//     // Check if content is an object and has a 'type' property
+//     if (content && typeof content === 'object' && 'type' in content) {
+//       switch (content.type) {
+//         case WINDOW_TYPES.PROJECT:
+//           if (content.projectId) {
+//             const project = desktopModel.getProjectById(content.projectId);
+//             if (project) {
+//               return <ProjectWindow project={project} />;
+//             }
+//           }
+//           break;
+//         case WINDOW_TYPES.ABOUT:
+//           return <MobileAboutComponent />;
+//         case WINDOW_TYPES.SKILLS:
+//           return <MobileSkillsComponent />;
+//         case WINDOW_TYPES.CONTACT:
+//           return <MobileContactComponent />;
+//         default:
+//           return (
+//             <div className={styles.placeholderContent}>
+//               <p>Content type '{content.type}' is not supported on mobile yet.</p>
+//             </div>
+//           );
+//       }
+//     }
+    
+//     return (
+//       <div className={styles.placeholderContent}>
+//         <p>No content available for this window.</p>
+//       </div>
+//     );
+//   };
 
-  const handleClose = () => {
-    playSound("windowClose");
-    dispatch({
-      type: "CLOSE_WINDOW",
-      payload: { id: window.id },
-    });
-  };
+//   return (
+//     <div className={styles.mobileWindow}>
+//       <div className={styles.windowHeader}>
+//         <div className={styles.windowTitle}>{window.title}</div>
+//         <button
+//           className={styles.closeButton}
+//           onClick={handleClose}
+//           aria-label="Close window"
+//         >
+//           ✕
+//         </button>
+//       </div>
 
-  // Determine content based on window type and content key
-  const renderContent = () => {
-    // Special case for project windows
-    if (window.id.startsWith("project-")) {
-      const projectId = window.id.replace("project-", "");
-      const project = state.projects.find((p) => p.id === projectId);
+//       <div className={styles.windowContent}>{renderContent()}</div>
 
-      if (project) {
-        console.log("Rendering project in mobile window:", project.title);
-        return <ProjectWindow project={project} />;
-      }
-    }
+//       <div className={styles.windowFooter}>
+//         <button onClick={handleClose} className={styles.backButton}>
+//           Back to Main Menu
+//         </button>
+//       </div>
+//     </div>
+//   );
+// };
 
-    // Handle standard content types
-    if (typeof window.content === "string") {
-      if (window.content === "about") {
-        return <MobileAboutComponent />;
-      } else if (window.content === "skills") {
-        return <MobileSkillsComponent />;
-      } else if (window.content === "contact") {
-        return <MobileContactComponent />;
-      } else {
-        // This could be a project ID
-        const projectId = window.content;
-        const project = state.projects.find((p) => p.id === projectId);
-
-        if (project) {
-          console.log("Rendering project from content string:", project.title);
-          return <ProjectWindow project={project} />;
-        }
-
-        // If not a project, show placeholder
-        return (
-          <div className={styles.placeholderContent}>
-            <p>This content is coming soon! (Content key: {window.content})</p>
-          </div>
-        );
-      }
-    }
-
-    // Handle object-type content
-    else if (window.content && typeof window.content === "object") {
-      if (window.type === "project" && "id" in window.content) {
-        // It's a project object
-        return <ProjectWindow project={window.content as unknown as Project} />;
-      } else {
-        // Generic object content
-        return (
-          <div className={styles.genericContent}>
-            {window.content.toString &&
-            typeof window.content.toString === "function"
-              ? window.content.toString()
-              : "Content cannot be displayed"}
-          </div>
-        );
-      }
-    }
-
-    // Fallback
-    return (
-      <div className={styles.placeholderContent}>
-        <p>No content available for this window.</p>
-      </div>
-    );
-  };
-
-  return (
-    <div className={styles.mobileWindow}>
-      <div className={styles.windowHeader}>
-        <div className={styles.windowTitle}>{window.title}</div>
-        <button
-          className={styles.closeButton}
-          onClick={handleClose}
-          aria-label="Close window"
-        >
-          ✕
-        </button>
-      </div>
-
-      <div className={styles.windowContent}>{renderContent()}</div>
-
-      <div className={styles.windowFooter}>
-        <button onClick={handleClose} className={styles.backButton}>
-          Back to Main Menu
-        </button>
-      </div>
-    </div>
-  );
-};
-
-export default MobileWindow;
+// export default MobileWindow;

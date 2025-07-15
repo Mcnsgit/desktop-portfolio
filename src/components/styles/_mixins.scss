@@ -1,0 +1,20 @@
+// src/styles/_mixins.scss
+// Mixins for Win98-style UI elements
+
+// Win98-style border mixin
+@mixin win98-border($light-color, $dark-color, $inset: false) {
+    @if $inset {
+        border-top: 1px solid $dark-color;
+        border-left: 1px solid $dark-color;
+        border-right: 1px solid $light-color;
+        border-bottom: 1px solid $light-color;
+    }
+
+    @else {
+        border-top: 1px solid $light-color;
+        border-left: 1px solid $light-color;
+        border-right: 1px solid $dark-color;
+        border-bottom: 1px solid $dark-color;
+    }
+}
+

@@ -1,7 +1,10 @@
 // src/utils/windowServices/WindowPositionService.ts
 import {
-  WINDOW_POSITIONS,
-  WINDOW_DEFAULT_SIZES,
+  TASKBAR_HEIGHT,
+  DEFAULT_CASCADE_OFFSET,
+  MIN_VISIBLE_WINDOW_EDGE,
+  WINDOW_SIZES,
+  DEFAULT_WINDOW_POSITION,
 } from "../constants/windowConstants";
 
 export interface Position {
@@ -38,15 +41,15 @@ class WindowPositionService {
       typeof window !== "undefined" ? window.innerWidth : 1024;
     const viewportHeight =
       typeof window !== "undefined"
-        ? window.innerHeight - WINDOW_POSITIONS.TASKBAR_HEIGHT
+        ? window.innerHeight - TASKBAR_HEIGHT
         : 768;
 
     const minVisibleX = Math.min(
-      WINDOW_POSITIONS.MIN_VISIBLE_PART,
+      MIN_VISIBLE_WINDOW_EDGE,
       size.width * 0.2
     );
     const minVisibleY = Math.min(
-      WINDOW_POSITIONS.MIN_VISIBLE_PART,
+      MIN_VISIBLE_WINDOW_EDGE,
       size.height * 0.2
     );
 
@@ -66,8 +69,10 @@ class WindowPositionService {
       adjustedY = Math.max(0, viewportHeight - size.height + minVisibleY);
     }
 
-    if (adjustedY < WINDOW_POSITIONS.BASE_OFFSET_Y) {
-      adjustedY = WINDOW_POSITIONS.BASE_OFFSET_Y;
+    // Ensure window is not below taskbar
+    const BASE_OFFSET_Y = TASKBAR_HEIGHT + 30;
+    if (adjustedY < BASE_OFFSET_Y) {
+      adjustedY = BASE_OFFSET_Y;
     }
 
     return { x: adjustedX, y: adjustedY };
@@ -83,10 +88,10 @@ class WindowPositionService {
     existingWindows: Window[],
     windowType: string
   ): Position {
-    const baseX = WINDOW_POSITIONS.BASE_OFFSET_X;
-    const baseY = WINDOW_POSITIONS.BASE_OFFSET_Y;
-    const offsetX = WINDOW_POSITIONS.CASCADE_OFFSET_X;
-    const offsetY = WINDOW_POSITIONS.CASCADE_OFFSET_Y;
+    const baseX = DEFAULT_WINDOW_POSITION.x;
+    const baseY = DEFAULT_WINDOW_POSITION.y;
+    const offsetX = DEFAULT_CASCADE_OFFSET.X;
+    const offsetY = DEFAULT_CASCADE_OFFSET.Y;
 
     // Count visible windows of the same type to apply cascading effect
     const visibleSameTypeWindows = existingWindows.filter(
@@ -115,12 +120,13 @@ class WindowPositionService {
       typeof window !== "undefined" ? window.innerWidth : 1024;
     const viewportHeight =
       typeof window !== "undefined"
-        ? window.innerHeight - WINDOW_POSITIONS.TASKBAR_HEIGHT
+        ? window.innerHeight - TASKBAR_HEIGHT
         : 768;
 
     const x = Math.max(0, (viewportWidth - size.width) / 2);
+    const BASE_OFFSET_Y = TASKBAR_HEIGHT + 30;
     const y = Math.max(
-      WINDOW_POSITIONS.BASE_OFFSET_Y,
+      BASE_OFFSET_Y,
       (viewportHeight - size.height) / 2
     );
 
@@ -134,8 +140,8 @@ class WindowPositionService {
    */
   getDefaultWindowSize(windowType: string): Size {
     return (
-      WINDOW_DEFAULT_SIZES[windowType as keyof typeof WINDOW_DEFAULT_SIZES] ||
-      WINDOW_DEFAULT_SIZES.default
+      WINDOW_SIZES[windowType as keyof typeof WINDOW_SIZES] ||
+      WINDOW_SIZES.default
     );
   }
 

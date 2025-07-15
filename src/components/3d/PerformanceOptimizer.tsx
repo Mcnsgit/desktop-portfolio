@@ -14,7 +14,7 @@ const PerformanceOptimizer: React.FC<{ children: React.ReactNode }> = ({
   const maxFrameSkip = useRef(0);
   const lastUpdateTime = useRef(0);
   const frameRateHistory = useRef<number[]>([]);
-
+  const backgroundColor = useRef(false);
   // Detect device capabilities on mount
   useEffect(() => {
     // Check for 3D support
@@ -49,7 +49,11 @@ const PerformanceOptimizer: React.FC<{ children: React.ReactNode }> = ({
     gl.setPixelRatio(Math.min(window.devicePixelRatio * quality, 2));
 
     // Apply other optimizations
-    gl.setClearColor(0x050816, 1);
+    if (backgroundColor.current) {
+      gl.setClearColor(0x050816, 1);
+    } else {
+      gl.setClearColor(0x050816, 1);
+    }
 
     // Return cleanup function
     return () => {

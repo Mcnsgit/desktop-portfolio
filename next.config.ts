@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   
+  sassOptions: {
+    includePaths: [path.join(__dirname, 'src')],
+  },
 
   // Fix CSS loading issues
 

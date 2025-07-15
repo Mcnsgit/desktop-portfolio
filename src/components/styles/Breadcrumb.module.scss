@@ -1,0 +1,141 @@
+@use '../../styles/_variables.scss' as *;
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-xs $spacing-sm;
+  background-color: $win98-button-face;
+  border: 1px solid $win98-border-dark;
+  font-family: $win98-font-primary;
+  font-size: $win98-font-size-small;
+  min-height: 28px;
+  box-sizing: border-box;
+}
+
+.homeButton {
+  @include win98-button;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 24px;
+  padding: 2px 4px;
+  border: none;
+  background-color: $win98-button-face;
+  color: $win98-text-dark;
+  cursor: pointer;
+
+  &:hover {
+    background-color: $win98-button-highlight;
+  }
+
+  &:active {
+    @include win98-border($win98-border-dark, $win98-border-light, 1px);
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.segmentsContainer {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  flex: 1;
+  overflow: hidden;
+}
+
+.separator {
+  color: $win98-text-disabled;
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+}
+
+.segment {
+  @include win98-button;
+  padding: 2px 6px;
+  height: 20px;
+  background-color: transparent;
+  border: 1px solid transparent;
+  color: $win98-text-dark;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex-shrink: 1;
+
+  &:hover:not(:disabled) {
+    background-color: $win98-button-highlight;
+    border-color: $win98-border-light;
+  }
+
+  &:active:not(:disabled) {
+    @include win98-border($win98-border-dark, $win98-border-light, 1px);
+  }
+
+  &:disabled {
+    color: $win98-text-disabled;
+    cursor: default;
+  }
+
+  &.current {
+    font-weight: bold;
+    background-color: $win98-selected-bg;
+    color: $win98-selected-text;
+  }
+}
+
+.ellipsis {
+  padding: 2px 6px;
+  color: $win98-text-disabled;
+  font-weight: bold;
+}
+
+.pathInputContainer {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  margin-left: $spacing-sm;
+  border-left: 1px solid $win98-border-dark;
+  padding-left: $spacing-sm;
+}
+
+.pathInput {
+  @include win98-input;
+  font-family: $win98-font-primary;
+  font-size: $win98-font-size-small;
+  padding: 2px 4px;
+  height: 20px;
+  min-width: 100px;
+  background-color: $win98-input-bg;
+  color: $win98-text-dark;
+  @include win98-border($win98-border-dark, $win98-border-light, 1px);
+
+  &:focus {
+    outline: 1px dotted $win98-text-dark;
+    outline-offset: -2px;
+  }
+}
+
+.goButton {
+  @include win98-button;
+  padding: 2px 8px;
+  height: 24px;
+  background-color: $win98-button-face;
+  color: $win98-text-dark;
+  cursor: pointer;
+  font-size: $win98-font-size-small;
+
+  &:hover {
+    background-color: $win98-button-highlight;
+  }
+
+  &:active {
+    @include win98-border($win98-border-dark, $win98-border-light, 1px);
+  }
+}

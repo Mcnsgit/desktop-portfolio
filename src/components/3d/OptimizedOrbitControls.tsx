@@ -10,6 +10,8 @@ interface OptimizedOrbitControlsProps {
   enablePan?: boolean;
   autoRotate?: boolean;
   autoRotateSpeed?: number;
+  enableDamping?: boolean;
+  dampingFactor?: number;
 }
 
 /**
@@ -23,6 +25,8 @@ const OptimizedOrbitControls: React.FC<OptimizedOrbitControlsProps> = ({
   enablePan = true,
   autoRotate = false,
   autoRotateSpeed = 0.5,
+  enableDamping = true,
+  dampingFactor = 0.25,
 }) => {
   const controlsRef = useRef<any>(null);
   useThree();
@@ -62,6 +66,8 @@ const OptimizedOrbitControls: React.FC<OptimizedOrbitControlsProps> = ({
       enablePan={enablePan}
       autoRotate={autoRotate}
       autoRotateSpeed={autoRotateSpeed}
+      enableDamping={enableDamping}
+      dampingFactor={dampingFactor}
       makeDefault
     />
   );

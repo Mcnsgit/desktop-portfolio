@@ -1,0 +1,208 @@
+@use '../../styles/_variables.scss' as *;
+
+// Section base styles
+.sectionSubText {
+  font-size: clamp(14px, 2.5vw, 18px);
+  color: $text-secondary-dark-bg;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: $spacing-md;
+}
+
+.sectionHeadText {
+  color: $text-primary-dark-bg;
+  font-weight: 900;
+  font-size: clamp(30px, 8vw, 60px);
+  line-height: 1.2;
+  margin-bottom: $spacing-lg;
+  
+  @media (min-width: $breakpoint-tablet) {
+    font-size: clamp(40px, 8vw, 50px);
+  }
+  
+  @media (min-width: $breakpoint-desktop-small) {
+    font-size: 60px;
+  }
+}
+
+// About section specific styles
+.aboutDescription {
+  margin-top: $spacing-md;
+  color: $text-secondary-dark-bg;
+  font-size: 17px;
+  max-width: 768px;
+  line-height: 1.75;
+}
+
+.servicesContainer {
+  margin-top: 80px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 40px;
+  justify-content: center;
+}
+
+// Service Card Styles
+.serviceCard {
+  width: 100%;
+  max-width: 250px;
+  
+  @media (min-width: 480px) {
+    width: 250px;
+  }
+}
+
+.serviceCardTilt {
+  width: 100%;
+  height: 100%;
+}
+
+.serviceCardGradient {
+  width: 100%;
+  background: linear-gradient(90deg, #aa367c, #4a148c);
+  padding: 1px;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+}
+
+.serviceCardContent {
+  background-color: $secondary-bg;
+  border-radius: 20px;
+  padding: 20px 24px;
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+
+.serviceIconContainer {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: $secondary-bg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-bottom: $spacing-md;
+  overflow: hidden;
+}
+
+.serviceIconInner {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.serviceIcon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.serviceIconGlow {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  transition: box-shadow 0.5s ease;
+}
+
+.serviceTitle {
+  text-align: center;
+  margin-bottom: $spacing-md;
+  
+  h3 {
+    color: $text-primary-dark-bg;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+}
+
+.serviceTitleUnderline {
+  height: 2px;
+  background: linear-gradient(90deg, #9333ea, #ec4899);
+  margin: 8px auto 0;
+  transition: width 0.5s ease;
+}
+
+.serviceDescription {
+  color: $text-secondary-dark-bg;
+  font-size: 14px;
+  text-align: center;
+  transition: opacity 0.3s ease;
+}
+
+// Corner accents
+.cornerAccent {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border: 2px solid $text-primary-dark-bg;
+  opacity: 0.6;
+  
+  &.topLeft {
+    top: 8px;
+    left: 8px;
+    border-right: none;
+    border-bottom: none;
+    border-radius: 4px 0 0 0;
+  }
+  
+  &.topRight {
+    top: 8px;
+    right: 8px;
+    border-left: none;
+    border-bottom: none;
+    border-radius: 0 4px 0 0;
+  }
+  
+  &.bottomLeft {
+    bottom: 8px;
+    left: 8px;
+    border-right: none;
+    border-top: none;
+    border-radius: 0 0 0 4px;
+  }
+  
+  &.bottomRight {
+    bottom: 8px;
+    right: 8px;
+    border-left: none;
+    border-top: none;
+    border-radius: 0 0 4px 0;
+  }
+}
+
+// Tilt effect styles
+.tiltRoot {
+  transform-style: preserve-3d;
+  transform: perspective(1000px);
+  position: relative;
+  border-radius: 20px;
+  transition: transform 400ms cubic-bezier(.03,.98,.52,.99);
+  will-change: transform;
+}
+
+.tiltContent {
+  transform: translateZ(20px);
+}
+
+// Hover states
+.serviceCard:hover {
+  .serviceTitleUnderline {
+    width: 80%;
+  }
+  
+  .serviceDescription {
+    opacity: 1;
+  }
+  
+  .serviceIconGlow {
+    box-shadow: 0 0 15px 2px rgba(255, 255, 255, 0.3);
+  }
+} 

@@ -1,233 +1,185 @@
-// src/components/desktop/Folder.tsx
-import React, { useState } from "react";
-import { useSounds } from "@/hooks/useSounds";
-import { useDesktop } from "@/context/DesktopContext";
-import Image from "next/image";
-import styles from "./Icon.module.scss"
-import { useDraggable, useDroppable } from "@dnd-kit/core";
-import { CSS } from "@dnd-kit/utilities";
+// // src/components/desktop/Folder.tsx
+// import React, { useState } from "react";
+// // import { useSounds } from "@/hooks/useSounds"; // Keep if sounds are played directly here
+// // import { useDesktop } from "@/context/DesktopContext"; // To be removed
+// import Image, { StaticImageData } from "next/image";
+// import styles from "./Icon.module.scss"; // Assuming shared styles with Icon.tsx
+// import { useDraggable, useDroppable } from "@dnd-kit/core";
+// import { CSS } from "@dnd-kit/utilities";
 
-interface FolderProps {
-  id: string;
-  title: string;
-  position: { x: number; y: number };
-  icon?: string;
-  onDoubleClick: (e?: React.MouseEvent) => void;
-  isSelected: boolean;
-  onItemClick: (e: React.MouseEvent, itemId: string) => void;
-  isCut?: boolean;
-  type: "folder";
-  parentId?: string | null;
-  path?: string;
-}
+// // --- Import New Model --- 
+// import { IDesktopItem } from "../../../src/model/DesktopItem"; // Adjusted path
+// import { ItemType } from "@/config/constants";
+// // import { Folder as ModelFolder } from "../../../src/model/Folder"; // Not directly used, IDesktopItem is sufficient
 
-const DEFAULT_FOLDER_ICON = '/assets/win98-icons/png/directory_closed-1.png';
+// interface FolderProps {
+//   // id: string; // From item
+//   // title: string; // From item.name
+//   item: IDesktopItem; // Should be ModelFolder ideally, but IDesktopItem is the base
+//   position: { x: number; y: number };
+//   icon?: string | StaticImageData; // From item.icon, but can be overridden by prop
+//   onDoubleClick: (e?: React.MouseEvent) => void; // Passed from Desktop.tsx
+//   isSelected: boolean;
+//   onItemClick: (e: React.MouseEvent, itemId: string) => void;
+//   isCut?: boolean;
+//   // type: "folder"; // From item.type
+//   // parentId?: string | null; // From item.parentId
+//   path?: string; // May still be needed for specific FS operations not in model
+// }
 
-// Folder colored icon as fallback
-const FolderColoredIcon = () => {
-  return (
-    <div
-      style={{
-        width: "32px",
-        height: "32px",
-        backgroundColor: "#FFC83D",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: "4px",
-        color: "#855B00",
-        fontSize: "16px",
-        fontWeight: "bold",
-      }}
-    >
-      F
-    </div>
-  );
-};
+// const DEFAULT_FOLDER_ICON = '/assets/win98-icons/png/directory_closed-1.png';
 
-const Folder: React.FC<FolderProps> = ({
-  id,
-  title,
-  position,
-  icon = DEFAULT_FOLDER_ICON,
-  // onDoubleClick,
-  isSelected,
-  onItemClick,
-  isCut,
-  parentId,
-  path,
-}) => {
-  const { playSound } = useSounds();
-  const { dispatch } = useDesktop();
-  const [iconError, setIconError] = useState(false);
+// const FolderColoredIconFallback = () => (
+//   <div style={{
+//     width: "32px", height: "32px", backgroundColor: "#FFC83D",
+//     display: "flex", alignItems: "center", justifyContent: "center",
+//     borderRadius: "4px", color: "#855B00", fontSize: "16px", fontWeight: "bold",
+//   }}>F</div>
+// );
 
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    isDragging,
-  } = useDraggable({
-    id: id,
-    data: {
-      id,
-      title,
-      type: "folder",
-      originalPosition: position,
-      parentId,
-      isCut,
-      path,
-    },
-  });
+// const Folder: React.FC<FolderProps> = ({
+//   item,
+//   position,
+//   icon: iconProp, // Prop can override item.icon
+//   onDoubleClick,
+//   isSelected,
+//   onItemClick,
+//   isCut,
+//   path, // Keep path if it's used for something beyond model's scope
+// }) => {
+//   // const { playSound } = useSounds(); // Keep if used
+//   // const { dispatch } = useDesktop(); // Remove
+//   const [iconError, setIconError] = useState(false);
 
-  const { setNodeRef: droppableSetNodeRef, isOver, active } = useDroppable({
-    id: id,
-    data: {
-      type: "folder",
-      folderId: id,
-      path: path,
-    },
-  });
+//   const { id, name: title, type, icon: modelIcon, parentId } = item;
+//   const displayIcon = iconProp || modelIcon || DEFAULT_FOLDER_ICON;
 
-  const combinedRef = (node: HTMLDivElement | null) => {
-    setNodeRef(node);
-    droppableSetNodeRef(node);
-  };
+//   const {
+//     attributes,
+//     listeners,
+//     setNodeRef: draggableSetNodeRef, // Rename to avoid conflict
+//     transform,
+//     isDragging,
+//   } = useDraggable({
+//     id: id,
+//     data: {
+//       id,
+//       title,
+//       type: type as ItemType, // Ensure it uses the ItemType
+//       originalPosition: position,
+//       parentId,
+//       isCut,
+//       path, // Pass path if it's part of draggable data
+//     },
+//   });
 
-  // Fix icon path
-  const fixIconPath = (path: string): string => {
-    if (!path) return DEFAULT_FOLDER_ICON;
+//   const { setNodeRef: droppableSetNodeRef, isOver, active } = useDroppable({
+//     id: id, // Folder itself is a droppable target
+//     data: {
+//       type: "folder", // Important for dnd-kit logic
+//       folderId: id,
+//       path: path, // Pass path if relevant for drop logic
+//     },
+//   });
 
-    // Add leading slash if missing and not a URL
-    if (!path.startsWith('/') && !path.startsWith('http')) {
-      path = `/${path}`;
-    }
+//   // Combine refs for draggable and droppable
+//   const combinedRef = (node: HTMLDivElement | null) => {
+//     draggableSetNodeRef(node);
+//     droppableSetNodeRef(node);
+//   };
 
-    // Fix incorrect path structure
-    path = path.replace('/assets/win98-icons/icons/', '/assets/win98-icons/');
+//   const fixIconPath = (pathInput: string | StaticImageData): string | StaticImageData => {
+//     if (typeof pathInput !== 'string') return pathInput;
+//     let pathStr = pathInput;
+//     if (!pathStr) return DEFAULT_FOLDER_ICON;
+//     if (!pathStr.startsWith('/') && !pathStr.startsWith('http')) pathStr = `/${pathStr}`;
+//     // pathStr = pathStr.replace('/assets/win98-icons/icons/', '/assets/win98-icons/'); // Example, review if needed
+//     const hasExtension = /\.(png|ico|jpg|jpeg|svg|webp)$/i.test(pathStr);
+//     if (!hasExtension && !pathStr.includes('data:image')) pathStr = `${pathStr}.png`;
+//     return pathStr;
+//   };
 
-    return path;
-  };
+//   const finalIconSrc = fixIconPath(displayIcon);
 
-  const finalIconSrc = fixIconPath(icon);
+//   const handleDoubleClickLocal = (e: React.MouseEvent) => {
+//     if (isDragging) {
+//       e.stopPropagation();
+//       return;
+//     }
+//     e.stopPropagation();
+//     // playSound("windowOpen"); // Sound will be played by Desktop.tsx or model action
+//     onDoubleClick(e); // Call the prop passed from Desktop.tsx
+//   };
 
-  // Handle folder double click - open folder window
-  const handleDoubleClickLocal = (e: React.MouseEvent) => {
-    if (isDragging) {
-      e.stopPropagation();
-      return;
-    }
-    e.stopPropagation();
-    playSound("windowOpen");
-    // Open folder window
-    dispatch({
-      type: "OPEN_WINDOW",
-      payload: {
-        id: `folder-${id}`,
-        title: title,
-        minimized: false,
-        position: { x: 100, y: 100 },
-        size: { width: 500, height: 400 },
-        type: "folder",
-        zIndex: 1,
-        content: {
-          type: "folder",
-          folderId: id,
-        },
-      },
-    });
-  };
+//   const handleClick = (e: React.MouseEvent) => {
+//     if (isDragging) {
+//       e.stopPropagation();
+//       return;
+//     }
+//     onItemClick(e, id);
+//   };
 
-  const handleClick = (e: React.MouseEvent) => {
-    if (isDragging) {
-      e.stopPropagation();
-      return;
-    }
-    onItemClick(e, id);
-  };
+//   const style: React.CSSProperties = {
+//     position: "absolute",
+//     left: position.x,
+//     top: position.y,
+//     width: "80px",
+//     height: "90px",
+//     display: "flex",
+//     flexDirection: "column",
+//     alignItems: "center",
+//     justifyContent: "flex-start",
+//     textAlign: "center",
+//     cursor: isDragging ? "grabbing" : "pointer",
+//     borderRadius: "4px",
+//     opacity: isDragging ? 0.8 : isCut ? 0.6 : 1,
+//     zIndex: isDragging ? 1000 : 'auto',
+//     // transition: isDragging ? 'none' : 'opacity 0.2s ease-in-out, transform 0.2s ease-in-out', // Smooth transition
+//   };
 
-  const style: React.CSSProperties = {
-    position: "absolute",
-    left: position.x,
-    top: position.y,
-    width: "80px",
-    height: "90px",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "flex-start",
-    textAlign: "center",
-    cursor: isDragging ? "grabbing" : "pointer",
-    borderRadius: "4px",
-    opacity: isDragging ? 0.8 : isCut ? 0.6 : 1,
-    zIndex: isDragging ? 1000 : 'auto',
-  };
+//   if (transform) {
+//     style.transform = CSS.Translate.toString(transform);
+//   }
 
-  if (transform) {
-    style.transform = CSS.Translate.toString(transform);
-  }
+//   const isDropTarget = isOver && active && active.id !== id;
 
-  const isDropTarget = isOver && active && active.id !== id;
+//   return (
+//     <div
+//       ref={combinedRef}
+//       {...attributes}
+//       {...listeners}
+//       className={`${styles.icon} ${isDragging ? styles.dragging : ""} ${isSelected ? styles.selected : ""} ${isCut ? styles.cut : ""} ${isDropTarget ? styles.dropTarget : ""}`}
+//       style={style}
+//       onClick={handleClick}
+//       onDoubleClick={handleDoubleClickLocal}
+//       data-item-id={id}
+//       data-item-type={type} // Use type from item model
+//     >
+//       <div
+//         className={styles.iconImageContainer} // Using class from Icon.module.scss
+//         style={{ marginBottom: "5px"}} // Keep specific folder layout adjustments
+//       >
+//         {!iconError ? (
+//           <Image
+//             src={finalIconSrc}
+//             alt={title} // item.name
+//             width={32}
+//             height={32}
+//             style={{ objectFit: "contain" }}
+//             onError={() => {
+//               console.warn(`Folder.tsx: Error loading icon, using fallback for: ${finalIconSrc}`);
+//               setIconError(true);
+//             }}
+//             unoptimized
+//             loading="eager"
+//           />
+//         ) : (
+//           <FolderColoredIconFallback />
+//         )}
+//       </div>
+//       <div className={styles.iconLabel}>{title}</div>
+//     </div>
+//   );
+// };
 
-  return (
-    <div
-      ref={combinedRef}
-      {...attributes}
-      {...listeners}
-      className={`${styles.icon} ${isDragging ? styles.dragging : ""} ${isSelected ? styles.selected : ""} ${isCut ? styles.cut : ""} ${isDropTarget ? styles.dropTarget : ""}`}
-      style={style}
-      onClick={handleClick}
-      onDoubleClick={handleDoubleClickLocal}
-      data-item-id={id}
-      data-item-type="folder"
-    >
-      <div
-        style={{
-          marginBottom: "8px",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          width: "40px",
-          height: "40px",
-        }}
-      >
-        {!iconError ? (
-          <Image
-            src={finalIconSrc}
-            alt={title}
-            width={32}
-            height={32}
-            style={{ objectFit: "contain" }}
-            onError={() => {
-              console.warn(`Using fallback for folder icon: ${finalIconSrc}`);
-              setIconError(true);
-            }}
-            unoptimized
-            loading="eager"
-          />
-        ) : (
-          <FolderColoredIcon />
-        )}
-      </div>
-      <div
-        style={{
-          width: "80px",
-          maxHeight: "40px",
-          overflow: "hidden",
-          wordWrap: "break-word",
-          textAlign: "center",
-          color: "white",
-          textShadow:
-            "1px 1px 1px black, -1px -1px 1px black, 1px -1px 1px black, -1px 1px 1px black",
-          fontSize: "12px",
-          fontWeight: "bold",
-          lineHeight: "1.2",
-        }}
-      >
-        {title}
-      </div>
-    </div>
-  );
-};
-
-export default Folder;
+// export default React.memo(Folder);

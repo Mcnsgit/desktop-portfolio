@@ -1,16 +1,17 @@
 "use client";
 
-import React, { useRef, useState, ChangeEvent, FormEvent } from "react"; // Import event types
-import { motion } from "framer-motion";
+import React, { useRef, useState, ChangeEvent, FormEvent } from "react";
 import emailjs from "@emailjs/browser";
 
-import { styles } from "./styles";
-import { EarthCanvas } from "../../components/3d/canvas"; // Assuming path is correct
-import { SectionWrapper } from "../../hoc";
+import { styles as globalStyles } from "./styles";
+import localStyles from "./Contact.module.scss";
+
 import { slideIn } from "../../utils/motion";
+import { motion } from "framer-motion";
+import { SectionWrapper } from "@/hoc";
 
 const Contact = () => {
-  const formRef = useRef<HTMLFormElement>(null); // Add type for form ref
+  const formRef = useRef<HTMLFormElement>(null); 
   const [form, setForm] = useState({ name: "", email: "", message: "" });
   const [loading, setLoading] = useState(false);
 
@@ -70,21 +71,21 @@ const Contact = () => {
   };
 
   return (
-    <div className={`xl:mt-12 flex xl:flex-row flex-col-reverse gap-10 overflow-hidden`}>
+    <div className={localStyles.contactSectionContainer}>
       <motion.div
         variants={slideIn("left", "tween", 0.2, 1)}
-        className="flex-[0.75] bg-black-100 p-8 rounded-2xl shadow-2xl" // Added shadow-2xl for dimension
+        className={localStyles.contactFormContainer}
       >
-        <p className={styles.sectionSubText}>Get in touch</p>
-        <h3 className={styles.sectionHeadText}>Contact.</h3>
+        <p className={globalStyles.sectionSubText}>Get in touch</p>
+        <h3 className={globalStyles.sectionHeadText}>Contact.</h3>
 
         <form
           ref={formRef}
           onSubmit={handleSubmit}
-          className="mt-12 flex flex-col gap-8"
+          className={localStyles.form}
         >
-          <label className="flex flex-col">
-            <span className="text-white font-medium mb-4">Your Name</span>
+          <label className={localStyles.label}>
+            <span className={localStyles.labelText}>Your Name</span>
             <input
               type="text"
               name="name"
@@ -92,11 +93,11 @@ const Contact = () => {
               onChange={handleChange}
               placeholder="What's your name?"
               required // Add required attribute
-              className="bg-tertiary py-4 px-6 placeholder:text-secondary text-white rounded-lg outline-none border-none font-medium focus:ring-2 focus:ring-[#915eff] focus:border-[#915eff] transition-all duration-300" // Enhanced focus style
+              className={localStyles.inputField} 
             />
           </label>
-          <label className="flex flex-col">
-            <span className="text-white font-medium mb-4">Your Email</span>
+          <label className={localStyles.label}>
+            <span className={localStyles.labelText}>Your Email</span>
             <input
               type="email"
               name="email"
@@ -104,11 +105,11 @@ const Contact = () => {
               onChange={handleChange}
               placeholder="What's your email address?"
               required
-              className="bg-tertiary py-4 px-6 placeholder:text-secondary text-white rounded-lg outline-none border-none font-medium focus:ring-2 focus:ring-[#915eff] focus:border-[#915eff] transition-all duration-300" // Enhanced focus style
+              className={localStyles.inputField}
             />
           </label>
-          <label className="flex flex-col">
-            <span className="text-white font-medium mb-4">Your Message</span>
+          <label className={localStyles.label}>
+            <span className={localStyles.labelText}>Your Message</span>
             <textarea
               rows={7}
               name="message"
@@ -116,14 +117,14 @@ const Contact = () => {
               onChange={handleChange}
               placeholder="What do you want to say?"
               required
-              className="bg-tertiary py-4 px-6 placeholder:text-secondary text-white rounded-lg outline-none border-none font-medium focus:ring-2 focus:ring-[#915eff] focus:border-[#915eff] transition-all duration-300" // Enhanced focus style
+              className={localStyles.textareaField}
             />
           </label>
 
           <button
             type="submit"
             disabled={loading} // Disable button while loading
-            className="bg-tertiary py-3 px-8 rounded-xl outline-none w-fit text-white font-bold shadow-md hover:shadow-lg shadow-primary hover:bg-[#915eff] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed" // Enhanced hover and shadow
+            className={localStyles.submitButton}
           >
             {loading ? "Sending..." : "Send Message"}
           </button>
@@ -132,9 +133,9 @@ const Contact = () => {
 
       <motion.div
         variants={slideIn("right", "tween", 0.2, 1)}
-        className="xl:flex-1 xl:h-auto md:h-[550px] h-[350px]"
+        className={localStyles.earthCanvasContainer} 
       >
-        <EarthCanvas />
+        {/* EarthCanvas will be rendered here */}
       </motion.div>
     </div>
   );

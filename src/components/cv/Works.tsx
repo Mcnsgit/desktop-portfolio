@@ -5,8 +5,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 // import Link from "next/link";
 import { SectionWrapper } from "../../hoc";
-import { styles } from "./styles";
-import { portfolioProjects as projects } from '../../data/portfolioData';
+import { styles as globalStyles } from "./styles"; // Global styles
+import localStyles from "./Works.module.scss"; // Local SCSS module
+import { portfolioProjects as projects } from '../../config/data';
 import { fadeIn, textVariant } from "../../utils/motion";
 import { GithubLogo, ArrowSquareOut, X } from "@phosphor-icons/react";
 import { StaticImageData } from "next/image";
@@ -31,143 +32,145 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
   image,
   source_code_link,
   live_link,
-  isExpanded,
+   isExpanded,
   onClick,
 }) => {
   return (
     <motion.div
       variants={fadeIn("up", "spring", index * 0.5, 0.75)}
-      className="bg-tertiary p-5 rounded-2xl sm:w-[360px] w-full relative cursor-pointer shadow-lg hover:shadow-xl transition-shadow duration-300 hover:scale-105 transform"
+      className={localStyles.projectCard}
       onClick={onClick}
-      whileHover={{ y: -5 }}
+      whileHover={{ y: -5 }} // This can be kept or moved to SCSS :hover
     >
-      <div className="relative w-full h-[230px] overflow-hidden rounded-2xl group">
+      <div className={localStyles.imageContainer}>
         {typeof image === "string" ? (
           <Image
             src={image || "/placeholder.jpg"}
             alt={name}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-in-out"
+            className={localStyles.projectImage}
             width={360}
             height={230}
+            unoptimized // If image is external and not optimized by Next.js
           />
         ) : (
           <Image
-          width={360}
-          height={230}
+            width={360}
+            height={230}
             src={image}
             alt={name}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-in-out"
+            className={localStyles.projectImage}
           />
         )}
 
-        {/* Project Links - Always visible */}
-        <div className="absolute top-2 right-2 flex gap-2">
-          {/* GitHub Link */}
-          <div
-            className="black-gradient w-10 h-10 rounded-full flex justify-center items-center cursor-pointer"
-            onClick={(e) => {
-              e.stopPropagation();
-              window.open(source_code_link, "_blank", "noopener,noreferrer");
-            }}
-            title="View Source Code"
-          >
-            <GithubLogo className="w-1/2 h-1/2 text-white" />
-          </div>
+        <div className={localStyles.linksOverlay}>
+          {source_code_link && (
+            <div
+              className={localStyles.iconLink} 
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(source_code_link, "_blank", "noopener,noreferrer");
+              }}
+              title="View Source Code"
+            >
+              <GithubLogo /> {/* Icon size will be controlled by SCSS */}
+            </div>
+          )}
 
-          {/* Live Demo Link (if available) */}
           {live_link && (
             <div
-              className="black-gradient w-10 h-10 rounded-full flex justify-center items-center cursor-pointer"
+              className={`${localStyles.iconLink} ${localStyles.arrowIcon}`} // Added arrowIcon for specific sizing if needed
               onClick={(e) => {
                 e.stopPropagation();
                 window.open(live_link, "_blank", "noopener,noreferrer");
               }}
               title="View Live Demo"
             >
-              <ArrowSquareOut className="w-1/3 h-1/3 text-white" />
+              <ArrowSquareOut /> {/* Icon size will be controlled by SCSS */}
             </div>
           )}
         </div>
       </div>
 
-      <div className="mt-5">
-        <h3 className="text-white font-bold text-[24px]">{name}</h3>
-        <p className="mt-2 text-secondary text-[14px] line-clamp-2">
+      <div className={localStyles.contentContainer}>
+        <h3 className={localStyles.projectName}>{name}</h3>
+        <p className={localStyles.projectDescriptionShort}>
           {description}
         </p>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className={localStyles.tagsContainer}>
         {tags.map((tag) => (
           <span
             key={`${name}-${tag.name}`}
-            className={`text-[14px] ${tag.color} px-2 py-1 rounded-md bg-black/20`}
+            // Apply dynamic color via inline style, SCSS handles base styling
+            className={`${localStyles.tag} ${tag.color ? '' : 'text-white'}` } 
+            style={tag.color && !tag.color.startsWith('text-') ? { backgroundColor: tag.color, color: 'white' } : {}}
           >
             #{tag.name}
           </span>
         ))}
       </div>
 
-      {/* Expanded project details - only shown when expanded */}
       <AnimatePresence>
         {isExpanded && (
           <motion.div
-            className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+            className={localStyles.modalOverlay}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => { e.stopPropagation(); onClick();}} // Close modal on overlay click
           >
             <motion.div
-              className="bg-tertiary rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+              className={localStyles.modalContent}
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ type: "spring", duration: 0.4 }}
+              onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside modal content
             >
-              <div className="relative">
-                <div className="relative w-full h-[300px] overflow-hidden">
-                  {typeof image === "string" ? (
-                    <Image
-                      src="/placeholder.jpg"
-                      alt={name}
-                      className="w-full h-full object-cover"
-                      width={800}
-                      height={300}
-                    />
-                  ) : (
-                    <Image
+              <div className={localStyles.modalImageContainer}>
+                {typeof image === "string" ? (
+                  <Image
+                    src={image || "/placeholder.jpg"} // Fallback image
+                    alt={name}
+                    className={localStyles.modalImage}
                     width={800}
                     height={300}
-                      src="/placeholder.jpg"
-                      alt={name}
-                      className="w-full h-full object-cover"
-                    />
-                  )}
-                </div>
+                    unoptimized
+                  />
+                ) : (
+                  <Image
+                    width={800}
+                    height={300}
+                    src={image} // Fallback image for StaticImageData needed if it can be null/undefined
+                    alt={name}
+                    className={localStyles.modalImage}
+                  />
+                )}
                 <button
-                  className="absolute top-4 right-4 bg-black/50 text-white p-2 rounded-full hover:bg-black/80 transition-colors duration-300"
-                  onClick={onClick}
+                  className={localStyles.modalCloseButton}
+                  onClick={onClick} // This should call the passed onClick to toggle isExpanded
                 >
                   <X size={24} />
                 </button>
               </div>
 
-              <div className="p-6">
-                <h2 className="text-white font-bold text-[32px] mb-4">
+              <div className={localStyles.modalDetailsContainer}>
+                <h2 className={localStyles.modalProjectName}>
                   {name}
                 </h2>
-                <p className="text-secondary text-[16px] mb-6">{description}</p>
+                <p className={localStyles.modalProjectDescription}>{description}</p>
 
-                <div className="mb-6">
-                  <h3 className="text-white font-bold text-[18px] mb-2">
+                <div className={localStyles.modalTechHeaderContainer}> {/* Changed to modalTechHeaderContainer */}
+                  <h3 className={localStyles.modalTechHeader}>
                     Technologies
                   </h3>
-                  <div className="flex flex-wrap gap-2">
+                  <div className={localStyles.modalTagsContainer}>
                     {tags.map((tag) => (
                       <span
                         key={`modal-${name}-${tag.name}`}
-                        className={`text-[14px] ${tag.color} px-2 py-1 rounded-md bg-black/20`}
+                        className={`${localStyles.tag} ${tag.color ? '' : 'text-white'}`}
+                        style={tag.color && !tag.color.startsWith('text-') ? { backgroundColor: tag.color, color: 'white' } : {}}
                       >
                         #{tag.name}
                       </span>
@@ -175,23 +178,25 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-4">
-                  <a
-                    href={source_code_link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-primary hover:bg-primary/80 text-white px-6 py-3 rounded-md flex items-center gap-2 transition-colors duration-300"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <GithubLogo size={20} /> View Code
-                  </a>
+                <div className={localStyles.modalLinksContainer}>
+                  {source_code_link && (
+                    <a
+                      href={source_code_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`${localStyles.modalLinkButton} ${localStyles.github}`}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <GithubLogo size={20} /> View Code
+                    </a>
+                  )}
 
                   {live_link && (
                     <a
                       href={live_link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="bg-white hover:bg-white/80 text-primary px-6 py-3 rounded-md flex items-center gap-2 transition-colors duration-300"
+                      className={`${localStyles.modalLinkButton} ${localStyles.liveDemo}`}
                       onClick={(e) => e.stopPropagation()}
                     >
                       <ArrowSquareOut size={20} /> Live Demo
@@ -213,12 +218,11 @@ const Works = () => {
   const handleProjectClick = (index: number) => {
     setExpandedProject(expandedProject === index ? null : index);
   };
-  // Check if projects data is loaded
+
   if (!projects || projects.length === 0) {
     console.warn("Works component: No project data found.");
-    // Optionally render a message or fallback
     return (
-      <div className="text-center text-secondary py-10">
+      <div className={localStyles.noProjectsMessage}>
         Projects coming soon...
       </div>
     );
@@ -227,14 +231,14 @@ const Works = () => {
   return (
     <>
       <motion.div variants={textVariant(0.1)}>
-        <p className={styles.sectionSubText}>My work</p>
-        <h2 className={styles.sectionHeadText}>Projects.</h2>
+        <p className={globalStyles.sectionSubText}>My work</p>
+        <h2 className={globalStyles.sectionHeadText}>Projects.</h2>
       </motion.div>
 
-      <div className="w-full flex">
+      <div className={localStyles.introContainer}>
         <motion.p
           variants={fadeIn("up", "spring", 0.1, 1)}
-          className="mt-3 text-secondary text-[17px] max-w-3xl leading-[30px]"
+          className={localStyles.introParagraph}
         >
           The following projects showcase my skills and experience through
           real-world examples of my work. Each project is briefly described with
@@ -244,21 +248,21 @@ const Works = () => {
         </motion.p>
       </div>
 
-      <div className="mt-20 flex flex-wrap gap-7 justify-center">
+      <div className={localStyles.projectsContainer}>
         {projects.map((project, index) => (
           <ProjectCard
-            key={`project-${project.id || index}`} // Use project.id if available
+            key={`project-${project.id || index}`}
             index={index}
-            {...project} // Spread the project data
-            source_code_link={project.source_code_link || project.repoUrl} // Use appropriate link field
-            live_link={project.live_link || project.demoUrl}
+            name={project.name}
+            description={project.data.description || ''}
+            source_code_link={project.data.repoUrl}
+            live_link={project.data.url}
             isExpanded={expandedProject === index}
-            onClick={() => handleProjectClick(index)}
-          />
+            onClick={() => handleProjectClick(index)} tags={[]} image={""}          />
         ))}
       </div>
     </>
   );
 };
 
-export default SectionWrapper(Works, "projects");
+export default SectionWrapper(Works, "work-projects"); 

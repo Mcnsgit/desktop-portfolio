@@ -12,10 +12,12 @@
   // font-size: $win98-font-size-normal;
 
       position: absolute;
-      height: 100%;
-      width: 100%;
+      top: 0;
+      left: 0;
+      right: 0;
       bottom: var(--taskbar-height);
-      /* Space for the taskbar */
+      /* This setup correctly defines the container bounds above the taskbar */
+      width: 100%;
       overflow: hidden;
       /* Important */
       z-index: var(--z-index-desktop-env);
@@ -50,4 +52,13 @@
   border: 1px dotted $win98-title-text-color;
   z-index: $z-index-desktop-env + 1; // Above desktop items, below windows
   pointer-events: none; 
+} 
+
+.windowManagerContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* The container itself should not capture clicks */
 } 

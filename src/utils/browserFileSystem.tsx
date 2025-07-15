@@ -1,9 +1,13 @@
 // src/utils/browserFileSystem.ts
 // *** IMPORTANT: Make sure portfolioData is imported correctly ***
-import { portfolioProjects as projects } from "../data/portfolioData"; // Corrected Import
-import { Project } from "../types"; // Import Project type if needed for createSampleProjectFiles
+import { portfolioProjects } from "../config/data";
+import { Project } from "../types/project";
+// import { FS_ROOT, HOME_PATH, DESKTOP_PATH, PROJECTS_PATH, DOCUMENTS_PATH, PICTURES_PATH, SYSTEM_PATH, SYSTEM_ICONS_PATH } from './constants/fileSystemConstants';
 
-class BrowserFileSystem {
+
+
+
+export class BrowserFileSystem {
     private files: Map<string, string | Uint8Array>;
     private directories: Set<string>;
     private symlinks: Map<string, string>;
@@ -317,25 +321,47 @@ class BrowserFileSystem {
 
     private createShortcuts(internalCall = false): void {
         const desktop = "/home/guest/Desktop";
+        
+        // Core CV sections
+        this.writeFileSync(`${desktop}/About Me.lnk`, "app:about", internalCall);
+        this.writeFileSync(`${desktop}/Contact.lnk`, "app:contact", internalCall);
+        this.writeFileSync(`${desktop}/Education.lnk`, "app:education", internalCall);
+        
+        // Interactive demo apps
+        this.writeFileSync(`${desktop}/Todo List.lnk`, "app:todolist", internalCall);
+        this.writeFileSync(`${desktop}/Weather App.lnk`, "app:weatherapp", internalCall);
+        
+        // Project shortcuts from portfolioData (featured projects on desktop)
+        if (portfolioProjects && portfolioProjects.length > 0) {
+            portfolioProjects.forEach(project => {
+                if (project?.id && project?.name) {
+                    const shortcutName = `${project.id}.lnk`;
+                    const appTarget = `app:project-${project.id}`;
+                    this.writeFileSync(`${desktop}/${shortcutName}`, appTarget, internalCall);
+                }
+            });
+        }
+        
+        // Legacy shortcuts (keeping for compatibility)
         this.writeFileSync(`${desktop}/My Projects.lnk`, "/projects", internalCall);
         this.writeFileSync(`${desktop}/My Documents.lnk`, "/home/guest/Documents", internalCall);
         this.writeFileSync(`${desktop}/Text Editor.lnk`, "app:texteditor", internalCall);
     }
 
     private createProjectFiles(internalCall = false): void {
-        if (!projects || projects.length === 0) return;
-        projects.forEach((project) => {
+        if (!portfolioProjects || portfolioProjects.length === 0) return;
+        portfolioProjects.forEach((project) => {
             if (!project?.id) return;
             const folder = `/projects/${project.id}`;
             if (!this.existsSync(folder)) {
                 this.mkdirSync(folder, { recursive: true }, internalCall);
-                this.writeFileSync(`${folder}/README.md`, `# ${project.title}\n...`, internalCall);
-                this.createSampleProjectFiles(project, internalCall);
+                this.writeFileSync(`${folder}/README.md`, `# ${project.id}\n...`, internalCall);
+                this.createSampleProjectFiles(project as unknown as Project, internalCall);
             }
         });
     }
 
-    private createSampleProjectFiles(project: Project, internalCall = false): void {
+private createSampleProjectFiles(project: Project, internalCall = false): void {
         const folder = `/projects/${project.id}`;
         // Ensure project.technologies is an array before joining
         const techList = Array.isArray(project.technologies) ? project.technologies.join(", ") : 'N/A';

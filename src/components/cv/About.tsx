@@ -2,14 +2,15 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import Image from "next/image";
-import { StaticImageData } from "next/image";
-import { styles } from "./styles";
-import { services } from "../../data/index";
-import { SectionWrapper } from "../../hoc";
+import Image, { StaticImageData } from "next/image";
 import { fadeIn, textVariant } from "../../utils/motion";
+import { SectionWrapper } from "../../hoc";
+import localStyles from "./About.module.scss";
+import { styles as globalStyles } from "./styles";
 
-// Define interfaces
+// Services data (replace with actual imports if needed)
+import {backend, creator, mobile, web } from "../../../public/assets/index";
+
 interface ServiceCardProps {
   index: number;
   title: string;
@@ -23,72 +24,52 @@ interface Service {
   description?: string;
 }
 
-// Custom Tilt Component 
 const CustomTilt: React.FC<{
   children: React.ReactNode;
   className?: string;
 }> = ({ children, className = "" }) => {
   const tiltRef = useRef<HTMLDivElement>(null);
-  
+
   useEffect(() => {
     const element = tiltRef.current;
     if (!element) return;
-    
-    let tiltSettings = {
-      max: 15,      // max tilt rotation (degrees)
-      perspective: 1000,  // perspective value
-      scale: 1.05,  // scale on hover
-      speed: 1000,  // speed of transition
-      easing: "cubic-bezier(.03,.98,.52,.99)" // easing for transition
+
+    const tiltSettings = {
+      maxTilt: 25,
+      perspective: 1000,
+      speed: 400,
+      glare: true,
+      glarePrerender: false,
+      glareMaxOpacity: 0.45,
+      scale: 1.02,
+      easing: "cubic-bezier(.03,.98,.52,.99)",
     };
-    
-    let glareElement: HTMLDivElement | null = null;
-    
-    // Create glare element
+
+    // Add glare element
     const addGlare = () => {
-      glareElement = document.createElement('div');
-      glareElement.className = "glare-effect";
-      glareElement.style.position = "absolute";
-      glareElement.style.top = "0";
-      glareElement.style.left = "0";
-      glareElement.style.width = "100%";
-      glareElement.style.height = "100%";
-      glareElement.style.pointerEvents = "none";
-      glareElement.style.background = "linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%)";
-      glareElement.style.transform = "translateX(-100%)";
-      glareElement.style.opacity = "0";
-      glareElement.style.transition = "transform 0.5s ease, opacity 0.5s ease";
-      glareElement.style.zIndex = "10";
-      glareElement.style.borderRadius = "20px";
+      const glareElement = document.createElement("div");
+      glareElement.className = localStyles.glareEffect;
+      glareElement.style.setProperty("--glare-max-opacity", tiltSettings.glareMaxOpacity.toString());
       element.appendChild(glareElement);
+      return glareElement;
     };
-    
-    addGlare();
-    
-    // Functions to handle mouse movements
+
+    const glareElement = tiltSettings.glare ? addGlare() : null;
+
     const updateTransform = (x: number, y: number) => {
-      if (!element) return;
-      
-      // Calculate tilt rotation
       const rect = element.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
-      
-      // Calculate rotation based on mouse position
-      const rotateX = tiltSettings.max * -((y - centerY) / (rect.height / 2));
-      const rotateY = tiltSettings.max * ((x - centerX) / (rect.width / 2));
-      
-      // Apply transform
+
+      const rotateX = ((y - centerY) / (rect.height / 2)) * tiltSettings.maxTilt;
+      const rotateY = ((centerX - x) / (rect.width / 2)) * tiltSettings.maxTilt;
+
       element.style.transform = `perspective(${tiltSettings.perspective}px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(${tiltSettings.scale}, ${tiltSettings.scale}, ${tiltSettings.scale})`;
-      element.style.transition = `transform 0ms ${tiltSettings.easing}`;
-      
+      element.style.transition = '';
+
       // Update glare position
       if (glareElement) {
-        const percentX = (x - rect.left) / rect.width;
-        const percentY = (y - rect.top) / rect.height;
-        
-        // Move glare based on pointer position
-        const glarePos = ((percentX + percentY) - 1) * 100; // -100% to 100%
+        const glarePos = ((x - rect.left) / rect.width) * 100;
         glareElement.style.transform = `translateX(${glarePos}%)`;
         glareElement.style.opacity = "1";
       }
@@ -107,26 +88,26 @@ const CustomTilt: React.FC<{
         glareElement.style.transform = "translateX(-100%)";
       }
     };
-    
+
     // Event handlers
     const handleMouseMove = (e: MouseEvent) => {
       updateTransform(e.clientX, e.clientY);
     };
-    
+
     const handleMouseEnter = (e: MouseEvent) => {
       // Start transition when mouse enters
       updateTransform(e.clientX, e.clientY);
     };
-    
+
     const handleMouseLeave = () => {
       resetTransform();
     };
-    
+
     // Add event listeners
     element.addEventListener('mousemove', handleMouseMove);
     element.addEventListener('mouseenter', handleMouseEnter);
     element.addEventListener('mouseleave', handleMouseLeave);
-    
+
     // Clean up
     return () => {
       element.removeEventListener('mousemove', handleMouseMove);
@@ -138,21 +119,13 @@ const CustomTilt: React.FC<{
       }
     };
   }, []);
-  
+
   return (
     <div 
       ref={tiltRef} 
-      className={`tilt-root ${className}`}
-      style={{
-        transformStyle: "preserve-3d",
-        transform: "perspective(1000px)",
-        position: "relative",
-        borderRadius: "20px",
-        transition: "transform 400ms cubic-bezier(.03,.98,.52,.99)",
-        willChange: "transform",
-      }}
+      className={`${localStyles.tiltRoot} ${className}`}
     >
-      <div style={{ transform: "translateZ(20px)" }}>
+      <div className={localStyles.tiltContent}>
         {children}
       </div>
     </div>
@@ -170,15 +143,15 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
   return (
     <motion.div
       variants={fadeIn("right", "spring", index * 0.5, 0.75)}
-      className="xs:w-[250px] w-full"
+      className={localStyles.serviceCard}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <CustomTilt className="w-full h-full">
-        <div className="w-full green-pink-gradient p-[1px] rounded-[20px] shadow-card">
-          <div className="bg-tertiary rounded-[20px] py-5 px-6 min-h-[280px] flex flex-col justify-between items-center relative">
+      <CustomTilt className={localStyles.serviceCardTilt}>
+        <div className={localStyles.serviceCardGradient}>
+          <div className={localStyles.serviceCardContent}>
             {/* Icon with animated container */}
-            <div className="w-20 h-20 rounded-full bg-tertiary flex items-center justify-center relative mb-4 overflow-hidden">
+            <div className={localStyles.serviceIconContainer}>
               <motion.div
                 animate={{
                   y: isHovered ? [0, -4, 0] : 0,
@@ -188,19 +161,21 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
                   repeat: isHovered ? Infinity : 0,
                   repeatType: "loop",
                 }}
-                className="w-16 h-16 flex items-center justify-center"
+                className={localStyles.serviceIconInner}
               >
                 {typeof icon === 'string' ? (
                   <Image
                     src={icon}
                     alt={title}
-                    className="w-full h-full object-contain"
+                    className={localStyles.serviceIcon}
+                    width={64}
+                    height={64}
                   />
                 ) : (
                   <Image
                     src={icon}
                     alt={title}
-                    className="w-full h-full object-contain"
+                    className={localStyles.serviceIcon}
                     width={64}
                     height={64}
                   />
@@ -209,7 +184,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
               
               {/* Icon glow effect */}
               <motion.div
-                className="absolute inset-0 rounded-full"
+                className={localStyles.serviceIconGlow}
                 animate={{
                   boxShadow: isHovered 
                     ? "0 0 15px 2px rgba(255,255,255,0.3)" 
@@ -220,11 +195,10 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
             </div>
             
             {/* Title */}
-            <div className="text-center mb-4">
-              <h3 className="text-white text-[20px] font-bold">{title}</h3>
-              {/*... (animated underline).. */}
+            <div className={localStyles.serviceTitle}>
+              <h3>{title}</h3>
               <motion.div 
-                className="h-[2px] bg-gradient-to-r from-purple-400 to-pink-400 mt-2 mx-auto"
+                className={localStyles.serviceTitleUnderline}
                 initial={{ width: "0%" }}
                 animate={{ width: isHovered ? "80%" : "0%" }}
                 transition={{ duration: 0.5 }}
@@ -233,7 +207,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
             
             {/* Description */}
             <motion.p 
-              className="text-secondary text-[14px] text-center"
+              className={localStyles.serviceDescription}
               animate={{
                 opacity: isHovered ? 1 : 0.7,
               }}
@@ -243,10 +217,10 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
             </motion.p>
             
             {/* Corner accents */}
-            <div className="absolute top-2 left-2 w-3 h-3 border-l-2 border-t-2 border-white opacity-60 rounded-tl" />
-            <div className="absolute top-2 right-2 w-3 h-3 border-r-2 border-t-2 border-white opacity-60 rounded-tr" />
-            <div className="absolute bottom-2 left-2 w-3 h-3 border-l-2 border-b-2 border-white opacity-60 rounded-bl" />
-            <div className="absolute bottom-2 right-2 w-3 h-3 border-r-2 border-b-2 border-white opacity-60 rounded-br" />
+            <div className={`${localStyles.cornerAccent} ${localStyles.topLeft}`} />
+            <div className={`${localStyles.cornerAccent} ${localStyles.topRight}`} />
+            <div className={`${localStyles.cornerAccent} ${localStyles.bottomLeft}`} />
+            <div className={`${localStyles.cornerAccent} ${localStyles.bottomRight}`} />
           </div>
         </div>
       </CustomTilt>
@@ -254,18 +228,41 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
   );
 };
 
+// Services data
+const services: Service[] = [
+  {
+    title: "Web Developer",
+    icon: web,
+    description: "Modern responsive websites using latest technologies",
+  },
+  {
+    title: "React Native Developer",
+    icon: mobile,
+    description: "Cross-platform mobile applications",
+  },
+  {
+    title: "Backend Developer",
+    icon: backend,
+    description: "Robust server-side solutions and APIs",
+  },
+  {
+    title: "Content Creator",
+    icon: creator,
+    description: "Engaging digital content and experiences",
+  },
+];
+
 const About = () => {
   return (
      <>
       <motion.div variants={textVariant(0.1)}>
-         {/* Use styles from ./styles.ts */}
-        <p className={styles.sectionSubText}>Introduction</p>
-        <h2 className={styles.sectionHeadText}>Overview.</h2>
+        <p className={`${globalStyles.sectionSubText} ${localStyles.sectionSubText}`}>Introduction</p>
+        <h2 className={`${globalStyles.sectionHeadText} ${localStyles.sectionHeadText}`}>Overview.</h2>
       </motion.div>
 
       <motion.p
         variants={fadeIn("up", "spring", 0.1, 1)}
-        className="mt-4 text-secondary text-[17px] max-w-3xl leading-[30px]"
+        className={localStyles.aboutDescription}
       >
         I&apos;m diving into the world of software development with enthusiasm, focusing on JavaScript, Python, React, Node.js, and related technologies. While I&apos;m still relatively new to the field, I genuinely enjoy the constant learning process.
         <br /><br />
@@ -274,8 +271,7 @@ const About = () => {
         My focus is always on creating functional, accessible websites that work well for everyone. Living with ADHD has also shaped my problem-solving approach, pushing me towards finding clear, intuitive solutions – much like translating complex ideas across languages, a skill I developed early on. I strive to build digital tools that feel natural and straightforward to use.
       </motion.p>
 
-      <div className="mt-20 flex flex-wrap gap-10 justify-center">
-        {/* Ensure services data is correctly typed and mapped */}
+      <div className={localStyles.servicesContainer}>
         {services.map((service: Service, index) => (
           <ServiceCard
             key={`${service.title}-${index}`}

@@ -2,17 +2,18 @@ import { useRef, Suspense, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Points, PointMaterial, Preload } from "@react-three/drei";
 import * as THREE from "three";
-// Create a type declaration for custom random function
-// Define props type for Stars component
+
+
 interface StarsProps {
-  [key: string]: never; // Allow any props to pass through to Points
+  numPoints: number;
+  radius?: number;
 }
 // Custom function to generate random points in a sphere
 const randomPointsInSphere = (numPoints: number, radius: number) => {
   const points = new Float32Array(numPoints * 3);
   for (let i = 0; i < numPoints; i++) {
-    const theta = Math.random() * Math.PI * 2; // Random angle
-    const phi = Math.acos(2 * Math.random() - 1); // Random angle for spherical coordinates
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
     const x = radius * Math.sin(phi) * Math.cos(theta);
     const y = radius * Math.sin(phi) * Math.sin(theta);
     const z = radius * Math.cos(phi);
@@ -20,14 +21,11 @@ const randomPointsInSphere = (numPoints: number, radius: number) => {
   }
   return points;
 };
-const Stars = (props: StarsProps) => {
-  const ref = useRef<THREE.Points>(null); // Correct ref type for Points component
-  // Create and validate the sphere data
-  const sphere = useMemo(() => {
-    const data = randomPointsInSphere(5000, 1.2); // Generate points in a sphere
-    return data;
-  }, []);
+const Stars = ({numPoints = 5000, radius = 1.2}: StarsProps) => {
+  const ref = useRef<THREE.Points>(null);
+  const sphere = useMemo(() => randomPointsInSphere(numPoints, radius), [numPoints, radius]);
   const rotationSpeed = { x: 0.1, y: 0.0667 };
+
   useFrame((_state, delta) => {
     if (ref.current) {
       ref.current.rotation.x -= delta * rotationSpeed.x;
@@ -36,18 +34,12 @@ const Stars = (props: StarsProps) => {
   });
   return (
     <group rotation={[0, 0, Math.PI / 4]}>
-      <Points
-        ref={ref}
-        positions={sphere}
-        stride={3}
-        frustumCulled
-        {...props}
-      >
+      <Points ref={ref} positions={sphere} stride={3} frustumCulled>
         <PointMaterial
           transparent
           color='#f272c8'
           size={0.002}
-          sizeAttenuation={true}
+          sizeAttenuation
           depthWrite={false}
         />
       </Points>
@@ -59,10 +51,10 @@ const StarsCanvas = () => {
     <div className='w-full h-auto absolute inset-0 z-[-1]'>
       <Canvas camera={{ position: [0, 0, 1] }}>
         <Suspense fallback={null}>
-          <Stars />
+          <Stars numPoints={5000} radius={1.2} />
         </Suspense>
-<Preload all/>      
-</Canvas>
+        <Preload all />
+      </Canvas>
     </div>
   );
 };
