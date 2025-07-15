@@ -49,7 +49,7 @@ import windowExplorerIcon from'./icons/directory_explorer-0.png';
 import startMenuIcon from'./icons/start-menu.png';
 import clock from './icons/Clock.png'
 import app from './icons/default-application.png'
-import w98_directory_program_group from "./icons/win98/w98_directory_program_group.ico";
+import w98_directory_program_group from "./icons/w98_directory_program_group.ico";
 
 export {
   logo,

@@ -29,15 +29,15 @@ const Ball: React.FC<BallProps> = ({ imgUrl }) => {
     <Float floatIntensity={2}>
       <mesh castShadow receiveShadow scale={2.75}>
         <icosahedronGeometry args={[1, 4]} />
-        <meshStandardMaterial
+        <meshPhysicalMaterial
           color="#b2c2b5"
           emissive="#999999"
-
+          
           polygonOffset
-          roughness={0.25}
+          roughness={0}
           metalness={1}
-          vertexColors={true}
-          polygonOffsetFactor={-5}
+
+
         />
         {decal && (
           <Decal

@@ -7,7 +7,7 @@ import Image from "next/image";
 import { SectionWrapper } from "../../hoc";
 import { styles as globalStyles } from "./styles"; // Global styles
 import localStyles from "./Works.module.scss"; // Local SCSS module
-import { portfolioProjects as projects } from '../../data/portfolioData';
+import { portfolioProjects as projects } from '../../config/data';
 import { fadeIn, textVariant } from "../../utils/motion";
 import { GithubLogo, ArrowSquareOut, X } from "@phosphor-icons/react";
 import { StaticImageData } from "next/image";
@@ -32,7 +32,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
   image,
   source_code_link,
   live_link,
-  isExpanded,
+   isExpanded,
   onClick,
 }) => {
   return (
@@ -251,18 +251,18 @@ const Works = () => {
       <div className={localStyles.projectsContainer}>
         {projects.map((project, index) => (
           <ProjectCard
-            key={`project-${project.id || index}`} 
+            key={`project-${project.id || index}`}
             index={index}
-            {...project} 
-            source_code_link={project.source_code_link || project.repoUrl} 
-            live_link={project.live_link || project.demoUrl}
+            name={project.name}
+            description={project.data.description || ''}
+            source_code_link={project.data.repoUrl}
+            live_link={project.data.url}
             isExpanded={expandedProject === index}
-            onClick={() => handleProjectClick(index)}
-          />
+            onClick={() => handleProjectClick(index)} tags={[]} image={""}          />
         ))}
       </div>
     </>
   );
 };
 
-export default SectionWrapper(Works, "projects");
+export default SectionWrapper(Works, "work-projects"); 

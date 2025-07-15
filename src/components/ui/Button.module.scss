@@ -1,14 +1,15 @@
-@use '../../../styles/variables' as *;
+// src/components/ui/Button.module.scss
+@use '../../styles/_variables.scss' as *;
+@use '../../styles/_mixins.scss' as *;
 
 .button {
-  background-color: $win98-button-face;
-  // border-top: 2px solid $win98-button-highlight; // Old direct border style
-  // border-left: 2px solid $win98-button-highlight;
-  // border-right: 2px solid $win98-button-shadow;
-  // border-bottom: 2px solid $win98-button-shadow;
-  @include win98-border($win98-border-light, $win98-border-dark, 2px); // Using 2px width as per original
-  // For a more standard button look, use the button mixin which defaults to 1px border:
-  // @include win98-button-border(false);
+    background-color: $win98-button-face;
+    @include win98-border($win98-border-light, $win98-border-dark);
+
+    &:active {
+      @include win98-border($win98-border-light, $win98-border-dark, true); // Set $inset to true
+    }
+  
   padding: $spacing-sm $spacing-md; // Use spacing variables
   font-family: $win98-font-primary;
   font-size: $win98-font-size-normal;
@@ -17,18 +18,6 @@
   @include no-select;
   text-align: center;
 
-  &:active,
-  &.active { // Added .active for consistency
-    // border-top: 2px solid $win98-button-shadow; // Old direct border style
-    // border-left: 2px solid $win98-button-shadow;
-    // border-right: 2px solid $win98-button-highlight;
-    // border-bottom: 2px solid $win98-button-highlight;
-    @include win98-border($win98-border-dark, $win98-border-light, 2px); // Using 2px width
-    // For a more standard button look, use the button mixin:
-    // @include win98-button-border(true);
-    // Optional: slightly move text for pressed effect
-    // padding: ($spacing-sm + 1px) ($spacing-md - 1px) ($spacing-sm - 1px) ($spacing-md + 1px);
-  }
 
   // Modifier for primary action buttons (e.g., OK in a dialog)
   &.primary {

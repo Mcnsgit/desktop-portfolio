@@ -22,7 +22,7 @@
 // // };
 // const ComputerModel = ({ isMobile }: { isMobile: boolean }) => {
   
-//   const computer =  useGLTF("./90s_desktop_pc_-_psx/scene.gltf");
+//   const computer =  useGLTF("./90s_desktop_pc_-_psx/scene-draco.gltf");
 
 //   const router = useRouter();
 //   const { playSound } = useSounds();

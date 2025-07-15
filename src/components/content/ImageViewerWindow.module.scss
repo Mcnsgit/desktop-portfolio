@@ -1,0 +1,126 @@
+@use '../../styles/_variables' as *;
+@use 'sass:color';
+
+// styles/ImageViewerWindow.module.scss
+.imageViewerWindow {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: $win98-bg;
+  overflow: hidden;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  font-family: "MS Sans Serif", Arial, sans-serif;
+  font-size: 14px;
+  color: $win98-border-dark;
+  font-style: italic;
+}
+
+.error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  color: $win98-border-dark;
+  font-family: "MS Sans Serif", Arial, sans-serif;
+  font-size: 14px;
+  font-style: italic;
+}
+
+.noImage {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  color: #808080;
+  font-family: "MS Sans Serif", Arial, sans-serif;
+  font-size: 14px;
+}
+
+.toolbar {
+  padding: $spacing-xs;
+  border-bottom: 1px solid $win98-border-dark;
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+}
+
+.toolbarButton {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  padding: $spacing-xs;
+  color: $win98-text-dark;
+
+  &:hover {
+    background-color: color.scale($win98-bg, $lightness: -10%);
+  }
+
+  &:disabled {
+    color: $win98-border-dark;
+    cursor: not-allowed;
+  }
+
+  svg {
+    display: block; // Prevents extra space below SVG
+  }
+}
+
+.imageContainer {
+  flex: 1;
+  overflow: auto; // Allows panning if image is larger
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: $win98-content-bg; // Darker bg for contrast? Or keep $win98-bg?
+  padding: $spacing-md;
+  position: relative;
+  @include win98-scrollbar;
+}
+
+.image {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  cursor: grab;
+
+  &.grabbing {
+    cursor: grabbing;
+  }
+}
+
+.statusBar {
+  padding: $spacing-xs $spacing-sm;
+  border-top: 1px solid $win98-border-dark;
+  font-family: $win98-font-primary;
+  font-size: $win98-font-size-small;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: $win98-text-dark;
+  height: $win98-title-bar-height - 4px; // Standard status bar height
+}
+
+.zoomInfo,
+.dimensionsInfo {
+  @include win98-border-inset($win98-border-light, $win98-border-dark, 1px);
+  padding: 0 $spacing-sm;
+  margin-left: $spacing-sm;
+}
+
+.fileName {
+  flex: 1;
+}
+
+.zoomLevel {
+  text-align: right;
+}

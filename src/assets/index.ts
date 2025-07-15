@@ -62,3 +62,4 @@ export {
   tripguide,
   logo1
 };
+

@@ -9,7 +9,7 @@ import "react-vertical-timeline-component/style.min.css"
 
 import { styles as globalStyles } from './styles';
 import localStyles from './Experience.module.scss';
-import { experiences } from '@/data';
+import { experiences } from '@/config/index';
 import { SectionWrapper } from '@/hoc';
 import { textVariant } from '@/utils/motion';
 
@@ -73,7 +73,7 @@ const Experience = () => {
           What I have done so far
         </p>
         <h2 className={`${globalStyles.sectionHeadText} ${localStyles.sectionHeadText}`}>
-          Work Experience.
+          Work Experience
         </h2>
       </motion.div>
 

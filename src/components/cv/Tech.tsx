@@ -3,7 +3,7 @@
 import React, { Suspense, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SectionWrapper } from "../../hoc";
-import { technologies, technicalSkills } from "../../data/index";
+import { technologies, technicalSkills } from "../../config/index";
 import { fadeIn, textVariant } from "../../utils/motion";
 import {
   CodeBlock,
@@ -87,6 +87,7 @@ const SkillPill: React.FC<SkillPillProps> = ({ skill, index, category }) => {
 };
 
 interface SkillCategoryProps {
+    index: number;
     title: string;
     skills: string[];
     icon?: React.ReactNode;
@@ -226,6 +227,7 @@ const Tech = () => {
         <div className={localStyles.skillsGrid}>
           {(Object.keys(technicalSkills) as Array<CategoryKey>).map((key, index) => (
             <SkillCategory
+              index={index}
               key={key}
               title={key.charAt(0).toUpperCase() + key.slice(1)} // Capitalize title
               skills={technicalSkills[key]}

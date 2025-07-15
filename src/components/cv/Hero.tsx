@@ -6,6 +6,9 @@ import localStyles from "./Hero.module.scss"; // Import the SCSS module
 // import dynamic from 'next/dynamic';
 // import PortfolioComputer from "../3d/PortfolioComputer"; // Reverted to dynamic import below
 import ComputersCanvas from "../3d/canvas/Computers";
+// import PerformanceOptimizer from "../3d/PerformanceOptimizer";
+import ErrorBoundary from "@/components/error/ErrorBoundary";
+import StarsCanvas from "../3d/canvas/Stars";
 // Dynamically import client-side heavy components
 // const PortfolioComputer = dynamic(() => import("../3d/PortfolioComputer"), {
   // ssr: false,
@@ -18,9 +21,21 @@ import ComputersCanvas from "../3d/canvas/Computers";
   // loading: () => <p>Loading Stars...</p>,
 // });
 
-const Hero = () => {
+interface HeroProps {
+  onComputerClick: () => void;
+}
+
+const Hero = ({ onComputerClick }: HeroProps) => {
+  console.log("Hero component received onComputerClick:", onComputerClick);
+
   return (
     <section className={localStyles.heroSection}>
+      <ErrorBoundary
+      componentName="Hero"
+      fallback={<div className={localStyles.errorFallback}>Error loading Hero</div>}>
+
+      <StarsCanvas /> 
+
 
       <div
         className={`${localStyles.heroContent} ${globalStyles.paddingX}`}
@@ -40,10 +55,7 @@ const Hero = () => {
           </p>
         </div>
       </div>
-
-              <ComputersCanvas/>
-
-
+      <ComputersCanvas onComputerClick={onComputerClick} />
       <div className={localStyles.scrollIndicatorContainer}>
         <a href='#computer' className={localStyles.scrollIndicatorLink}>
           <div className={localStyles.scrollIndicatorOuter}>
@@ -61,9 +73,7 @@ const Hero = () => {
           </div>
         </a>
       </div>
-      <div style={{ zIndex: 1, position: 'absolute', width: '100%', height: '100%', top: 0, left: 0 }}>
-
-      </div>
+      </ErrorBoundary>
     </section>
   );
 };

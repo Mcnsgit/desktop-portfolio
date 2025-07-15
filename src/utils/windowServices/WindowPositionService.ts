@@ -5,7 +5,7 @@ import {
   MIN_VISIBLE_WINDOW_EDGE,
   WINDOW_SIZES,
   DEFAULT_WINDOW_POSITION,
-} from "../constants";
+} from "../constants/windowConstants";
 
 export interface Position {
   x: number;

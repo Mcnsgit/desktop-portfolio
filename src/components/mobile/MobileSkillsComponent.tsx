@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Image from "next/image";
-import { technologies, technicalSkills } from "../../data/index";
+import { technologies, technicalSkills } from "../../config/index";
 import styles from "../styles/MobileSkills.module.scss";
 import {
   CodeBlock,

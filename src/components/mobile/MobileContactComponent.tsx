@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { contact } from "../../data/index";
+import { contact } from "../../config/index";
 import styles from "../styles/MobileContact.module.scss";
 import {
   EnvelopeSimple,

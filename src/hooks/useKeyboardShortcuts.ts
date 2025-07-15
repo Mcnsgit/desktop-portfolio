@@ -1,66 +1,48 @@
 // hooks/useKeyboardShortcuts.ts
-import { useEffect, useRef } from "react";
-import { Desktop as DesktopModel } from "../model/Desktop";
+import { useEffect } from 'react';
+//  import {Window} from '../types ';
 
 interface UseKeyboardShortcutsProps {
-  desktopModel: DesktopModel | null;
+
   onToggleStartMenu: () => void;
-  forceUpdate: () => void;
-}
+  }
 
 export const useKeyboardShortcuts = ({ 
-  desktopModel, 
   onToggleStartMenu, 
-  forceUpdate 
 }: UseKeyboardShortcutsProps) => {
-  const desktopModelRef = useRef(desktopModel);
-  useEffect(() => {
-    desktopModelRef.current = desktopModel;
-  }, [desktopModel]);
-
-
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const currentDesktopModel = desktopModelRef.current;
-      if (!currentDesktopModel) return;
 
-      // Alt+Tab to cycle windows
-      if (e.altKey && e.key === "Tab") {
-        e.preventDefault();
-
-        const windows = currentDesktopModel.windowManager.getWindowsForUI();
-        if (windows.length > 0) {
-          const focusedWindow = currentDesktopModel.windowManager.getFocusedWindow();
-          const activeWindowIndex = windows.findIndex(w => w.id === focusedWindow?.id);
-          const nextIndex = (activeWindowIndex + 1) % windows.length;
-          
-          currentDesktopModel.windowManager.setFocus(windows[nextIndex].id);
-          forceUpdate();
+        // Handle window-related shortcuts
+        if (e.key === 'Escape') {
+            // const focusedWindow = desktopModel.windowManager.getFocusedWindow();
+            // if (focusedWindow) {
+            //     // desktopModel.windowManager.closeWindow(focusedWindow.id);
+            // }
         }
-      }
-
-      // Alt+F4 to close active window
-      if (e.altKey && e.key === "F4") {
-        e.preventDefault();
-
-        const focusedWindow = currentDesktopModel.windowManager.getFocusedWindow();
-        if (focusedWindow) {
-          currentDesktopModel.windowManager.closeWindow(focusedWindow.id);
-          forceUpdate();
+        
+        // Handle start menu toggle
+        if (e.key === 'Meta' || e.key === 'OS') {
+            e.preventDefault();
+            onToggleStartMenu();
         }
-      }
 
-      // Windows key or Ctrl+Esc to toggle start menu
-      if (e.key === "Meta" || (e.ctrlKey && e.key === "Escape")) {
-        e.preventDefault();
-        onToggleStartMenu();
-      }
+        // The 'Delete' key functionality is handled inside Desktop.tsx's own keydown listener
+        // to have access to the `selectedItems` state.
+
+        // Refresh action
+        if (e.key === 'F5') {
+            e.preventDefault();
+            // The model itself doesn't have a "refresh" concept, this is a UI action.
+            // If we still want to support it, we'd call `notifyDesktopUpdate()` directly.
+            // For now, we'll assume a browser refresh is sufficient.
+        }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [onToggleStartMenu, forceUpdate]);
-}
+  }, [onToggleStartMenu]);
+};

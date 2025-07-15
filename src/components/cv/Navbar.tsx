@@ -6,8 +6,8 @@ import { motion } from 'framer-motion';
 // Import your styles
 import localStyles from '../styles/Navbar.module.scss';
 import { styles as globalStyles } from "../cv/styles";
-import { navLinks } from '../../data/index';
-import { logo } from '../../../public/assets';
+import { navLinks } from '../../config/index';
+import  logo from '../../../public/assets/logos/tech-logos/logo.png';
 
 // You'll need to import these or create equivalents
 // import { logo, menuIcon, closeIcon } from '../assets';

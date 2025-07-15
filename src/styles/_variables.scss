@@ -56,11 +56,12 @@ $win98-content-bg: #c0c0c0; // Content background color
 $win98-title-active-bg: #000080; // Active title bar background
 $win98-title-inactive-bg: #808080; // Inactive title bar background
 $win98-title-text-color: #ffffff; // Title bar text color
-
+$win98-gray: #808080;
 $win98-button-face: #c0c0c0; // Button background color
 $win98-button-highlight: #ffffff; // Button highlight color
 $win98-button-shadow: #808080; // Button shadow color
-
+$win98-white: #ffffff;
+$win98-black: #000000;
 $win98-text-dark: #000000; // Text on light backgrounds
 $win98-text-light: #ffffff; // Text on dark backgrounds
 $win98-content-bg: #ffffff; // Content background color (e.g., text editor)
@@ -246,3 +247,17 @@ $win98-input-bg: #ffffff;
 $win98-text-disabled: #808080;
 $win98-selected-bg: #000080;
 $win98-selected-text: #ffffff;
+
+@mixin beveled-border {
+  border: 2px solid;
+  border-radius: 4px;
+  border-color: $win98-border-light $win98-border-dark $win98-border-dark $win98-border-light;
+  box-shadow: 1px 1px 0px 1px $win98-border-light;
+}
+
+@mixin beveled-border-inset {
+  border: 2px solid;
+  border-radius: 4px;
+  border-color: $win98-border-active-dark $win98-border-active-light $win98-border-active-light $win98-border-active-dark;
+  box-shadow: inset 1px 1px 0px 1px $win98-border-active-light;
+}
