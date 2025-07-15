@@ -10,7 +10,8 @@
     "start": "pnpm next start",
     "lint": "pnpm next lint",
     "dev:css": "postcss ./src/scss/style.scss -o ./dist/style.css --watch",
-    "analyze": "cross-env ANALYZE=true next build"
+    "analyze": "cross-env ANALYZE=true next build",
+    "screenshot": "node scripts/screenshot.js"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
