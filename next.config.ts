@@ -15,7 +15,7 @@ const nextConfig: NextConfig = {
 
   // Fix image loading issues - particularly for model textures
   images: {
-
+    unoptimized: true,
   },
   webpack(config) {
     config.module.rules.forEach((rule: { oneOf: never[] }) => {

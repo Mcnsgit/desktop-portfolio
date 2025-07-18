@@ -38,6 +38,8 @@ export enum FileType {
     name: string;
     icon: string;
     type: FileType;
+    x: number;
+    y: number;
     data: {
         url?: string;
         content?: string | React.ReactNode;

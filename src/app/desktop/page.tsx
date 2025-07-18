@@ -4,18 +4,31 @@ import Desktop from "@/components/desktop/Desktop";
 import MobileView from "@/components/mobile/MobileView";
 import Link from "next/link";
 import { isMobile as isMobileDetect } from "react-device-detect";
-import styles from './desktop.module.scss'; 
+import styles from './desktop.module.scss';
 import LoadingScreen from "@/components/3d/LoadingScreen";
 import { WindowProps } from "@/types/window";
 import { DesktopFile } from "@/types/fs";
-import { desktopFiles } from "@/config/data";
+import { desktopFiles as initialDesktopFiles } from "@/config/data";
 import generateWindowContent from "@/utils/windowContentGenerator";
 import { useSounds } from "@/hooks/useSounds";
+import ContextMenu, { ContextMenuItem } from "@/components/desktop/ContextMenu";
+
+
+const backgroundImages = [
+  '/assets/images/dos-backgrounds/retro_background_1.jpeg',
+  '/assets/images/dos-backgrounds/retro_background_2.jpeg',
+  '/assets/images/dos-backgrounds/retro_background_3.jpeg',
+];
+
+const getRandomBackground = () => backgroundImages[Math.floor(Math.random() * backgroundImages.length)];
 
 const DesktopPageContent = () => {
   const [isClient, setIsClient] = useState(false);
   const { playSound } = useSounds();
   const [windows, setWindows] = useState<WindowProps[]>([]);
+  const [desktopFiles, setDesktopFiles] = useState<DesktopFile[]>(initialDesktopFiles);
+  const [contextMenu, setContextMenu] = useState<{ x: number, y: number, items: ContextMenuItem[] } | null>(null);
+  const [background, setBackground] = useState(getRandomBackground);
   const isMobile = isClient && isMobileDetect;
 
   useEffect(() => {
@@ -59,8 +72,44 @@ const DesktopPageContent = () => {
     setWindows(prev => [...prev.map(w => ({ ...w, isActive: false })), newWindow]);
   }, [windows, isMobile, playSound, setActiveWindow, updateWindowState]);
 
+  const handleTaskbarItemClick = useCallback((id: string) => {
+    const windowToFocus = windows.find(win => win.id === id);
+    if (windowToFocus?.isMinimized) {
+      updateWindowState(id, { isMinimized: false, isActive: true });
+    } else {
+      setActiveWindow(id);
+    }
+  }, [windows, updateWindowState, setActiveWindow]);
+
+  const handleIconPositionChange = (id: string, x: number, y: number) => {
+    setDesktopFiles(files => {
+      const file = files.find(f => f.id === id);
+      if (file) {
+        file.x = x;
+        file.y = y;
+      }
+      return [...files];
+    });
+  };
+
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      items: [
+        { label: "Refresh", action: () => {} },
+        { label: "Change Background", action: () => setBackground(getRandomBackground()) },
+      ],
+    });
+  }, []);
+
+  const closeContextMenu = useCallback(() => {
+    setContextMenu(null);
+  }, []);
+
   if (!isClient) {
-    return <LoadingScreen show={true} />; 
+    return <LoadingScreen show={true} />;
   }
 
   return (
@@ -73,13 +122,30 @@ const DesktopPageContent = () => {
           Back to 3D View
         </button>
       </Link>
-      <div className={styles.contentWrapper}>
-        {isMobile ? <MobileView 
+      <div className={styles.contentWrapper} onContextMenu={handleContextMenu}>
+        {isMobile ? <MobileView
+          windows={windows}
+          desktopFiles={desktopFiles}
+          onOpenWindow={openWindow}
+          onCloseWindow={closeWindow}
+        /> : <Desktop
             windows={windows}
             desktopFiles={desktopFiles}
             onOpenWindow={openWindow}
             onCloseWindow={closeWindow}
-        /> : <Desktop />}
+            onUpdateWindowState={updateWindowState}
+            onSetActiveWindow={setActiveWindow}
+            onTaskbarItemClick={handleTaskbarItemClick}
+            onIconPositionChange={handleIconPositionChange}
+            background={background}
+        />}
+        {contextMenu && (
+          <ContextMenu
+            position={{ x: contextMenu.x, y: contextMenu.y }}
+            items={contextMenu.items}
+            onClose={closeContextMenu}
+          />
+        )}
       </div>
     </div>
   );
