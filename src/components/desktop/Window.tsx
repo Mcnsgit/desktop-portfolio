@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import styles from './Window.module.scss';
 import { WindowProps } from '../../types/window';
 import Draggable from 'react-draggable';
@@ -29,6 +29,7 @@ const Window = ({
     onFocus,
     onDragStop,
 }: InteractiveWindowProps) => {
+    const nodeRef = useRef<HTMLDivElement>(null);
     if (isMinimized) {
         return null;
     }
@@ -42,13 +43,15 @@ const Window = ({
 
     return (
         <Draggable
+        nodeRef={nodeRef}
         handle={`.title-bar-handle-${id}`}
         position={{ x, y }}
         onStop={(_e, data) => onDragStop(data.x, data.y)}    
         onStart={onFocus}
         disabled={isMaximized}
         >
-            <div 
+            <div
+            ref={nodeRef} 
             className={windowClasses}
             onMouseDown={onFocus}
             style={{ 
@@ -71,5 +74,5 @@ const Window = ({
     );
 };
 
-export default Window;
+export default React.memo(Window);
 

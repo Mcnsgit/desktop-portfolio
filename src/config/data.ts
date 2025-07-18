@@ -30,6 +30,8 @@ export const portfolioProjects: DesktopFile[] = [
     name: "Todo List App",
     icon: "/assets/icons/notepad_file-0.png", // Corrected path
     type: FileType.PROJECT,
+    x: 20,
+    y: 20,
     data: {
       content: "A simple todo list application built with React",
       technologies: ["React", "JavaScript", "CSS Modules"],
@@ -45,6 +47,8 @@ export const portfolioProjects: DesktopFile[] = [
     name: "Weather App",
     icon: "/assets/icons/world-5.png", // Corrected path
     type: FileType.PROJECT,
+    x: 20,
+    y: 120,
     data: {
       content: "Fetches and displays weather data using OpenWeather API",
       technologies: ["React", "Axios", "OpenWeather API"],
@@ -57,6 +61,8 @@ export const portfolioProjects: DesktopFile[] = [
     name: "E-commerce Platform",
     icon: "/assets/icons/shopping_cart-1.png",
     type: FileType.PROJECT,
+    x: 20,
+    y: 220,
     data: {
       content:
         "Managed full lifecycle of an e-commerce platform for McNasty Studios.",
@@ -70,6 +76,8 @@ export const portfolioProjects: DesktopFile[] = [
     name: "Non-Profit Website Overhaul",
     icon: "/assets/icons/internet_connection_wiz-4.png", // Corrected path
     type: FileType.PROJECT,
+    x: 20,
+    y: 320,
     data: {
       content:
         "Led redesign of a mental health organization's website, focusing on UX and donations.",
@@ -84,6 +92,8 @@ export const portfolioProjects: DesktopFile[] = [
     name: "Digital Marketing Campaigns",
     icon: "/assets/icons/media_player_file-0.png", // Corrected path
     type: FileType.PROJECT,
+    x: 120,
+    y: 20,
     data: {
       content:
         "Executed digital marketing strategies, enhancing brand presence and conversion rates.",
@@ -97,6 +107,8 @@ export const portfolioProjects: DesktopFile[] = [
     name: "Python Text-Based Game",
     icon: "/assets/icons/joystick-5.png", // Corrected path
     type: FileType.PROJECT,
+    x: 120,
+    y: 120,
     data: {
       content:
         "Developed an interactive text-based adventure game using Python.",
@@ -110,6 +122,8 @@ export const portfolioProjects: DesktopFile[] = [
     name: "Non-Profit Video Campaign",
     icon: "/assets/icons/video_mk-5.png", // Corrected path
     type: FileType.PROJECT,
+    x: 120,
+    y: 220,
     data: {
       content:
         "Directed fundraising video campaign for mental health awareness.",
@@ -127,6 +141,8 @@ export const programFiles: DesktopFile[] = [
     name: "Conway's Game",
     icon: "/assets/icons/joystick-5.png",
     type: FileType.COMPONENT,
+    x: 220,
+    y: 20,
     data: { component: GameOfLife },
   },
   {
@@ -134,6 +150,8 @@ export const programFiles: DesktopFile[] = [
     name: "Internet Browser",
     icon: "/assets/icons/world-5.png",
     type: FileType.IFRAME,
+    x: 220,
+    y: 120,
     data: { url: "https://www.google.com/webhp?igu=1" },
   },
 ];
@@ -144,6 +162,8 @@ export const desktopFiles: DesktopFile[] = [
     name: "About Me",
     icon: "/assets/icons/address_book_user.png",
     type: FileType.ABOUT,
+    x: 320,
+    y: 20,
     data: {},
   },
   {
@@ -151,13 +171,17 @@ export const desktopFiles: DesktopFile[] = [
     name: "Contact",
     icon: "/assets/icons/msn3-4.png",
     type: FileType.CONTACT,
+    x: 320,
+    y: 120,
     data: {},
   },
   {
     id: "education",
     name: "Education",
-    icon: "/assets/icons/Book_pencil-1.png",
+    icon: "/assets/icons/certificate_seal.png",
     type: FileType.EDUCATION,
+    x: 320,
+    y: 220,
     data: {},
   },
   {
@@ -165,13 +189,17 @@ export const desktopFiles: DesktopFile[] = [
     name: "Settings",
     icon: "/assets/icons/settings_gear-0.png",
     type: FileType.SETTINGS,
+    x: 420,
+    y: 20,
     data: {},
   },
   {
     id: "cv",
     name: "CV.doc",
-    icon: "/assets/icons/document-1.png",
+    icon: "/assets/icons/file_lines-0.png",
     type: FileType.COMPONENT,
+    x: 420,
+    y: 120,
     data: { component: CV },
   },
   {
@@ -179,6 +207,8 @@ export const desktopFiles: DesktopFile[] = [
     name: "README.txt",
     icon: "/assets/icons/notepad_file-0.png",
     type: FileType.TEXT,
+    x: 420,
+    y: 220,
     data: {
       content:
         "This is a virtual Windows 98 desktop built with Next.js and TypeScript!",
@@ -189,6 +219,8 @@ export const desktopFiles: DesktopFile[] = [
     name: "My Projects",
     icon: "/assets/icons/directory_closed-1.png",
     type: FileType.FOLDER,
+    x: 520,
+    y: 20,
     data: {
       children: portfolioProjects,
     },
@@ -201,22 +233,28 @@ export const StartMenuItems: DesktopFile[] = [
   {
     id: "programs",
     name: "Programs",
-    icon: "/assets/icons/directory_program_group-4.png",
+    icon: "/assets/icons/W98_Directory_Program_Group.png",
     type: FileType.PROGRAM,
+    x: 0,
+    y: 0,
     data: { children: programFiles },
   },
   {
     id: "documents",
     name: "Documents",
-    icon: "/assets/icons/directory_open_file_mydocs-5.png",
+    icon: "/assets/icons/Directory-Open-File-Mydocs-Cool-3.png",
     type: FileType.FOLDER,
+    x: 0,
+    y: 0,
     data: {
       children: [
         {
           id: "cv",
           name: "CV.doc",
-          icon: "/assets/icons/document-1.png",
+          icon: "/assets/icons/file_lines-0.png",
           type: FileType.COMPONENT,
+          x: 0,
+          y: 0,
           data: { component: CV },
         },
         {
@@ -224,6 +262,8 @@ export const StartMenuItems: DesktopFile[] = [
           name: "README.txt",
           icon: "/assets/icons/notepad_file-0.png",
           type: FileType.TEXT,
+          x: 0,
+          y: 0,
           data: {
             content:
               "This is a virtual Windows 98 desktop built with Next.js and TypeScript!",
@@ -237,6 +277,8 @@ export const StartMenuItems: DesktopFile[] = [
     name: "Projects",
     icon: "/assets/icons/W98_Directory_Program_Group.png",
     type: FileType.FOLDER,
+    x: 0,
+    y: 0,
     data: { children: portfolioProjects },
   },
   {
@@ -244,6 +286,8 @@ export const StartMenuItems: DesktopFile[] = [
     name: "separator",
     icon: "",
     type: FileType.SEPARATOR,
+    x: 0,
+    y: 0,
     data: { separator: true },
   },
   {
@@ -251,6 +295,8 @@ export const StartMenuItems: DesktopFile[] = [
     name: "Settings",
     icon: "/assets/icons/settings_gear-0.png",
     type: FileType.SETTINGS,
+    x: 0,
+    y: 0,
     data: {},
   },
 ];

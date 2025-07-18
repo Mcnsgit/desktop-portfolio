@@ -8,7 +8,7 @@
   height: 100%;
   width: 100%;
   overflow: hidden; // Prevent scrollbars on the page itself if <Desktop/> handles scrolling
-  background-color: $win98-bg; // Default desktop background, can be overridden by <Desktop> component if it has its own bg image/color
+
 }
 
 .backButton {
@@ -30,8 +30,7 @@
   }
 }
 
-// This class was referred to as .desktop-container in the JSX.
-// It seems to wrap the <Desktop /> or <MobileView /> components.
+
 .contentWrapper {
     height: 100%; // Ensure it fills the .desktopPageContainer
     position: relative; // For positioning children like the backButton if it were inside this

@@ -2,8 +2,9 @@
 
 .toolbarOuter {
   box-sizing: 'border-box';
-  position: absolute;
+  position: fixed;
   bottom: 0;
+  left: 0;
   width: 100%;
   height: $win98-taskbar-height;
   background: $win98-bg;

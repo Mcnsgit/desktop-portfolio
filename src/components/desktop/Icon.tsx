@@ -1,29 +1,57 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import styles from './Icon.module.scss';
 import Image from 'next/image';
 
 interface IconProps {
+    id: string;
     iconSrc: string;
     text: string;
     onDoubleClick: () => void;
+    onPositionChange: (id: string, x: number, y: number) => void;
+    x: number;
+    y: number;
 }
 
-const Icon = ({ iconSrc, text, onDoubleClick }: IconProps) => {
+const Icon = ({ id, iconSrc, text, onDoubleClick, onPositionChange, x, y }: IconProps) => {
     const [isSelected, setIsSelected] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
+    const [position, setPosition] = useState({ x, y });
+    const dragStart = useRef({ x: 0, y: 0 });
+
+    const handleMouseDown = (e: React.MouseEvent) => {
+        setIsDragging(true);
+        dragStart.current = { x: e.clientX, y: e.clientY };
+    };
+
+    const handleMouseMove = (e: React.MouseEvent) => {
+        if (!isDragging) return;
+        const newX = position.x + (e.clientX - dragStart.current.x);
+        const newY = position.y + (e.clientY - dragStart.current.y);
+        setPosition({ x: newX, y: newY });
+        dragStart.current = { x: e.clientX, y: e.clientY };
+    };
+
+    const handleMouseUp = () => {
+        setIsDragging(false);
+        onPositionChange(id, position.x, position.y);
+    };
 
     return (
         <div
             className={`${styles.icon} ${isSelected ? styles.selected : ''}`}
-            onClick={() => setIsSelected(true)}
-            onBlur={() => setIsSelected(false)} // Deselect when clicking away
-            onDoubleClick={onDoubleClick} // Use the passed handler
-            tabIndex={0} // Make it focusable
+            style={{ left: position.x, top: position.y }}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onDoubleClick={onDoubleClick}
+            tabIndex={0}
         >
-            <Image src={iconSrc} alt={text} width={32} height={32} />
-            <span>{text}</span>
+            <div className={styles.iconImageContainer}>
+                <Image src={iconSrc} alt={text} width={32} height={32} />
+            </div>
+            <span className={styles.iconLabel}>{text}</span>
         </div>
     );
 };
-
 
 export default Icon;

@@ -67,16 +67,6 @@ a:hover {
   /* Other base window styles (background, border) go here or in Window.module.scss */
 }
 
-.desktop {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: var(--taskbar-height);
-  z-index: var(--z-index-desktop);
-  overflow: hidden;
-}
-
 .taskbar {
   position: fixed;
   bottom: 0;
