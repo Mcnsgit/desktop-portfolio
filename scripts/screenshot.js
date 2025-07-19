@@ -20,7 +20,8 @@ const screenshotPath = path.join(__dirname, '..', 'screenshots');
     await page.setViewport({ width: 1920, height: 1080 });
     console.log('Viewport set.');
 
-    const url = 'http://localhost:3000';
+    const url =
+      "http://localhost:3000" || `https://desktop-portfolio-pi.vercel.app/`;
     console.log(`Navigating to ${url}...`);
     await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
     console.log('Page loaded.');
