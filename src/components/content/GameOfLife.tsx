@@ -13,7 +13,7 @@ const GameOfLife = () => {
 
   return (
     <div>
-      <h3>Conway's Game of Life</h3>
+      <h3>Conway&apos;s Game of Life</h3>
       <p>This is a placeholder for a game component.</p>
       <p>Generation: {generation}</p>
       <button onClick={() => setGeneration(0)}>Reset</button>

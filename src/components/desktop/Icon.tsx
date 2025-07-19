@@ -36,6 +36,10 @@ const Icon = ({ id, iconSrc, text, onDoubleClick, onPositionChange, x, y }: Icon
         onPositionChange(id, position.x, position.y);
     };
 
+    const handleClick = () => {
+        setIsSelected((prev) => !prev);
+    };
+
     return (
         <div
             className={`${styles.icon} ${isSelected ? styles.selected : ''}`}
@@ -44,6 +48,7 @@ const Icon = ({ id, iconSrc, text, onDoubleClick, onPositionChange, x, y }: Icon
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onDoubleClick={onDoubleClick}
+            onClick={handleClick}
             tabIndex={0}
         >
             <div className={styles.iconImageContainer}>

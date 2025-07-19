@@ -34,7 +34,9 @@ export type Win98ColorName = keyof typeof win98Colors;
 export type Win98Color = typeof win98Colors[Win98ColorName];
 
 
-export default {
+const colorConstants = {
     colors,
     win98Colors,
 };
+
+export default colorConstants;

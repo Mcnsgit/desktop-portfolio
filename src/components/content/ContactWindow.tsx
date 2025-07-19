@@ -1,6 +1,6 @@
 // src/components/windows/WindowTypes/ContactWindow.tsx
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 import { fadeIn } from '../../utils/motion';
 import { contact } from '../../config/data';
 import Image from 'next/image';
@@ -54,7 +54,7 @@ const ContactWindow: React.FC = () => {
         <div className={styles.contactWindow}>
             <div className={styles.windowContent}>
                 <motion.div
-                    variants={fadeIn('right', 'tween', 0.1, 1)}
+                    variants={fadeIn('right', 'tween', 0.1, 1) as Variants}
                     className={styles.contactInfo}
                 >
                     <h2 className={styles.heading}>Contact Information</h2>
@@ -136,7 +136,7 @@ const ContactWindow: React.FC = () => {
                 </motion.div>
 
                 <motion.div
-                    variants={fadeIn('left', 'tween', 0.2, 1)}
+                    variants={fadeIn('left', 'tween', 0.2, 1) as Variants}
                     className={styles.contactForm}
                 >
                     <h2 className={styles.heading}>Send a Message</h2>

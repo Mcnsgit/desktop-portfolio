@@ -4,7 +4,7 @@ import styles from './Desktop.module.scss';
 import Window from "./Window";
 import { WindowProps } from "../../types/window";
 import { DesktopFile } from "../../types/fs";
-import { desktopFiles } from "../../config/data";
+// import { desktopFiles } from "../../config/data";
 import Taskbar from "./Taskbar";
 import Icon from "./Icon";
 

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { VerticalTimeline, VerticalTimelineElement} from 'react-vertical-timeline-component';
-import { motion} from "framer-motion";
+import { motion, Variants} from "framer-motion";
 import Image,{ StaticImageData } from "next/image";
 
 import "react-vertical-timeline-component/style.min.css"
@@ -68,7 +68,7 @@ const ExperienceCard: React.FC<{experience: Experience}> = ({experience}) => {
 const Experience = () => {
   return (
     <>
-    <motion.div variants={textVariant(0.1)}>
+    <motion.div variants={textVariant(0.1) as Variants} className={localStyles.experienceHeader}>
         <p className={`${globalStyles.sectionSubText} ${localStyles.sectionSubText}`}>
           What I have done so far
         </p>
