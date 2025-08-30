@@ -36,14 +36,18 @@ const Icon = ({ id, iconSrc, text, onDoubleClick, onPositionChange, x, y }: Icon
         onPositionChange(id, position.x, position.y);
     };
 
-    const handleClick = () => {
-        setIsSelected((prev) => !prev);
+
+    const handleClickSelect = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setIsSelected(!isSelected);
+    
     };
 
     return (
         <div
             className={`${styles.icon} ${isSelected ? styles.selected : ''}`}
             style={{ left: position.x, top: position.y }}
+            onClick={handleClickSelect}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}

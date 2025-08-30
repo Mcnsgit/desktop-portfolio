@@ -31,6 +31,9 @@ export enum FileType {
     PORTFOLIO = 'portfolio',
     SEPARATOR = 'separator',
     FOLDER = 'folder',    
+    TODO = 'todo',
+    WEATHER = 'weather',
+    WEB_VIDEO = 'web_video',
 }
 
  export interface DesktopFile {
