@@ -8,7 +8,7 @@ import textedit from'./notepad_file-0.png';
 import fileexplorer from'./computer_explorer-3.png'; 
 import maximize from'./maximize-24px.png';
 import minimize from'./minimize-24px.png';
-import volumeOn from'./Loudspeaker-on.png';
+import volumeOn from'./loudspeaker-on.png';
 import volumeOff from'./loudspeaker-Muted.png';
 import close from'./close-24px.png';
 import windowGameIcon from'./joystick-5.png';

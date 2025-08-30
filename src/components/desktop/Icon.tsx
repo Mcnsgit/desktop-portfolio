@@ -36,9 +36,11 @@ const Icon = ({ id, iconSrc, text, onDoubleClick, onPositionChange, x, y }: Icon
         onPositionChange(id, position.x, position.y);
     };
 
+
     const handleClickSelect = (e: React.MouseEvent) => {
         e.stopPropagation();
         setIsSelected(!isSelected);
+    
     };
 
     return (
@@ -50,6 +52,7 @@ const Icon = ({ id, iconSrc, text, onDoubleClick, onPositionChange, x, y }: Icon
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onDoubleClick={onDoubleClick}
+            onClick={handleClick}
             tabIndex={0}
         >
             <div className={styles.iconImageContainer}>
