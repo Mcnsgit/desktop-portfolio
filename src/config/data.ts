@@ -25,37 +25,37 @@ const videoCampaignImg: StaticImageData | string = "/placeholder.jpg";
 
 export const portfolioProjects: DesktopFile[] = [
   // --- Merge data from data/projects.ts ---
-  {
-    id: "todo-list",
-    name: "Todo List App",
-    icon: "/assets/icons/notepad_file-0.png", // Corrected path
-    type: FileType.PROJECT,
-    x: 20,
-    y: 20,
-    data: {
-      content: "A simple todo list application built with React",
-      technologies: ["React", "JavaScript", "CSS Modules"],
-      repoUrl: "https://github.com/Mcnsgit/desktop-portfolio",
-      image: placeholderImg, // Use placeholder or actual image
-      demoUrl: "https://miguelcardiga.com",
-      url: "https://miguelcardiga.com",
-    },
-  },
-  {
-    id: "weather-app",
+  // {
+  //   id: "todo-list",
+  //   name: "Todo List App",
+  //   icon: "/assets/icons/notepad_file-0.png", // Corrected path
+  //   type: FileType.PROJECT,
+  //   x: 20,
+  //   y: 20,
+  //   data: {
+  //     content: "A simple todo list application built with React",
+  //     technologies: ["React", "JavaScript", "CSS Modules"],
+  //     repoUrl: "https://github.com/Mcnsgit/desktop-portfolio",
+  //     image: placeholderImg, // Use placeholder or actual image
+  //     demoUrl: "https://miguelcardiga.com",
+  //     url: "https://miguelcardiga.com",
+  //   },
+  // },
+  // {
+  //   id: "weather-app",
 
-    name: "Weather App",
-    icon: "/assets/icons/world-5.png", // Corrected path
-    type: FileType.PROJECT,
-    x: 20,
-    y: 120,
-    data: {
-      content: "Fetches and displays weather data using OpenWeather API",
-      technologies: ["React", "Axios", "OpenWeather API"],
-      repoUrl: "https://github.com/Mcnsgit/desktop-portfolio",
-      image: placeholderImg,
-    },
-  },
+  //   name: "Weather App",
+  //   icon: "/assets/icons/world-5.png", // Corrected path
+  //   type: FileType.PROJECT,
+  //   x: 20,
+  //   y: 120,
+  //   data: {
+  //     content: "Fetches and displays weather data using OpenWeather API",
+  //     technologies: ["React", "Axios", "OpenWeather API"],
+  //     repoUrl: "https://github.com/Mcnsgit/desktop-portfolio",
+  //     image: placeholderImg,
+  //   },
+  // },
   {
     id: "ecommerce-platform",
     name: "E-commerce Platform",
@@ -148,7 +148,7 @@ export const programFiles: DesktopFile[] = [
   {
     id: "google",
     name: "Internet Browser",
-    icon: "/assets/icons/world-5.png",
+    icon: "/assets/icons/internet_connection_wiz-4.png",
     type: FileType.IFRAME,
     x: 220,
     y: 120,
@@ -225,8 +225,34 @@ export const desktopFiles: DesktopFile[] = [
       children: portfolioProjects,
     },
   },
-  ...portfolioProjects,
   ...programFiles,
+  {
+    id: "todo-list-app",
+    name: "Todo List",
+    icon: "/assets/icons/checklist-1.png",
+    type: FileType.TODO,
+    x: 520,
+    y: 120,
+    data: {},
+  },
+  {
+    id: "weather-app-widget",
+    name: "Weather",
+    icon: "/assets/icons/sun-0.png",
+    type: FileType.WEATHER,
+    x: 520,
+    y: 220,
+    data: {},
+  },
+  {
+    id: "web-video-player",
+    name: "Web Video",
+    icon: "/assets/icons/camera-0.png",
+    type: FileType.WEB_VIDEO,
+    x: 520,
+    y: 320,
+    data: {},
+  }
 ];
 
 export const StartMenuItems: DesktopFile[] = [

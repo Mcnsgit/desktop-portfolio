@@ -10,13 +10,17 @@ import ContactWindow from '@/components/content/ContactWindow';
 import EducationWindow from '@/components/content/EducationWindow';
 import SettingsWindow from '@/components/content/SettingsWindow';
 import ProjectWindow from '@/components/content/ProjectWindow';
+import FolderWindow from '@/components/content/FolderWindow';
 
 import GameOfLife from "@/components/content/GameOfLife";
 import TextFileViewer from "@/components/content/TextFileViewer";
 import ImageViewer from "@/components/content/ImageViewer";
 import VideoPlayer from "@/components/content/VideoPlayer";
+import TodoList from '@/components/content/TodoList/TodoList';
+import WeatherApp from '@/components/content/WeatherApp/WeatherApp';
+import MediaPlayer from '@/components/content/WebVideo/MediaPlayer';
 
-const generateWindowContent = (file: DesktopFile): React.ReactNode => {
+const generateWindowContent = (file: DesktopFile, openWindow?: (file: DesktopFile) => void): React.ReactNode => {
     const { type, data } = file;
     switch (type) {
         case FileType.TEXT:
@@ -32,12 +36,20 @@ const generateWindowContent = (file: DesktopFile): React.ReactNode => {
             return <Component {...data.props} />;
         case FileType.ABOUT:
             return <AboutWindow />;
+        case FileType.TODO:
+            return <TodoList />;
+        case FileType.WEATHER:
+            return <WeatherApp />;
+        case FileType.WEB_VIDEO:
+            return <MediaPlayer appName={'Web Video'} videoUrl={''} title={''} description={''} />;
         case FileType.CONTACT:
             return <ContactWindow />;
         case FileType.EDUCATION:
             return <EducationWindow />;
         case FileType.SETTINGS:
             return <SettingsWindow />;
+        case FileType.FOLDER:
+            return <FolderWindow files={data.children || []} onOpenFile={openWindow!} />;
         case FileType.COMPONENT:
             return <GameOfLife />;
         case FileType.PROJECT:

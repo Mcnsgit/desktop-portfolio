@@ -60,7 +60,7 @@ const DesktopPageContent = () => {
     const newWindow: WindowProps = {
       id: file.id,
       title: file.name,
-      content: generateWindowContent(file),
+      content: generateWindowContent(file, openWindow),
       x: Math.random() * (isMobile ? 10 : 200) + (isMobile ? 5 : 50),
       y: Math.random() * (isMobile ? 20 : 100) + (isMobile ? 10 : 20),
       w: isMobile ? window.innerWidth - 20 : 550,
