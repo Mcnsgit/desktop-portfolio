@@ -88,7 +88,7 @@ const Desktop: React.FC<DesktopProps> = ({
                     id={file.id}
                     iconSrc={file.icon}
                     text={file.name}
-                    onDoubleClick={() => onOpenWindow(file)}
+                    onClick={() => onOpenWindow(file)}
                     onPositionChange={onIconPositionChange}
                     x={file.x}
                     y={file.y}
@@ -104,6 +104,7 @@ const Desktop: React.FC<DesktopProps> = ({
                     onMaximize={() => onUpdateWindowState(win.id, { isMaximized: !win.isMaximized })}
                     onFocus={() => onSetActiveWindow(win.id)}
                     onDragStop={(x, y) => onUpdateWindowState(win.id, { x, y })}
+                    ariaLabelledBy={`window-title-${win.id}`}
                 />
             ))}
 

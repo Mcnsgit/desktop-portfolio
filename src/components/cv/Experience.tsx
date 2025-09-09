@@ -67,8 +67,8 @@ const ExperienceCard: React.FC<{experience: Experience}> = ({experience}) => {
 
 const Experience = () => {
   return (
-    <>
-    <motion.div variants={textVariant(0.1)}>
+    <div className={localStyles.experienceSection}>
+      <motion.div variants={textVariant(0.1)}>
         <p className={`${globalStyles.sectionSubText} ${localStyles.sectionSubText}`}>
           What I have done so far
         </p>
@@ -87,7 +87,7 @@ const Experience = () => {
           ))}
         </VerticalTimeline>
       </div>
-    </>
+    </div>
   );
 };
 

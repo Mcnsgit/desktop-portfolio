@@ -51,6 +51,7 @@ const Icon = ({ id, iconSrc, text, onDoubleClick, onPositionChange, x, y }: Icon
             onMouseUp={handleMouseUp}
             onDoubleClick={onDoubleClick}
             tabIndex={0}
+            title={text} // Add this for native tooltip
         >
             <div className={styles.iconImageContainer}>
                 <Image src={iconSrc} alt={text} width={32} height={32} />

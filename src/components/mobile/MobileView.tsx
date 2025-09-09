@@ -17,17 +17,15 @@ interface MobileViewProps {
 
 const MobileView: React.FC<MobileViewProps> = ({ windows, desktopFiles, onOpenWindow, onCloseWindow }) => {
   const { playSound } = useSounds();
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string | null>('about'); // Default to 'about' open
 
+  const toggleCategory = (category: string) => {
+    playSound("click");
+    setActiveCategory(current => (current === category ? null : category));
+  };
 
-const toggleCategory = (category: string) => {
-  playSound("click");
-  setActiveCategory(current => (current === category ? null : category));
-};
-
-  // Find the currently active window. On mobile, we only show one at a time.
   const activeWindow = windows.find(win => win.isActive) || (windows.length > 0 ? windows[0] : null);
-  // If a window is open, render the "App View"
+
   if (activeWindow) {
     return (
       <div className={styles.mobileWindowOverlay}>
@@ -44,16 +42,24 @@ const toggleCategory = (category: string) => {
     );
   }
 
-  // Otherwise, render the "Home Screen"
-  const mainIcons = desktopFiles.filter(f =>
-    [FileType.ABOUT, FileType.CONTACT, FileType.EDUCATION, FileType.COMPONENT].includes(f.type) && f.id !== 'gameoflife'
-
-  )
-  .map(file => ({
-    ...file,
-    isActive: file.id === activeCategory,
-  }));
-
+  const renderCategory = (title: string, files: DesktopFile[]) => (
+    <div key={title} className={styles.categorySection}>
+      <button onClick={() => toggleCategory(title.toLowerCase())} className={styles.categoryHeader}>
+        <h3>{title}</h3>
+        <span>{activeCategory === title.toLowerCase() ? '▼' : '▶'}</span>
+      </button>
+      {activeCategory === title.toLowerCase() && (
+        <div className={styles.categoryContent}>
+          {files.map(file => (
+            <div key={file.id} className={styles.fileItem} onClick={() => onOpenWindow(file)}>
+              <Image src={file.icon} width={24} height={24} alt={file.name} />
+              <span>{file.name}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className={styles.mobileView}>
@@ -63,48 +69,10 @@ const toggleCategory = (category: string) => {
         </div>
       </div>
 
-      <div className={styles.mainIcons}>
-        <div className={styles.categoryButtons}>
-          <button onClick={() => toggleCategory("about")}>About</button>
-          <button onClick={() => toggleCategory("contact")}>Contact</button>
-          <button onClick={() => toggleCategory("education")}>Education</button>
-          <button onClick={() => toggleCategory("projects")}>Projects</button>
-        </div>
-
-        <div className={styles.iconGrid}>
-          {mainIcons.map(file => (
-            <div key={file.id} className={styles.iconItem} onClick={() => onOpenWindow(file)}>
-              <div className={styles.iconWrapper}>
-                <Image src={file.icon} width={32} height={32} alt={file.name} className={styles.icon} />
-              </div>
-              <span>{file.name}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className={styles.projectSection}>
-        <h2>Projects</h2>
-        <div className={styles.projectGrid}>
-          {portfolioProjects.map(project => (
-            <div
-              key={project.id}
-              className={styles.projectCard}
-              onClick={() => onOpenWindow(project)}
-            >
-              <div className={styles.projectCardHeader}>
-                <Image src={project.icon} alt={project.name} width={24} height={24} />
-                <h3>{project.name}</h3>
-              </div>
-              <p>{project.data.description?.slice(0, 70)}...</p>
-              <div className={styles.projectTech}>
-                {project.data.technologies?.slice(0, 3).map(tech => (
-                  <span key={tech} className={styles.techBadge}>{tech}</span>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+      <div className={styles.mainContent}>
+        {renderCategory('About', desktopFiles.filter(f => [FileType.ABOUT, FileType.CONTACT, FileType.EDUCATION].includes(f.type)))}
+        {renderCategory('Projects', portfolioProjects)}
+        {renderCategory('Applications', desktopFiles.filter(f => f.type === FileType.COMPONENT && f.id !== 'gameoflife'))}
       </div>
 
       <footer className={styles.footer}>

@@ -257,7 +257,7 @@ const About = () => {
      <>
       <motion.div variants={textVariant(0.1)}>
         <p className={`${globalStyles.sectionSubText} ${localStyles.sectionSubText}`}>Introduction</p>
-        <h2 className={`${globalStyles.sectionHeadText} ${localStyles.sectionHeadText}`}>Overview.</h2>
+        <h2 className={`${globalStyles.sectionHeadText} ${localStyles.sectionHeadText}`}>Overview</h2>
       </motion.div>
 
       <motion.p

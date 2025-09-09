@@ -3,13 +3,14 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 // import Link from "next/link";
 import { SectionWrapper } from "../../hoc";
 import { styles as globalStyles } from "./styles"; // Global styles
 import localStyles from "./Works.module.scss"; // Local SCSS module
 import { portfolioProjects as projects } from '../../config/data';
 import { fadeIn, textVariant } from "../../utils/motion";
-import { GithubLogo, ArrowSquareOut, X } from "@phosphor-icons/react";
+import { GithubLogo, ArrowSquareOut, X, Desktop } from "@phosphor-icons/react";
 import { StaticImageData } from "next/image";
 
 interface ProjectCardProps {
@@ -22,6 +23,7 @@ interface ProjectCardProps {
   live_link?: string;
   isExpanded: boolean;
   onClick: () => void;
+  isInternalApp?: boolean;
 }
 
 const ProjectCard: React.FC<ProjectCardProps> = ({
@@ -32,9 +34,17 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
   image,
   source_code_link,
   live_link,
-   isExpanded,
+  isExpanded,
   onClick,
+  isInternalApp,
 }) => {
+  const router = useRouter();
+
+  const handleTryItClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    router.push("/desktop");
+  };
+
   return (
     <motion.div
       variants={fadeIn("up", "spring", index * 0.5, 0.75)}
@@ -86,6 +96,15 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
               title="View Live Demo"
             >
               <ArrowSquareOut /> {/* Icon size will be controlled by SCSS */}
+            </div>
+          )}
+          {isInternalApp && !live_link && (
+            <div
+              className={`${localStyles.iconLink} ${localStyles.arrowIcon}`}
+              onClick={handleTryItClick}
+              title="Try it in RetroOS"
+            >
+              <Desktop />
             </div>
           )}
         </div>
@@ -202,6 +221,14 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                       <ArrowSquareOut size={20} /> Live Demo
                     </a>
                   )}
+                  {isInternalApp && !live_link && (
+                    <button
+                      className={`${localStyles.modalLinkButton} ${localStyles.liveDemo}`}
+                      onClick={handleTryItClick}
+                    >
+                      <Desktop size={20} /> Try it in RetroOS
+                    </button>
+                  )}
                 </div>
               </div>
             </motion.div>
@@ -249,17 +276,32 @@ const Works = () => {
       </div>
 
       <div className={localStyles.projectsContainer}>
-        {projects.map((project, index) => (
-          <ProjectCard
-            key={`project-${project.id || index}`}
-            index={index}
-            name={project.name}
-            description={project.data.description || ''}
-            source_code_link={project.data.repoUrl}
-            live_link={project.data.url}
-            isExpanded={expandedProject === index}
-            onClick={() => handleProjectClick(index)} tags={[]} image={""}          />
-        ))}
+        {projects.map((project, index) => {
+          // Transform technologies from string[] to { name: string, color: string }[]
+          const tags = project.data.technologies?.map(tech => ({
+            name: tech,
+            color: "blue-text-gradient", // Assign a default color or map to specific colors
+          })) || [];
+
+          const isInternalApp =
+            project.data.repoUrl === "https://github.com/Mcnsgit/desktop-portfolio";
+
+          return (
+            <ProjectCard
+              key={`project-${project.id || index}`}
+              index={index}
+              name={project.name}
+              description={project.data.description || ''}
+              source_code_link={project.data.repoUrl}
+              live_link={project.data.url}
+              isExpanded={expandedProject === index}
+              onClick={() => handleProjectClick(index)}
+              tags={tags} // Pass the transformed tags
+              image={project.data.image || "/placeholder.jpg"} // Pass the image
+              isInternalApp={isInternalApp}
+            />
+          );
+        })}
       </div>
     </>
   );

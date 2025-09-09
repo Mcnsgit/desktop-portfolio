@@ -1,8 +1,8 @@
 // src/app/_page-variables.scss
 // Variables specific to src/app/page.tsx (the main landing/CV page)
 
-// Example: If the hero pattern uses specific gradients or colors not shared
 // $hero-gradient-start: #somecolor;
+// Example: If the hero pattern uses specific gradients or colors not shared
 // $hero-gradient-end: #anothercolor;
 
 // Add any other variables that are EXCLUSIVELY used by page.tsx
@@ -10,4 +10,17 @@
 // that are not part of the global theme or the retro theme.
 
 // $cv-page-background: $primary-bg; // Can re-use global vars if they apply
-// $cv-text-color: $text-primary-dark-bg; 
+// $cv-text-color: $text-primary-dark-bg;
+$teal-primary-accent: #1A6B72;
+$coral-primary-accent: #FF7F5C;
+$sage-secondary-accent: #C4D7B2;
+$amber-secondary-accent: #FFC857;
+$lav-secondary-accent: #E0CFFC;
+$navy-bg: #1D3557;
+$off-white-text: #F8F9FA;
+$gray-text: #4A4A4A;
+$charcoal-text: #2D2D2D;
+$dark-accent: #1b3b67;
+$bright-accent: #17A1B0;
+$coral-linear-gradient: linear-gradient(360deg, rgba(255, 200, 87, 1) 0%, rgba(255, 127, 92, 1) 69%);
+$teal-linear-gradient:  linear-gradient(360deg, rgba(173, 196, 147, 1) 0%, rgba(65, 132, 129, 1) 60%, rgba(26, 107, 114, 1) 100%);

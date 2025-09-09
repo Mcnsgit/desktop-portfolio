@@ -24,82 +24,102 @@ const project4Img: StaticImageData | string = "/placeholder.jpg";
 const videoCampaignImg: StaticImageData | string = "/placeholder.jpg";
 
 export const portfolioProjects: DesktopFile[] = [
-  // --- Merge data from data/projects.ts ---
-  // {
-  //   id: "todo-list",
-  //   name: "Todo List App",
-  //   icon: "/assets/icons/notepad_file-0.png", // Corrected path
-  //   type: FileType.PROJECT,
-  //   x: 20,
-  //   y: 20,
-  //   data: {
-  //     content: "A simple todo list application built with React",
-  //     technologies: ["React", "JavaScript", "CSS Modules"],
-  //     repoUrl: "https://github.com/Mcnsgit/desktop-portfolio",
-  //     image: placeholderImg, // Use placeholder or actual image
-  //     demoUrl: "https://miguelcardiga.com",
-  //     url: "https://miguelcardiga.com",
-  //   },
-  // },
-  // {
-  //   id: "weather-app",
-
-  //   name: "Weather App",
-  //   icon: "/assets/icons/world-5.png", // Corrected path
-  //   type: FileType.PROJECT,
-  //   x: 20,
-  //   y: 120,
-  //   data: {
-  //     content: "Fetches and displays weather data using OpenWeather API",
-  //     technologies: ["React", "Axios", "OpenWeather API"],
-  //     repoUrl: "https://github.com/Mcnsgit/desktop-portfolio",
-  //     image: placeholderImg,
-  //   },
-  // },
   {
-    id: "ecommerce-platform",
-    name: "E-commerce Platform",
-    icon: "/assets/icons/shopping_cart-1.png",
+    id: "kannybunny-kanban",
+    name: "Kannybunny Kanban Board",
+    icon: "/assets/icons/briefcase-0.png",
+    type: FileType.PROJECT,
+    x: 20,
+    y: 20,
+    data: {
+      content:
+        "A modern, intuitive task management application built with React and Material-UI. The main challenge was implementing a seamless drag-and-drop interface for tasks between columns, which was solved using react-beautiful-dnd. State management is handled with Redux Toolkit for a predictable and scalable architecture. Demo credentials - User: demo_user, Pass: demo123",
+      description:
+        "A modern, intuitive task management application built with React and Material-UI. The main challenge was implementing a seamless drag-and-drop interface for tasks between columns, which was solved using react-beautiful-dnd. State management is handled with Redux Toolkit for a predictable and scalable architecture. Demo credentials - User: demo_user, Pass: demo123",
+      technologies: [
+        "React",
+        "Redux Toolkit",
+        "Material-UI",
+        "Node.js",
+        "Express",
+        "MongoDB",
+      ],
+      repoUrl: "https://github.com/Mcnsgit/kannybunny",
+      demoUrl: "https://kannybunny.vercel.app/",
+      url: "https://kannybunny.vercel.app/",
+      image: "/assets/icons/screenshot.png",
+    },
+  },
+  {
+    id: "js-drum-kit",
+    name: "JavaScript Drum Kit",
+    icon: "/assets/icons/media_player_file-0.png",
+    type: FileType.PROJECT,
+    x: 20,
+    y: 120,
+    data: {
+      content:
+        "A simple and interactive drum kit built with vanilla JavaScript. The key challenge was to efficiently handle keyboard events to trigger drum sounds, which was achieved by mapping key codes to audio elements and using event listeners to play the corresponding sound.",
+      description:
+        "A simple and interactive drum kit built with vanilla JavaScript. The key challenge was to efficiently handle keyboard events to trigger drum sounds, which was achieved by mapping key codes to audio elements and using event listeners to play the corresponding sound.",
+      technologies: ["JavaScript", "HTML", "CSS"],
+      repoUrl: "https://github.com/Mcnsgit/js-dom-drumkit-challenge",
+      demoUrl: "https://mcnsgit.github.io/js-dom-drumkit-challenge/",
+      url: "https://mcnsgit.github.io/js-dom-drumkit-challenge/",
+      image: "/assets/icons/screenshot.png",
+    },
+  },
+  {
+    id: "ambers-garden",
+    name: "Amber's Garden",
+    icon: "/assets/icons/world-5.png",
     type: FileType.PROJECT,
     x: 20,
     y: 220,
     data: {
       content:
-        "Managed full lifecycle of an e-commerce platform for McNasty Studios.",
-      technologies: ["React", "MongoDB", "Tailwind CSS", "Node.js", "Express"],
-      repoUrl: "https://github.com/miguelcardiga/ecommerce-platform",
-      image: project1Img,
+        "An interactive web project, Amber's Garden, created using vanilla JavaScript, HTML, and CSS. This project focused on creating a visually engaging experience with DOM manipulation and CSS animations to bring the garden to life.",
+      description:
+        "An interactive web project, Amber's Garden, created using vanilla JavaScript, HTML, and CSS. This project focused on creating a visually engaging experience with DOM manipulation and CSS animations to bring the garden to life.",
+      technologies: ["JavaScript", "HTML", "CSS"],
+      repoUrl: "https://github.com/Mcnsgit/ambers_garden-indigo_projects",
+      demoUrl: "https://mcnsgit.github.io/ambers_garden-indigo_projects/",
+      url: "https://mcnsgit.github.io/ambers_garden-indigo_projects/",
+      image: "/assets/icons/screenshot.png",
     },
   },
   {
-    id: "nonprofit-website",
-    name: "Non-Profit Website Overhaul",
-    icon: "/assets/icons/internet_connection_wiz-4.png", // Corrected path
-    type: FileType.PROJECT,
-    x: 20,
-    y: 320,
-    data: {
-      content:
-        "Led redesign of a mental health organization's website, focusing on UX and donations.",
-      technologies: ["React", "UX/UI", "CSS", "Responsive Design"],
-      repoUrl: "https://github.com/miguelcardiga/northern-lights-website",
-      demoUrl: "https://northern-lights.org",
-      image: project3Img,
-    },
-  },
-  {
-    id: "digital-marketing-campaigns",
-    name: "Digital Marketing Campaigns",
-    icon: "/assets/icons/media_player_file-0.png", // Corrected path
+    id: "todo-list-app",
+    name: "Todo List App",
+    icon: "/assets/icons/notepad_file-0.png",
     type: FileType.PROJECT,
     x: 120,
     y: 20,
     data: {
       content:
-        "Executed digital marketing strategies, enhancing brand presence and conversion rates.",
-      technologies: ["Analytics", "SEO", "Social Media", "Content Marketing"],
-      repoUrl: "https://github.com/miguelcardiga/marketing-portfolio",
-      image: project2Img,
+        "A classic Todo List application to manage tasks, built as an interactive component within the desktop environment. The main goal was to create a reusable React component with local state management for adding, deleting, and marking tasks as complete.",
+      description:
+        "A classic Todo List application to manage tasks, built as an interactive component within the desktop environment. The main goal was to create a reusable React component with local state management for adding, deleting, and marking tasks as complete.",
+      technologies: ["React", "TypeScript", "SCSS"],
+      repoUrl: "https://github.com/Mcnsgit/desktop-portfolio",
+      image: "/assets/icons/screenshot.png",
+    },
+  },
+  {
+    id: "weather-app",
+    name: "Weather App",
+    icon: "/assets/icons/sun-0.png",
+    type: FileType.PROJECT,
+    x: 120,
+    y: 120,
+    data: {
+      content:
+        "A simple weather application that displays the current weather for a searched location. This is an interactive component within the desktop that fetches data from a third-party weather API and displays it to the user.",
+      description:
+        "A simple weather application that displays the current weather for a searched location. This is an interactive component within the desktop that fetches data from a third-party weather API and displays it to the user.",
+      technologies: ["React", "TypeScript", "SCSS"],
+      repoUrl: "https://github.com/Mcnsgit/desktop-portfolio",
+      image: "/assets/icons/screenshot.png",
     },
   },
   {
@@ -111,27 +131,12 @@ export const portfolioProjects: DesktopFile[] = [
     y: 120,
     data: {
       content:
-        "Developed an interactive text-based adventure game using Python.",
+        "Developed an interactive text-based adventure game using Python. The project involved creating a branching narrative, managing game state, and handling user input, providing a solid foundation in Python programming and game logic.",
+      description:
+        "Developed an interactive text-based adventure game using Python. The project involved creating a branching narrative, managing game state, and handling user input, providing a solid foundation in Python programming and game logic.",
       technologies: ["Python", "Game Development", "CLI"],
-      repoUrl: "https://github.com/miguelcardiga/python-text-game",
+      repoUrl: "https://github.com/Mcnsgit/python-text-game",
       image: project4Img,
-    },
-  },
-  {
-    id: "video-campaign",
-    name: "Non-Profit Video Campaign",
-    icon: "/assets/icons/video_mk-5.png", // Corrected path
-    type: FileType.PROJECT,
-    x: 120,
-    y: 220,
-    data: {
-      content:
-        "Directed fundraising video campaign for mental health awareness.",
-      technologies: ["Video Production", "Digital Storytelling", "Fundraising"],
-      repoUrl: "https://github.com/miguelcardiga/video-campaign",
-      image: videoCampaignImg,
-      url: "https://vimeo.com/northernlights/campaign",
-      demoUrl: "https://vimeo.com/northernlights/campaign",
     },
   },
 ];

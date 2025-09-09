@@ -1,4 +1,6 @@
 /* SCSS module for Hero component */
+@use '../../styles/variables' as *;
+@use '../../app/_page-variables' as *;
 .heroSection {
   position: relative;
   width: 100%;
@@ -37,7 +39,7 @@
   width: 1.25rem; /* w-5 */
   height: 1.25rem; /* h-5 */
   border-radius: 9999px; /* rounded-full */
-  background-color: #915EFF;
+  background-color: $coral-primary-accent;
 }
 
 .line {
@@ -60,17 +62,19 @@
 
 .heroHeadText {
   /* Placeholder - will be handled by styles.heroHeadText prop */
-  color: white; /* text-white */
+  color: $off-white-text; /* text-white */
 }
 
 .heroName {
-  color: #915eff; /* text-[#915eff] */
+  color: $amber-secondary-accent; 
+
 }
+
 
 .heroSubText {
   /* Placeholder - will be handled by styles.heroSubText prop */
   margin-top: 0.5rem; /* mt-2 */
-  color: #e0e0e0; /* Assuming text-white-100 is a light gray. Adjust if needed. */
+  color: $off-white-text; /* Assuming text-white-100 is a light gray. Adjust if needed. */
   max-width: 42rem; /* max-w-xl */
 }
 
@@ -126,25 +130,17 @@
   /* Animation properties will be handled by framer-motion */
 }
 
-/* Define violet-gradient if it's a common class */
-.line, .violet-gradient {
-  
-  width: 0.25rem; /* w-1 */
-  height: 10rem; /* h-40 */
-  /* violet-gradient is now a standalone class, applied alongside .line */
-  background: linear-gradient(360deg, #915EFF, #3B2D80); /* Example gradient */
-  /* Or if it's just a color: background-color: #someVioletColor; */
-} 
+
 .line, .violet-gradient {
   width: 0.25rem; /* w-1 */
   height: 10rem; /* h-40 */
   /* violet-gradient is now a standalone class, applied alongside .line */
-  background: linear-gradient(180deg, #915EFF, #3B2D80); /* Example gradient */
+  background: $coral-linear-gradient; /* Example gradient */
   /* Or if it's just a color: background-color: #someVioletColor; */
 } 
 
 .errorFallback {
-    color: white;
+  color: white;
   font-size: 16px;
   font-weight: 400;
   text-align: center;

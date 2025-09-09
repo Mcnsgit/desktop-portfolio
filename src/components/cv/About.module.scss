@@ -1,11 +1,13 @@
 /* SCSS module for About component */
+@use '../../styles/variables' as *;
+@use '../../app/_page-variables' as *;
 
 .sectionSubText {
     /* From styles.sectionSubText in styles.ts */
     font-size: 0.875rem; /* text-[14px] */
     text-transform: uppercase;
     letter-spacing: 0.05em; /* tracking-wider */
-    color: #aaa6c3; // Assuming text-secondary is #aaa6c3
+    color: $sage-secondary-accent; // Assuming text-secondary is #aaa6c3
     @media (min-width: 640px) {
         font-size: 1.125rem; /* sm:text-[18px] */
     }
@@ -13,7 +15,7 @@
 
 .sectionHeadText {
     /* From styles.sectionHeadText in styles.ts */
-    color: white;
+    color: $coral-primary-accent;
     font-weight: 900; /* font-black */
     font-size: 1.875rem; /* text-[30px] */
     @media (min-width: 480px) { /* xs: */
@@ -28,8 +30,9 @@
 }
 
 .aboutDescription {
-    margin-top: 1rem; /* From motion.p variants, assuming fadeIn adds margin or use explicit margin */
-    color: #aaa6c3; // Assuming text-secondary, adjust if needed
+    align-items: center;
+    margin-top: 1rem;
+    color: $lav-secondary-accent; // Assuming text-secondary, adjust if needed
     font-size: 1.0625rem; /* text-[17px] - typical for body text, adjust as needed */
     max-width: 48rem; /* max-w-3xl */
     line-height: 1.875rem; /* leading-[30px] */
@@ -57,26 +60,11 @@
     };
 }
 
-.tiltContent {
-    // background-color: #151030; // Assuming tertiary is #151030
-    // border-radius: 1.25rem; /* rounded-[20px] */
-    // padding: 1.25rem; /* py-5 */
-    // padding-left: 3rem; /* px-12 */
-    // padding-right: 3rem;
-    // min-height: 280px;
-    // display: flex;
-    // flex-direction: column;
-    // justify-content: space-evenly;
-    // align-items: center;
-    // text-align: center;
-    // position: relative; // For glare effect positioning
-}
-
 
 /* ServiceCard specific styles */
 .serviceCard {
     /* From motion.div className */
-    background-color: #100d25; /* Assuming bg-black-200 is this color */
+    background-color: $dark-accent; /* Assuming bg-black-200 is this color */
     padding: 2.5rem; /* p-10 */
     border-radius: 1.5rem; /* rounded-3xl */
     width: 100%;
@@ -108,7 +96,7 @@
     /* This acts as the outer shell for the gradient border and shadow */
     padding: 1px; // for the gradient border effect
     border-radius: 1.25rem; /* rounded-[20px] */
-    background-image: linear-gradient(to bottom right, #00cea8, #bf61ff); // Example green-pink gradient
+    background-image: linear-gradient(to bottom right, $teal-primary-accent, $coral-primary-accent); // Example green-pink gradient
     box-shadow: 0px 10px 30px -5px rgba(0, 0, 0, 0.3); /* shadow-card equivalent */
     transition: box-shadow 0.3s ease-in-out;
 
@@ -119,7 +107,7 @@
 
 .serviceCardContent {
     /* Styles from the div inside CustomTilt within ServiceCard */
-    background-color: #151030; /* Assuming options.bg is tertiary */
+    background-color: $navy-bg; /* Assuming options.bg is tertiary */
     border-radius: 1.25rem; /* rounded-[20px] - inner radius slightly less or same as gradient parent */
     padding: 2rem 1.5rem; /* py-5 px-6 or similar, adjust based on content needs */
     min-height: 280px; /* Adjust as needed */
@@ -169,7 +157,7 @@
     margin-bottom: 0.75rem; /* mb-3 */
     text-align: center;
     h3 {
-        color: white;
+        color: $off-white-text;
         font-weight: bold;
         font-size: 1.25rem; /* text-[20px] */
         margin: 0; // Reset default h3 margin
@@ -178,14 +166,14 @@
 
 .serviceTitleUnderline {
     height: 2px;
-    background-color: white; // Or a specific highlight color
+    background-color: $off-white-text; // Or a specific highlight color
     margin: 0.25rem auto 0 auto; /* mt-1 mx-auto */
     /* Width animation handled by Framer Motion */
 }
 
 .serviceDescription {
     font-size: 0.875rem; /* text-[14px] */
-    color: #aaa6c3; // Assuming text-secondary
+    color: $sage-secondary-accent; // Assuming text-secondary
     line-height: 1.5;
     min-height: 3em; // Reserve space for a couple of lines
     /* Opacity animation handled by Framer Motion */
@@ -196,7 +184,7 @@
     position: absolute;
     width: 12px;
     height: 12px;
-    background-color: white; // Or your accent color
+    background-color: $off-white-text; // Or your accent color
     opacity: 0.6;
     transition: opacity 0.3s ease;
 
