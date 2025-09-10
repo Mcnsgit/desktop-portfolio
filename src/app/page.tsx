@@ -12,7 +12,7 @@ import Navbar from "@/components/cv/Navbar";
 // import styles from './page.module.scss';
 import CvView from "@/components/cv/CvView";
 import { useRouter } from "next/navigation"
-
+import Button from "@/components/ui/Button";
 
 
 const useResponsiveView = () => { 
@@ -101,13 +101,13 @@ const HomePageContent = () => {
     
     <Navbar />
     <Hero onComputerClick={handleEnterDesktop} />
-  
-    <div className="desktop-container"
+    <Button onClick={handleEnterDesktop}>Enter Desktop</Button>
+    {/*  <div className="desktop-container"
     onClick={handleEnterDesktop}
     title="Click to enter desktop"
     >
     Click computer to enter desktop
-    </div>
+    </div> */}
     <CvView />
       </>
   );

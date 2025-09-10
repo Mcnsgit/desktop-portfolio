@@ -2,13 +2,14 @@
 @use '../../styles/_variables.scss' as *;
 @use '../../styles/_mixins.scss' as *;
 
+
 .button {
     background-color: $win98-button-face;
-    @include win98-border($win98-border-light, $win98-border-dark);
+    // @include win98-border($win98-border-light, $win98-border-dark);
 
-    &:active {
-      @include win98-border($win98-border-light, $win98-border-dark, true); // Set $inset to true
-    }
+    // &:active {
+      // @include win98-border($win98-border-light, $win98-border-dark, true); // Set $inset to true
+    // }
   
   padding: $spacing-sm $spacing-md; // Use spacing variables
   font-family: $win98-font-primary;
@@ -25,13 +26,13 @@
     color: $win98-title-text-color;
     font-weight: bold;
     // Ensure border still looks good on dark background
-    @include win98-border($win98-border-light, $win98-border-dark, 2px); 
+      // @include win98-border($win98-border-light, $win98-border-dark, 2px); 
 
-    &:active,
-    &.active {
-      @include win98-border($win98-border-dark, $win98-border-light, 2px);
-      background-color: darken($win98-title-active-bg, 10%);
-    }
+    // &:active,
+      // &.active {
+      //   @include win98-border($win98-border-dark, $win98-border-light, 2px);
+      //   background-color: darken($win98-title-active-bg, 10%);
+      // }
   }
 
   &.disabled,
@@ -39,7 +40,7 @@
     color: $win98-border-dark; // Use a theme color for disabled text
     cursor: not-allowed;
     // Reset border to normal non-active state for disabled buttons
-    @include win98-border($win98-border-light, $win98-border-dark, 2px);
+    // @include win98-border($win98-border-light, $win98-border-dark, 2px);
     background-color: $win98-button-face; // Ensure background is standard
     // Optional: add a pattern or more distinct visual for disabled state
     // filter: grayscale(50%);

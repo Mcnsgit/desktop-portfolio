@@ -79,7 +79,7 @@ const Window = ({
     return (
         <Draggable
         nodeRef={nodeRef as React.RefObject<HTMLElement>}
-        handle={`.title-bar-handle-${id}`}
+            handle={`.windowTitleBar-${id}`}
         position={{ x, y }}
         onStop={(_e, data) => onDragStop(data.x, data.y)}    
         onStart={onFocus}
@@ -95,12 +95,13 @@ const Window = ({
                 zIndex: isActive ? 10 : 1 
             }}
             aria-labelledby={ariaLabelledBy}
-            >
-                    <div className={`${styles.titleBar} title-bar-handle-${id}`}>
-                        <span id={ariaLabelledBy}>{title}</span>
-                        <button onClick={onMinimize} aria-label="Minimize" className={styles.minimizeButton}>-</button>
-                        <button onClick={onMaximize} aria-label="Maximize" className={styles.maximizeButton}>+</button>
-                        <button onClick={onClose} aria-label="Close" className={styles.closeButton}>X</button>
+            >  
+                        <div className={`${styles.windowTitleBar} windowTitleBar-${id}`}>
+                        <span id={ariaLabelledBy} className={styles.windowTitle}>{title}</span>
+                        <div className={styles.windowTitleBarHandle} data-window-title-bar-handle={id}/>
+                        <button onClick={onMinimize} aria-label="Minimize" className={styles.windowControlButton}>-</button>
+                        <button onClick={onMaximize} aria-label="Maximize" className={styles.windowControlButton}>+</button>
+                        <button onClick={onClose} aria-label="Close" className={styles.windowControlButton}>X</button>
                     </div>
                         <div className={styles.content}>
                         {content}

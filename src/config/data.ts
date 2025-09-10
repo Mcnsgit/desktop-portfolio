@@ -12,16 +12,16 @@ export const contact = {
 };
 
 // --- Define Placeholder Images (Replace with actual imports or paths) ---
-const placeholderImg: StaticImageData = {
-  src: "/placeholder.jpg",
-  height: 230,
-  width: 360,
-}; // Example structure
-const project1Img: StaticImageData | string = "/placeholder.jpg"; // Example, adjust as needed
-const project2Img: StaticImageData | string = "/placeholder.jpg";
-const project3Img: StaticImageData | string = "/placeholder.jpg";
+// const placeholderImg: StaticImageData = {
+  // src: "/placeholder.jpg",
+  // height: 230,
+  // width: 360,
+// }; // Example structure
+// const project1Img: StaticImageData | string = "/placeholder.jpg"; // Example, adjust as needed
+// const project2Img: StaticImageData | string = "/placeholder.jpg";
+// const project3Img: StaticImageData | string = "/placeholder.jpg";
 const project4Img: StaticImageData | string = "/placeholder.jpg";
-const videoCampaignImg: StaticImageData | string = "/placeholder.jpg";
+// const videoCampaignImg: StaticImageData | string = "/placeholder.jpg";
 
 export const portfolioProjects: DesktopFile[] = [
   {

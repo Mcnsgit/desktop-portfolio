@@ -88,7 +88,7 @@ const Desktop: React.FC<DesktopProps> = ({
                     id={file.id}
                     iconSrc={file.icon}
                     text={file.name}
-                    onClick={() => onOpenWindow(file)}
+                    onDoubleClick={() => onOpenWindow(file)}
                     onPositionChange={onIconPositionChange}
                     x={file.x}
                     y={file.y}
