@@ -105,8 +105,8 @@ const HomePageContent = () => {
     <FontPreloader />
     
     <Navbar />
-    <Hero onComputerClick={handleEnterDesktop} />
-    <Button onClick={handleEnterDesktop}>Enter Desktop</Button>
+    <Hero onComputerClick={() => handleClick} />
+    <Button onClick={() => handleClick}>Enter Desktop</Button>
     {/*  <div className="desktop-container"
     onClick={handleEnterDesktop}
     title="Click to enter desktop"
