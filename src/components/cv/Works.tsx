@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 // import Link from "next/link";
@@ -47,7 +47,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
 
   return (
     <motion.div
-      variants={fadeIn("up", "spring", index * 0.5, 0.75)}
+      variants={fadeIn("up", "spring", index * 0.5, 0.75) as Variants}
       className={localStyles.projectCard}
       onClick={onClick}
       whileHover={{ y: -5 }} // This can be kept or moved to SCSS :hover
@@ -257,14 +257,14 @@ const Works = () => {
 
   return (
     <>
-      <motion.div variants={textVariant(0.1)}>
+      <motion.div variants={textVariant(0.1) as Variants} className={localStyles.worksHeader}>
         <p className={globalStyles.sectionSubText}>My work</p>
         <h2 className={globalStyles.sectionHeadText}>Projects.</h2>
       </motion.div>
 
       <div className={localStyles.introContainer}>
         <motion.p
-          variants={fadeIn("up", "spring", 0.1, 1)}
+          variants={fadeIn("up", "spring", 0.1, 1) as Variants}
           className={localStyles.introParagraph}
         >
           The following projects showcase my skills and experience through

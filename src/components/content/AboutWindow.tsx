@@ -31,7 +31,7 @@ const AboutWindow: React.FC = () => {
           </p>
           <p>
             This portfolio is a demonstration of that passion—a fully interactive, retro-themed desktop environment built from the ground up
-            with modern technologies like React, Next.js, and TypeScript. Feel free to explore, open applications, and see what's possible!
+            with modern technologies like React, Next.js, and TypeScript. Feel free to explore, open applications, and see what&apos;s possible!
           </p>
         </section>
         <section>

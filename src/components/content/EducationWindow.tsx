@@ -1,6 +1,6 @@
 // src/components/windows/WindowTypes/EducationWindow.tsx
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 import { fadeIn, textVariant } from '../../utils/motion';
 import { education, currentLearning } from '../../config/index';
 import Image from 'next/image';
@@ -40,11 +40,11 @@ const EducationWindow: React.FC = () => {
 const EducationHistory: React.FC = () => {
     return (
         <motion.div
-            variants={fadeIn("up", "spring", 0.1, 1)}
+            variants={fadeIn("up", "spring", 0.1, 1) as Variants}
             className={styles.educationContainer}
         >
             <motion.h2
-                variants={textVariant(0.1)}
+                variants={textVariant(0.1)  as Variants}
                 className={styles.sectionTitle}
             >
                 Education History
@@ -79,7 +79,7 @@ const EducationItem: React.FC<{
 
     return (
         <motion.div
-            variants={fadeIn("up", "spring", index * 0.1 + 0.2, 0.75)}
+            variants={fadeIn("up", "spring", index * 0.1 + 0.2, 0.75) as Variants }
             className={`${styles.educationItem} ${expanded ? styles.expanded : ''}`}
             onClick={() => setExpanded(!expanded)}
         >
@@ -131,11 +131,11 @@ const EducationItem: React.FC<{
 const CurrentLearning: React.FC = () => {
     return (
         <motion.div
-            variants={fadeIn("up", "spring", 0.1, 1)}
+            variants={fadeIn("up", "spring", 0.1, 1)as Variants}
             className={styles.currentLearningContainer}
         >
             <motion.h2
-                variants={textVariant(0.1)}
+                variants={textVariant(0.1) as Variants}
                 className={styles.sectionTitle}
             >
                 Currently Learning
@@ -145,7 +145,7 @@ const CurrentLearning: React.FC = () => {
                 {currentLearning.map((course, index) => (
                     <motion.div
                         key={`course-${index}`}
-                        variants={fadeIn("up", "spring", index * 0.1 + 0.2, 0.75)}
+                        variants={fadeIn("up", "spring", index * 0.1 + 0.2, 0.75) as Variants}
                         className={styles.courseItem}
                     >
                         <div className={styles.courseHeader}>

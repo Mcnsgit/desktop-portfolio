@@ -1,7 +1,7 @@
 "use client";
 
 import React, { Suspense, useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import { SectionWrapper } from "../../hoc";
 import { technologies, technicalSkills } from "../../config/index";
 import { fadeIn, textVariant } from "../../utils/motion";
@@ -73,7 +73,7 @@ const SkillPill: React.FC<SkillPillProps> = ({ skill, index, category }) => {
 
   return (
     <motion.div
-      variants={fadeIn("up", "spring", index * 0.1, 0.75)}
+      variants={fadeIn("up", "spring", index * 0.1, 0.75) as Variants}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 20 }}
@@ -110,7 +110,7 @@ const SkillCategory: React.FC<SkillCategoryProps> = ({ title, skills, icon, isOp
 
   return (
     <motion.div
-      variants={fadeIn("left", "spring", 0.2, 0.75)}
+      variants={fadeIn("left", "spring", 0.2, 0.75) as Variants}
       className={localStyles.skillCategory} 
     >
       <div
@@ -173,11 +173,11 @@ const Tech = () => {
 
   return (
     <>
-      <motion.div variants={textVariant(0.1)}>
+      <motion.div variants={textVariant(0.1) as Variants} className={localStyles.techHeader}>
         <p className={globalStyles.sectionSubText}>My technology stack</p>
         <h2 className={globalStyles.sectionHeadText}>Skills & Technologies.</h2>
       </motion.div>
-      <motion.p variants={fadeIn("up", "spring", 0.2, 1)} className={localStyles.introParagraph}>
+      <motion.p variants={fadeIn("up", "spring", 0.2, 1) as Variants } className={localStyles.introParagraph}>
         I have experience with a wide range of modern technologies and
         frameworks. My technical skills include proficiency in multiple
         programming languages, front-end and back-end frameworks, database
@@ -188,7 +188,7 @@ const Tech = () => {
 
       <motion.div
         ref={techBallsRef}
-        variants={fadeIn("up", "spring", 0.3, 1)}
+        variants={fadeIn("up", "spring", 0.3, 1) as Variants}
         className={localStyles.techBallsContainer} 
       >
         <h3 className={localStyles.techBallsHeader}>
@@ -220,7 +220,7 @@ const Tech = () => {
       </motion.div>
 
       {/* Technical Skills Categories Section */}
-      <motion.div variants={fadeIn("up", "spring", 0.5, 1)} className={localStyles.skillsCategoriesContainer}>
+      <motion.div variants={fadeIn("up", "spring", 0.5, 1) as Variants } className={localStyles.skillsCategoriesContainer}>
         <h3 className={localStyles.skillsHeader}> 
           Technical Expertise
         </h3>
