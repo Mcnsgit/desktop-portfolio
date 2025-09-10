@@ -1,0 +1,32 @@
+@use '../../styles/_variables.scss' as *;
+@use '../../styles/_mixins.scss' as *;
+
+.title ,
+.subtitle {
+    margin: 0 auto;
+}
+
+.button {
+    color: $win98-text-light;
+    background-color: $win98-button-face;
+}
+
+.button:hover {
+    color: $win98-text-light;
+    background-color: $win98-button-highlight;
+}
+
+.button:active {
+    color: $win98-text-light;
+    background-color: $win98-button-shadow;
+}
+
+.button:focus {
+    outline: none;
+}
+
+.icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

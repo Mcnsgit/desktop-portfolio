@@ -1,7 +1,7 @@
 import "bulma/css/bulma.min.css";
 import { useState, useRef, useCallback } from "react";
 import { Pause, Play, XCircle, Globe } from "@phosphor-icons/react";
-import "./GameOfLife.css";
+import styles from "./GameOfLife.module.scss";
 import useInterval from "../../hooks/useInterval";
 
 const numRows = 25;
@@ -112,7 +112,7 @@ const GameOfLifeWindow = () => {
 
       <div className="buttons is-centered pt-5">
         <button
-          className="button start-game mx-2"
+            className={`button start-game mx-2 ${styles.button}`}
           onClick={() => {
             setRunning(!running);
             if (!running) {
@@ -120,29 +120,29 @@ const GameOfLifeWindow = () => {
             }
           }}
         >
-          <span className="icon">{running ? <Pause /> : <Play />}</span>
+          <span className={styles.icon}>{running ? <Pause /> : <Play />}</span>
           <span>{running ? "Stop" : "Start"}</span>
         </button>
 
         <button
-          className="button mx-2"
+          className={`button mx-2 ${styles.button}`}
           onClick={() => {
             setGrid(randomTiles());
           }}
         >
-          <span className="icon">
+            <span className={styles.icon}>
             <Globe />
           </span>
           <span>Random</span>
         </button>
 
         <button
-          className="button mx-2"
+          className={`button mx-2 ${styles.button}`}
           onClick={() => {
             setGrid(generateEmptyGrid());
           }}
         >
-          <span className="icon">
+          <span className={styles.icon}>
             <XCircle />
           </span>
           <span>Clear</span>

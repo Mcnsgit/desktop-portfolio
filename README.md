@@ -1,6 +1,4 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-
-## Getting Started
+# Getting Started
 
 First, run the development server:
 
@@ -37,17 +35,26 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 <!-- PORTFOLIO_SCREENSHOT_START -->
 ## Portfolio Screenshot
-*Last updated: 2025-05-19*
+
+- *Last updated: 2025-05-19*
 
 ![Portfolio Screenshot](./screenshots/screenshot.png)
 <!-- PORTFOLIO_SCREENSHOT_END -->
 
-thank to the open source/ 3d models/inspo etc: check out
-https://github.com/zen-fs/core
-zenfs.dev/core/
+## Acknowledgements
 
-This work is based on "Gaming Desktop PC" (https://sketchfab.com/3d-models/gaming-desktop-pc-d1d8282c9916438091f11aeb28787b66) by Yolala1232 (https://sketchfab.com/Yolala1232) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+This project draws inspiration from and utilizes the work and opensource projects of several amazing creators and open-source projects.
 
-This work is based on "Stylized planet" (https://sketchfab.com/3d-models/stylized-planet-789725db86f547fc9163b00f302c3e70) by cmzw (https://sketchfab.com/cmzw) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+### Inspirational Projects
 
-https://github.com/DustinBrett
+A big thank you to the following projects for their inspiration:
+
+- **zen-fs/core**: [GitHub Repository](https://github.com/zen-fs/core) | [Website](https://zenfs.dev/core/)
+- **DustinBrett's Portfolio**: [GitHub Repository](https://github.com/DustinBrett)
+
+### 3D Models
+
+The following 3D models from Sketchfab are used in this project:
+
+- "Gaming Desktop PC" by [Yolala1232](https://sketchfab.com/Yolala1232) is licensed under [CC BY 4.0](http://creativecommons.org/licenses/by/4.0/).
+  
