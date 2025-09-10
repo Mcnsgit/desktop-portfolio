@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Play, Pause, Stop, SpeakerSimpleHigh } from "@phosphor-icons/react";
+import { PlayIcon, PauseIcon, StopIcon, SpeakerSimpleHighIcon } from "@phosphor-icons/react";
 import styles from './VideoPlayer.module.scss';
 
 declare global {
@@ -21,7 +21,7 @@ function loadYouTubeApi(): Promise<void> {
         }
         const tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
-        tag.onerror = (err) => reject(new Error("YouTube API script load failed"));
+        tag.onerror = (_err) => reject(new Error("YouTube API script load failed"));
         const firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag.parentNode!.insertBefore(tag, firstScriptTag);
 
@@ -51,7 +51,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src }) => {
     const [statusMessage, setStatusMessage] = useState('Loading GemPlayer...');
     const [isApiReady, setIsApiReady] = useState(false);
     const [playerState, setPlayerState] = useState(-1); // UNSTARTED
-    const playerRef = useRef<YT.Player | null>(null);
+      const playerRef = useRef<any | null>(null);
     const playerDivRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -141,20 +141,20 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src }) => {
             <div className={styles.controlsPanel}>
                 <div className={styles.buttonGroup}>
                     <button className={styles.controlButton} title="Play" disabled={isPlaying} onClick={() => playerRef.current?.playVideo()}>
-                        <Play size={16} />
+                        <PlayIcon size={16} />
                     </button>
                     <button className={styles.controlButton} title="Pause" disabled={!isPlaying} onClick={() => playerRef.current?.pauseVideo()}>
-                        <Pause size={16} />
+                        <PauseIcon size={16} />
                     </button>
                     <button className={styles.controlButton} title="Stop" disabled={isStopped} onClick={() => playerRef.current?.stopVideo()}>
-                        <Stop size={16} />
+                        <StopIcon size={16} />
                     </button>
                 </div>
                 <div className={styles.progressBarContainer}>
                     <div className={styles.progressBar} />
                 </div>
                 <div className={styles.volumeContainer}>
-                    <span className={styles.volumeIcon}><SpeakerSimpleHigh size={16} /></span>
+                    <span className={styles.volumeIcon}><SpeakerSimpleHighIcon size={16} /></span>
                     <div className={styles.volumeSlider} />
                 </div>
             </div>

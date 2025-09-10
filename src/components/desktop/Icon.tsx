@@ -52,7 +52,6 @@ const Icon = ({ id, iconSrc, text, onDoubleClick, onPositionChange, x, y }: Icon
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onDoubleClick={onDoubleClick}
-            onClick={handleClick}
             tabIndex={0}
             title={text} // Add this for native tooltip
         >

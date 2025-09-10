@@ -68,7 +68,7 @@ const ExperienceCard: React.FC<{experience: Experience}> = ({experience}) => {
 const Experience = () => {
   return (
     <div className={localStyles.experienceSection}>
-      <motion.div variants={textVariant(0.1)}>
+      <motion.div variants={textVariant(0.1) as Variants}>
 
         <p className={`${globalStyles.sectionSubText} ${localStyles.sectionSubText}`}>
           What I have done so far
