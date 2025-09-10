@@ -6,7 +6,7 @@ import React, { useEffect, useCallback, useState } from "react";
 // import Desktop from "@/components/desktop/Desktop";
 import BootAnimation from "@/components/3d/BootAnimation";
 import { SoundProvider, useSounds } from "@/hooks/useSounds";
-import  Hero from "@/components/cv/Hero";
+import Hero from "@/components/cv/Hero";
 import FontPreloader from "@/utils/FontPreloader";
 import Navbar from "@/components/cv/Navbar";
 // import styles from './page.module.scss';
@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation"
 import Button from "@/components/ui/Button";
 
 
-const useResponsiveView = () => { 
+const useResponsiveView = () => {
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const checkScreenSize = () => setIsMobile(window.innerWidth < 768);
@@ -78,24 +78,29 @@ const HomePageContent = () => {
     playSound("startup");
   }, [playSound]);
 
-  const handleEnterDesktop = () => {
-    
-    router.push('/desktop');
-    playSound("click");
-    
-  };
-
+  const handleClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      console.log("Computer clicked, navigating to desktop...");
+      setTimeout(() => {
+        router.push("/desktop");
+      }, 100);
+    },
+    [router, playSound]
+  );
 
 
   if (isBooting) {
-    return(
+    return (
       <div className="boot-animation-container">
         <p>click to enter</p>
         <BootAnimation onComplete={handleBootComplete} skipAnimation={isMobile} />
       </div>
-  )}
+    )
+  }
 
   return (
+
     <>  
     <FontPreloader />
     
@@ -110,6 +115,7 @@ const HomePageContent = () => {
     </div> */}
     <CvView />
       </>
+
   );
 };
 

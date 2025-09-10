@@ -66,7 +66,7 @@ const generateWindowContent = (file: DesktopFile, openWindow?: (file: DesktopFil
             };
             return <ProjectWindow project={project} />;
         default:
-            return <p>Error: File type "{type}" is not supported.</p>;
+            return <p>Error: File type &ldquo;{type}&rdquo; is not supported.</p>;
     }
 };
 

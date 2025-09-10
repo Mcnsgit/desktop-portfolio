@@ -7,7 +7,7 @@ import { styles as globalStyles } from "./styles";
 import localStyles from "./Contact.module.scss";
 
 import { slideIn } from "../../utils/motion";
-import { motion } from "framer-motion";
+import { motion , Variants } from "framer-motion";
 import { SectionWrapper } from "@/hoc";
 
 const Contact = () => {
@@ -73,7 +73,7 @@ const Contact = () => {
   return (
     <div className={localStyles.contactSectionContainer}>
       <motion.div
-        variants={slideIn("left", "tween", 0.2, 1)}
+        variants={slideIn("left", "tween", 0.2, 1) as Variants}
         className={localStyles.contactFormContainer}
       >
         <p className={globalStyles.sectionSubText}>Get in touch</p>
@@ -132,7 +132,7 @@ const Contact = () => {
       </motion.div>
 
       <motion.div
-        variants={slideIn("right", "tween", 0.2, 1)}
+        variants={slideIn("right", "tween", 0.2, 1) as Variants}
         className={localStyles.earthCanvasContainer} 
       >
         {/* EarthCanvas will be rendered here */}

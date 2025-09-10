@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion , Variants } from "framer-motion";
 import Image, { StaticImageData } from "next/image";
 import { fadeIn, textVariant } from "../../utils/motion";
 import { SectionWrapper } from "../../hoc";
@@ -142,7 +142,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
   
   return (
     <motion.div
-      variants={fadeIn("right", "spring", index * 0.5, 0.75)}
+      variants={fadeIn("right", "spring", index * 0.5, 0.75) as Variants}
       className={localStyles.serviceCard}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -255,13 +255,13 @@ const services: Service[] = [
 const About = () => {
   return (
      <>
-      <motion.div variants={textVariant(0.1)}>
+      <motion.div variants={textVariant(0.1) as Variants} className={localStyles.aboutHeader}>
         <p className={`${globalStyles.sectionSubText} ${localStyles.sectionSubText}`}>Introduction</p>
         <h2 className={`${globalStyles.sectionHeadText} ${localStyles.sectionHeadText}`}>Overview</h2>
       </motion.div>
 
       <motion.p
-        variants={fadeIn("up", "spring", 0.1, 1)}
+        variants={fadeIn("up", "spring", 0.1, 1) as Variants}
         className={localStyles.aboutDescription}
       >
         I&apos;m diving into the world of software development with enthusiasm, focusing on JavaScript, Python, React, Node.js, and related technologies. While I&apos;m still relatively new to the field, I genuinely enjoy the constant learning process.
