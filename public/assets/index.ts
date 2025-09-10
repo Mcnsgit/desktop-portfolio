@@ -41,7 +41,7 @@ import textedit from'./icons/notepad_file-0.png';
 import fileexplorer from'./icons/computer_explorer-3.png'; 
 import maximize from'./icons/maximize-24px.png';
 import minimize from'./icons/minimize-24px.png';
-import volumeOn from'./icons/Loudspeaker-on.png';
+import volumeOn from'./icons/loudspeaker-on.png';
 import volumeOff from'./icons/loudspeaker-Muted.png';
 // import close from'./icons/close-24px.png';
 import windowGameIcon from'./icons/joystick-5.png';
