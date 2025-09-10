@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faCheck, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { PlusIcon, CheckIcon, TrashIcon } from '@phosphor-icons/react';
 import styles from './TodoList.module.scss';
 
 // Define task interface
@@ -147,7 +146,7 @@ const TodoList: React.FC = () => {
           className={styles.addButton}
           title="Add Task"
         >
-          <FontAwesomeIcon icon={faPlus} />
+          <PlusIcon />
         </button>
       </div>
       
@@ -204,7 +203,7 @@ const TodoList: React.FC = () => {
               ) : (
                 <>
                   <div className={styles.taskCheck}>
-                    {task.completed && <FontAwesomeIcon icon={faCheck} />}
+                    {task.completed && <CheckIcon />}
                   </div>
                   <div className={styles.taskText}>{task.text}</div>
                   <button 
@@ -212,7 +211,7 @@ const TodoList: React.FC = () => {
                     onClick={(e) => deleteTask(task.id, e)}
                     title="Delete Task"
                   >
-                    <FontAwesomeIcon icon={faTrash} />
+                    <TrashIcon />
                   </button>
                 </>
               )}
