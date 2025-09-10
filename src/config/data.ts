@@ -1,6 +1,6 @@
 import { DesktopFile, FileType } from "../types/fs";
 import { StaticImageData } from "next/image";
-import GameOfLife from "../components/content/GameOfLife";
+import GameOfLifeWindow from "../components/content/GameOfLife";
 import CV from "../components/content/cv";
 
 export const contact = {
@@ -148,7 +148,7 @@ export const programFiles: DesktopFile[] = [
     type: FileType.COMPONENT,
     x: 220,
     y: 20,
-    data: { component: GameOfLife },
+    data: { component: GameOfLifeWindow },
   },
   {
     id: "google",

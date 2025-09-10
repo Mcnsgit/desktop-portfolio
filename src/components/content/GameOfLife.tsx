@@ -1,7 +1,7 @@
 import "bulma/css/bulma.min.css";
-import { FC, useState, useRef, useCallback } from "react";
-import { Pause, Play, XCircle, Globe } from "react-feather";
-import "./App.css";
+import { useState, useRef, useCallback } from "react";
+import { Pause, Play, XCircle, Globe } from "@phosphor-icons/react";
+import "./GameOfLife.css";
 import useInterval from "../../hooks/useInterval";
 
 const numRows = 25;
@@ -35,7 +35,7 @@ const randomTiles = (): number[][] => {
   return rows;
 };
 
-const App: FC = () => {
+const GameOfLifeWindow = () => {
   const [grid, setGrid] = useState(() => {
     return randomTiles();
   });
@@ -152,4 +152,4 @@ const App: FC = () => {
   );
 };
 
-export default App;
+export default GameOfLifeWindow;
