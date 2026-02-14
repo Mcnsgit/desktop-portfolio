@@ -4,7 +4,7 @@ import styles from './Button.module.scss';
 
 interface ButtonProps {
   children: React.ReactNode;
-  onClick?: () => void;
+  onClick?: (e?: React.MouseEvent) => void;
   variant?: 'default' | 'primary';
   className?: string;
   disabled?: boolean;

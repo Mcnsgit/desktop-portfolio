@@ -9,7 +9,7 @@ import { SoundProvider, useSounds } from "@/hooks/useSounds";
 import Hero from "@/components/cv/Hero";
 import FontPreloader from "@/utils/FontPreloader";
 import Navbar from "@/components/cv/Navbar";
-// import styles from './page.module.scss';
+import styles from './page.module.scss';
 import CvView from "@/components/cv/CvView";
 import { useRouter } from "next/navigation"
 import Button from "@/components/ui/Button";
@@ -79,14 +79,14 @@ const HomePageContent = () => {
   }, [playSound]);
 
   const handleClick = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
+    (e?: React.MouseEvent) => {
+      e?.stopPropagation();
       console.log("Computer clicked, navigating to desktop...");
       setTimeout(() => {
         router.push("/desktop");
       }, 100);
     },
-    [router, playSound]
+    [router]
   );
 
 
@@ -105,8 +105,10 @@ const HomePageContent = () => {
     <FontPreloader />
     
     <Navbar />
-    <Hero onComputerClick={() => handleClick} />
-    <Button onClick={() => handleClick}>Enter Desktop</Button>
+    <Hero onComputerClick={handleClick} />
+    <div className={styles.enterDesktopWrapper}>
+      <Button onClick={handleClick}>Enter Desktop</Button>
+    </div>
     {/*  <div className="desktop-container"
     onClick={handleEnterDesktop}
     title="Click to enter desktop"

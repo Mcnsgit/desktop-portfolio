@@ -1,6 +1,14 @@
 @use './page-variables' as *; 
 @use '../styles/variables' as *;  
 
+/* Wrapper so Enter Desktop button stays above Hero (z-index 30) and is always clickable */
+.enterDesktopWrapper {
+  position: fixed;
+  bottom: 1rem;
+  left: 1rem;
+  z-index: 50;
+}
+
 .desktopEntryButton {
   position: fixed;
   bottom: 5px;
