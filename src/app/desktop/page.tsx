@@ -5,7 +5,6 @@ import MobileView from "@/components/mobile/MobileView";
 import Link from "next/link";
 import { isMobile as isMobileDetect } from "react-device-detect";
 import styles from './desktop.module.scss';
-import LoadingScreen from "@/components/3d/LoadingScreen";
 import { WindowProps } from "@/types/window";
 import { DesktopFile } from "@/types/fs";
 import { desktopFiles as initialDesktopFiles } from "@/config/data";
@@ -107,10 +106,6 @@ const DesktopPageContent = () => {
   const closeContextMenu = useCallback(() => {
     setContextMenu(null);
   }, []);
-
-  if (!isClient) {
-    return <LoadingScreen show={true} />;
-  }
 
   return (
     <div className={styles.desktopPageContainer}>

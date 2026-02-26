@@ -6,12 +6,15 @@
   position: fixed;
   top: 0;
   z-index: 40;
-  transition: background-color 0.3s ease-in-out;
-  background-color: transparent;
+  transition: background-color 0.3s ease-in-out, backdrop-filter 0.3s ease-in-out;
+  /* Slightly opaque base background so links stay readable over content */
+  background-color: rgba(5, 8, 22, 0.7);
+  backdrop-filter: blur(6px);
 }
 
 .scrolled {
-  background-color: #050816;
+  /* When scrolled, increase opacity a bit for even stronger contrast */
+  background-color: rgba(5, 8, 22, 0.9);
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(10px);
 }
