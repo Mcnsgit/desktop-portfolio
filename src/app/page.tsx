@@ -5,6 +5,7 @@ import React, { useEffect, useCallback, useState } from "react";
 // import { AnimatePresence, motion } from "framer-motion";
 // import Desktop from "@/components/desktop/Desktop";
 import BootAnimation from "@/components/3d/BootAnimation";
+import LoadingScreen from "@/components/3d/LoadingScreen";
 import { SoundProvider, useSounds } from "@/hooks/useSounds";
 import Hero from "@/components/cv/Hero";
 import FontPreloader from "@/utils/FontPreloader";
@@ -31,7 +32,17 @@ const HomePageContent = () => {
   const { playSound } = useSounds();
   const { isMobile } = useResponsiveView();
   const router = useRouter();
-  const [isBooting, setIsBooting] = useState(process.env.NODE_ENV !== 'development');
+  const [isBooting, setIsBooting] = useState(true);
+  const [isDesktopLoading, setIsDesktopLoading] = useState(false);
+
+  // Only show the boot animation once per session (including first site load).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const hasBooted = sessionStorage.getItem("hasBooted") === "true";
+    if (hasBooted) {
+      setIsBooting(false);
+    }
+  }, []);
   // const [viewMode, setViewMode] = useState<'cv' | 'desktop'>('cv');
   // const [windows, setWindows] = useState<WindowProps[]>([]);
 
@@ -75,20 +86,26 @@ const HomePageContent = () => {
 
   const handleBootComplete = useCallback(() => {
     setIsBooting(false);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("hasBooted", "true");
+    }
     playSound("startup");
   }, [playSound]);
 
   const handleClick = useCallback(
     (e?: React.MouseEvent) => {
       e?.stopPropagation();
-      console.log("Computer clicked, navigating to desktop...");
-      setTimeout(() => {
-        router.push("/desktop");
-      }, 100);
+      if (isDesktopLoading) return;
+      console.log("Computer clicked, loading desktop...");
+      setIsDesktopLoading(true);
     },
-    [router]
+    [isDesktopLoading]
   );
 
+  const handleDesktopLoaded = useCallback(() => {
+    setIsDesktopLoading(false);
+    router.push("/desktop");
+  }, [router]);
 
   if (isBooting) {
     return (
@@ -103,7 +120,11 @@ const HomePageContent = () => {
 
     <>  
     <FontPreloader />
-    
+    <LoadingScreen
+      show={isDesktopLoading}
+      message="Loading RetroOS desktop..."
+      onComplete={handleDesktopLoaded}
+    />
     <Navbar />
     <Hero onComputerClick={handleClick} />
     <div className={styles.enterDesktopWrapper}>

@@ -11,12 +11,10 @@ const BootAnimation: React.FC<BootAnimationProps> = ({
   onComplete,
   skipAnimation = false,
 }) => {
-  const [step, setStep] = useState(0);
-  const [progress, setProgress] = useState(0);
   const [text, setText] = useState<string[]>([]);
   const { playSound } = useSounds();
 
-  // Boot sequence
+  // Old‑style BIOS boot sequence only (no RetroOS loading bar here)
   useEffect(() => {
     if (skipAnimation) {
       onComplete();
@@ -34,35 +32,32 @@ const BootAnimation: React.FC<BootAnimationProps> = ({
       { delay: 1200, message: "Video: VGA 640x480 - OK" },
       { delay: 1000, message: "Sound: Sound Blaster 16 - OK" },
       { delay: 1500, message: "Loading RetroOS..." },
-      { delay: 3000, message: null }, // No message for progress step
-      { delay: 5000, message: null }, // Final step
+      // Final delay before handing control back to the app
+      { delay: 2000, message: null },
     ];
 
-    let timeoutId: NodeJS.Timeout;
+    const timeouts: NodeJS.Timeout[] = [];
     let elapsed = 0;
 
     bootSequence.forEach((item, index) => {
-      timeoutId = setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         if (item.message) {
           setText((prev) => [...prev, item.message]);
-        } else if (index === bootSequence.length - 2) {
-          setStep(1); // Move to progress step
-        } else if (index === bootSequence.length - 1) {
+        }
+
+        if (index === bootSequence.length - 1) {
           onComplete();
         }
       }, elapsed);
+
+      timeouts.push(timeoutId);
       elapsed += item.delay;
     });
 
-    const progressInterval = setInterval(() => {
-      setProgress((prev) => (step === 1 && prev < 100 ? prev + 1 : prev));
-    }, 50);
-
     return () => {
-      clearTimeout(timeoutId);
-      clearInterval(progressInterval);
+      timeouts.forEach(clearTimeout);
     };
-  }, [onComplete, skipAnimation, step, playSound]);
+  }, [onComplete, skipAnimation, playSound]);
 
   if (skipAnimation) {
     return null;
@@ -70,34 +65,19 @@ const BootAnimation: React.FC<BootAnimationProps> = ({
 
   return (
     <div className={styles.bootAnimation}>
-      {step === 0 && (
-        <div className={styles.bootScreen}>
-          <div className={styles.biosHeader}>
-            RetroOS BIOS v1.0
-            <span>Copyright © {new Date().getFullYear()}</span>
-          </div>
-          <div className={styles.biosContent}>
-            {text.map((line, index) => (
-              <div key={index} className={styles.textLine}>
-                {line}
-              </div>
-            ))}
-          </div>
+      <div className={styles.bootScreen}>
+        <div className={styles.biosHeader}>
+          RetroOS BIOS v1.0
+          <span>Copyright © {new Date().getFullYear()}</span>
         </div>
-      )}
-
-      {step === 1 && (
-        <div className={styles.bootProgress}>
-          <div className={styles.logo}>RetroOS</div>
-          <div className={styles.progressBarContainer}>
-            <div
-              className={styles.progressBar}
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <div className={styles.loadingText}>Loading... {progress}%</div>
+        <div className={styles.biosContent}>
+          {text.map((line, index) => (
+            <div key={index} className={styles.textLine}>
+              {line}
+            </div>
+          ))}
         </div>
-      )}
+      </div>
     </div>
   );
 };
