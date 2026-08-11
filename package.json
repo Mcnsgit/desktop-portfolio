@@ -2,16 +2,20 @@
   "name": "desktop-portfolio",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "packageManger": "pnpm@9"
   "scripts": {
     "dev": "pnpm next dev",
     "build": "pnpm next build",
-    "screenadditional features.shot": "node scripts/screenshot.js",
-    "update-readme": "node scripts/update-readme.js",
     "start": "pnpm next start",
     "lint": "pnpm next lint",
-    "dev:css": "postcss ./src/scss/style.scss -o ./dist/style.css --watch",
-    "analyze": "cross-env ANALYZE=true next build",
+    "analyze": "cross-env ANALYZE=true pnpm next build",
+    
+    "update-readme": "node scripts/update-readme.js",
     "screenshot": "node scripts/screenshot.js"
+    "dev:css": "postcss ./src/scss/style.scss -o ./dist/style.css --watch",
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
